@@ -7,3 +7,5 @@ A work in progress to analyze stock symbols based on various criteria.
 3. Add simple saving of calculated values to a Postgres DB.
 4. Add the ability to save the values to a user profile.
     * Might be unnecessary at first, consider more general approach.
+5. Place API key in its own file and read it from there (so it's never pushed here).
+6. Create quick setup steps for others to use this repository.
