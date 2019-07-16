@@ -1,16 +1,27 @@
 import http.client
 
-# Fetch your API key from the "avApi.txt" file
-# This file should ONLY contain the API key, and no other text
+# Takes the Stock symbol to fetch and the time interval
+def intradayTimeSeries(symbol, interval, vaApiKey):
+    # https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=MSFT&interval=5min&apikey=demo
+    avUrl = 'www.alphavantage.co'
+
+    # avUrl = 'www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol='
+    # avUrl += symbol + '&interval=' + interval + '&apikey=' + vaApiKey
+    # # FIXME - Remove later
+    # print('Url: ' + avUrl)
+
+    conn = http.client.HTTPSConnection(avUrl, 443, timeout=10)
+    conn.request("GET", "/")
+    response = conn.getresponse()
+    respBody = response.read()
+    print(respBody)
+    conn.close() #Close the connection when done
+    return
+
+# Fetches your API key from the "avApi.txt" file
+# This file should ONLY contain the API key, no other text/linebreaks
 f = open('./backend/avApi.txt', "r")
 lines = list(f)
 vaApiKey = ''.join(lines)
-print('Loaded API Key: ' + vaApiKey)
 
-# FIXME - Move this functionality to a helper method/file later
-# avApi = 'https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=MSFT&interval=5min&apikey=demo'
-
-# conn = http.client.HTTPSConnection('localhost', 8080)
-# h1 = http.client.HTTPConnection('www.python.org')
-# # h1
-# print('h1 connection established')
+intradayTimeSeries('MSFT', '5min', vaApiKey)
