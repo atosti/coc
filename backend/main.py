@@ -12,12 +12,12 @@ def intradayTimeSeries(symbol, interval, vaApiKey):
 
 # Fetches your API key from the "avApi.txt" file
 # This file should ONLY contain the API key, no other text/linebreaks
-f = open('./backend/avApi.txt', "r")
+f = open('./backend/avApiKey.txt', "r")
 lines = list(f)
-vaApiKey = ''.join(lines)
+avApiKey = ''.join(lines)
 
 # intradayTimeSeries('MSFT', '5min', vaApiKey)
 
 # Make a GET request
-resp = intradayTimeSeries('IP', '5min', vaApiKey)
+resp = intradayTimeSeries('IP', '5min', avApiKey)
 print('VA Response: ' + resp.text)
