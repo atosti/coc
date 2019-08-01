@@ -12,6 +12,6 @@ A work in progress to analyze stock symbols based on various criteria.
 
 ## Instructions to Run on your system
 1. Clone the repository
-2. Open the `backend` folder and create a new `avApi.txt` file.
+2. Open the `backend` folder and create a new `avApiKey.txt` file.
 3. Inside this file, simply paste your API key on a single line.
 4. Run `main.py` inside the `backend` folder, it should read your API key from the text file automatically.
