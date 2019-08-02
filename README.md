@@ -9,6 +9,7 @@ A work in progress to analyze stock symbols based on various criteria.
     * Might be unnecessary at first, consider more general approach.
 5. Place API key in its own file and read it from there (so it's never pushed here).
 6. Create quick setup steps for others to use this repository.
+7. Alternately, could write things to a spreadsheet/local file to create a sort of personalized database.
 
 ## Core Analysis Criteria
 1. What are the earnings per share?
