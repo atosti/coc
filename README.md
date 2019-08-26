@@ -10,6 +10,19 @@ As with all investing tools, use it at your own risk. ;)
     * Consider making an xlsx, so the raw data is human readable.
 2. Create quick setup steps for others to use this repository.
 3. Add a 'help' command.
+4. Create quick setup steps for others to use this repository.
+
+## Core Analysis Criteria
+1. What are the earnings per share?
+2. Are annual earnings over $700M? (Is it a large company?)
+3. Is it conservatively financed? (Current ratio of 200%)
+	* Current ratio = Current assets / current liabilities
+4. Dividend history (Have they missed any dividends in the last 20 years?)
+5. Have they had no earnings deficit in the last 10 years?
+6. How is earnings growth? (At least 2.9% annually for 10 years)
+7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5
+	* A ratio less than 1 is good
+8. Does it have Cheap earnings? (P/E ratio < 15)
 
 ## Instructions to Run on your system
 1. Clone the repository
