@@ -20,18 +20,17 @@ def timeSeriesDailyAdjusted(symbol, avApiKey):
     + '&apikey=' + avApiKey)
     return resp
 
-# Fetches/Creates a list of CIK IDs for all US Companies
+# Fetches/Creates a list of CIK Ids for all US Companies
 def getCikIds(ufApiKey):
     resp = requests.get('https://api.usfundamentals.com/v1/companies/xbrl?'
     + 'format=json'
     + '&token=' + ufApiKey)
     if resp.status_code == 200:
-        f = open("./backend/ciks.txt","w")
-        # FIXME - Take this JSON Response, and filter it down to be just CIK IDs, then write that to the file.
+        # Populates a list of CIK Ids
+        f = open('./backend/ciks.txt','w')
         companies = json.loads(resp.text)
         for company in companies:
-            f.write(company + "\n")
-            # f.write(company["company_id"] + "\n")
+            f.write(company["company_id"] + "\n")
         f.close()
     else:
         print('Error when reaching UF API')
@@ -51,8 +50,29 @@ def getCikIds(ufApiKey):
 # 8. Does it have Cheap earnings? (P/E ratio < 15)
 
 def analyze(ufApiKey):
-    return
+    # FIXME - Currently hardcodes to CIK "1418091" for testing
+    
+    # 3. Is it conservatively financed? (Current ratio of 200%)
+    # 	* Current ratio = Current assets / current liabilities
+    # https://api.usfundamentals.com/v1/indicators/xbrl?
+    # indicators=Goodwill,NetIncomeLoss
+    # &companies=320193,1418091
+    # &token=your_access_token
+# https://api.usfundamentals.com/v1/indicators/xbrl?indicators=Goodwill,NetIncomeLoss&companies=320193,1418091&token=ZN6kXxgpXMxFUQGcUOkZGw
 
+    resp = requests.get('https://api.usfundamentals.com/v1/indicators/xbrl?'
+        + 'indicators=AssetsCurrent,LiabilitiesCurrent'
+        + '&companies=' + '1418091'
+        + '&token=' + ufApiKey)
+    if resp.status_code == 200:
+        # companies = json.loads(resp.text)
+        companies = resp.text
+        print('Response: ' + companies)
+
+    # currAssets =
+    # currLiabilities = 
+    # currRatio = 0
+    return
 
 # Command processing
 def commands(phrase, avApiKey, ufApiKey):
@@ -74,10 +94,12 @@ def commands(phrase, avApiKey, ufApiKey):
         else:
             print('Response: '
             + timeSeriesDailyAdjusted(keywords[1], avApiKey).text)
-    # Fetches the list of all CIK IDs a writes them to a local dictionary
+    # Fetches the list of all CIK Ids a writes them to a local dictionary
     elif cmd == 'init':
         getCikIds(ufApiKey)
-        print('CIK IDs successfully fetched from US Fundamentals')
+        print('CIK Ids successfully fetched from US Fundamentals')
+    elif cmd == 'analyze' or cmd == 'analyse':
+        analyze(ufApiKey)
     elif cmd == 'quit' or cmd == 'exit':
         print('Exiting...')
     else:
