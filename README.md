@@ -5,12 +5,16 @@ criteria, with the aim of determining a rough intrinsic value.
 
 As with all investing tools, use it at your own risk. ;)
 
+This project uses the APIs available at [US Fundamentals](https://www.usfundamentals.com/) and [Alpha Vantage](https://www.alphavantage.co/).
+
 ## To Do List (Core features)
+### General tasks
 1. Add the ability to save the values to a local file.
     * Consider making an xlsx, so the raw data is human readable.
 2. Create quick setup steps for others to use this repository.
 3. Add a 'help' command.
 4. Create quick setup steps for others to use this repository.
+### US Fundamentals 
 
 ## Core Analysis Criteria
 1. What are the earnings per share?
@@ -26,9 +30,11 @@ As with all investing tools, use it at your own risk. ;)
 
 ## Instructions to Run on your system
 1. Clone the repository
-2. Open the `backend` folder and create a new `avApiKey.txt` file.
-3. Inside this file, simply paste your API key on a single line.
-4. Run `main.py` inside the `backend` folder, it should read your API key from the text file automatically.
+2. Open the `backend` folder and create two new files.
+    * A file called `avApiKey.txt` containing your Alpha Vantage API key.
+    * A file called `ufApiKey.txt` containing your US Fundamentals API key.
+3. Inside these files, simply paste your API key on a single line.
+4. Run `main.py` inside the `backend` folder, it should now read your API keys automatically.
 
 ## Commands (to be moved to the wiki later)
 1. Exit/Quit

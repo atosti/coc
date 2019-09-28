@@ -1,53 +1,14 @@
-import http.client
+import handler as handler
 
-import requests
-
-# TIME_SERIES_INTRADAY API call
-def timeSeriesDaily(symbol, interval, avApiKey):
-    resp = requests.get('https://www.alphavantage.co/query?'
-    + 'function=TIME_SERIES_INTRADAY&symbol=' + symbol
-    + '&interval=' + interval
-    + '&apikey=' + avApiKey)
-    return resp
-
-# TIME_SERIES_DAILY_ADJUSTED API call
-def timeSeriesDailyAdjusted(symbol, avApiKey):
-    resp = requests.get('https://www.alphavantage.co/query?'
-    + 'function=TIME_SERIES_DAILY_ADJUSTED&symbol=' + symbol
-    + '&apikey=' + avApiKey)
-    return resp
-
-# Command processing
-def commandHandler(phrase):
-    keywords = phrase.split(' ')
-    cmd = keywords[0] # Gets the command keyword
-
-    if cmd == 'help':
-        print('TBD - List of usable commands here!')
-    elif cmd == 'tsd':
-        if len(keywords) < 3:
-            print('Invalid syntax. Time Series Daily requires a symbol'
-            + ' and interval to be passed.')
-        else:
-            print('Response: '
-            + timeSeriesDaily(keywords[1], keywords[2], avApiKey).text)
-    elif cmd == 'tsda':
-        if len(keywords) < 2:
-            print('Invalid syntax. Time Series Daily Adjusted requires a symbol'
-            + ' to be passed.')
-        else:
-            print('Response: '
-            + timeSeriesDailyAdjusted(keywords[1], avApiKey).text)
-    elif cmd == 'quit' or cmd == 'exit':
-        print('Exiting...')
-    else:
-        print('Unrecognized command: ' + cmd)
-    return
-
-# Fetches your API key from the "avApiKey.txt" file
+# Fetches your Alpha Vantage API key from the "avApiKey.txt" file in backend
 f = open('./backend/avApiKey.txt', "r")
 lines = list(f)
 avApiKey = ''.join(lines)
+
+# Fetches your US Fundamentals API key from the "ufApiKey.txt" file in backend
+f = open('./backend/ufApiKey.txt', "r")
+lines = list(f)
+ufApiKey = ''.join(lines)
 
 # Command loop
 phrase = ''
@@ -56,8 +17,12 @@ while (phrase != 'quit' and phrase != 'exit'):
     print('$ ', end='') # Signals to the user they're in a command prompt
     phrase = input()
     phrase = phrase.lower()
-    commandHandler(phrase)
+    handler.commands(phrase, avApiKey, ufApiKey)
 
+# FIXME - Test API call to UF for getting company CIK IDs
+# https://api.usfundamentals.com/v1/companies/xbrl?format=json&token=ZN6kXxgpXMxFUQGcUOkZGw
+
+# FIXME - Examples below, remove later.
 
 # Make a GET request for testing
 # resp = timeSeriesDaily('MSFT', '5min', avApiKey)
