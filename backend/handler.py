@@ -39,9 +39,6 @@ def getCikIds(ufApiKey):
 
 # TODO - Analyze all of the following on each stock symbol
 # 1. What are the earnings per share?
-# 2. Are annual earnings over $700M? (Is it a large company?)
-# 3. Is it conservatively financed? (Current ratio of 200%)
-# 	* Current ratio = Current assets / current liabilities
 # 4. Dividend history (Have they missed any dividends in the last 20 years?)
 # 5. Have they had no earnings deficit in the last 10 years?
 # 6. How is earnings growth? (At least 2.9% annually for 10 years)
@@ -49,29 +46,52 @@ def getCikIds(ufApiKey):
 # 	* A ratio less than 1 is good
 # 8. Does it have Cheap earnings? (P/E ratio < 15)
 
-def analyze(ufApiKey):
-    # FIXME - Currently hardcodes to CIK "1418091" for testing
-    
+# Notes:
+# OperatingIncomeLoss = Earnings BEFORE taxes are deducted (but after operting expenses)
+# Revenues = Income before expenses AND taxes are deducted (gross sales)
+# So, therefore:
+#   - OperatingIncomeLoss = Revenues - expenses
+#   - Earnings = OperatingIncomeLoss - taxes
+# NetIncome = Earnings (which is income after taxes/expenses)
+
+# TODO - Currently hardcodes to CIK "1418091" (Twitter) for testing purposes.
+#         Eventually, pass in the list of CIKs and run it on them all.
+#      - Additionally, arrange this output into an EXCEL document
+#      - Add proper handling for indicators that aren't returned
+#      - Check the figures being passed for a company match its official financial reports
+def analyze(ufApiKey, avApiKey):
+    # https://api.usfundamentals.com/v1/indicators/xbrl?indicators=AssetsCurrent,LiabilitiesCurrent&companies=1418091&token=ZN6kXxgpXMxFUQGcUOkZGw
+
+    # 2. Are annual earnings over $700M? (Is it a large company?)
     # 3. Is it conservatively financed? (Current ratio of 200%)
     # 	* Current ratio = Current assets / current liabilities
-    # https://api.usfundamentals.com/v1/indicators/xbrl?
-    # indicators=Goodwill,NetIncomeLoss
-    # &companies=320193,1418091
-    # &token=your_access_token
-# https://api.usfundamentals.com/v1/indicators/xbrl?indicators=Goodwill,NetIncomeLoss&companies=320193,1418091&token=ZN6kXxgpXMxFUQGcUOkZGw
-
     resp = requests.get('https://api.usfundamentals.com/v1/indicators/xbrl?'
-        + 'indicators=AssetsCurrent,LiabilitiesCurrent'
+        + 'indicators=AssetsCurrent,LiabilitiesCurrent,NetIncomeLoss'
         + '&companies=' + '1418091'
         + '&token=' + ufApiKey)
     if resp.status_code == 200:
         # companies = json.loads(resp.text)
-        companies = resp.text
-        print('Response: ' + companies)
-
-    # currAssets =
-    # currLiabilities = 
-    # currRatio = 0
+        indicators = resp.text
+        print('USFund Resp: ' + indicators)
+        # Current Ratio from most recent year
+        indicator = indicators.split('\n')[1]
+        currAssets = indicator.split(',')[-1] # Gets most recent year
+        indicator = indicators.split('\n')[2]
+        currLiabilities = indicator.split(',')[-1]
+        currRatio = str(int(currAssets) / int(currLiabilities))
+        print('Current Ratio: ' + currRatio) # FIXME - Remove later
+        if(float(currRatio) > 2.0):
+            print('Over 200% current ratio? ' + 'Y')
+        else:
+            print('Over 200% current ratio? ' + 'N')
+        # Earnings from most recent year
+        indicator = indicators.split('\n')[3]
+        earnings = indicator.split(',')[-1]
+        print('Earnings: ' + earnings) # FIXME - Remove later
+        if(int(earnings) > 700000000):
+            print('Over $700M/yr? ' + 'Y')
+        else:
+            print('Over $700M/yr? ' + 'N')
     return
 
 # Command processing
@@ -99,7 +119,7 @@ def commands(phrase, avApiKey, ufApiKey):
         getCikIds(ufApiKey)
         print('CIK Ids successfully fetched from US Fundamentals')
     elif cmd == 'analyze' or cmd == 'analyse':
-        analyze(ufApiKey)
+        analyze(ufApiKey, avApiKey)
     elif cmd == 'quit' or cmd == 'exit':
         print('Exiting...')
     else:
