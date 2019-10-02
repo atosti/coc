@@ -18,17 +18,3 @@ while (phrase != 'quit' and phrase != 'exit'):
     phrase = input()
     phrase = phrase.lower()
     handler.commands(phrase, avApiKey, ufApiKey)
-
-# FIXME - Test API call to UF for getting company CIK IDs
-# https://api.usfundamentals.com/v1/companies/xbrl?format=json&token=ZN6kXxgpXMxFUQGcUOkZGw
-
-# FIXME - Examples below, remove later.
-
-# Make a GET request for testing
-# resp = timeSeriesDaily('MSFT', '5min', avApiKey)
-# print('VA Response: ' + resp.text)
-
-# resp2 = timeSeriesDailyAdjusted('IP', avApiKey)
-# print('tsDailyAdjusted: ' + resp2.text)
-
-# TODO - Figure out Annual earnings (historical if possible)

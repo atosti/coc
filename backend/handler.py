@@ -42,15 +42,9 @@ def getCikIds(ufApiKey):
 # TODO - Analyze all of the following on each stock symbol
 # 4. Dividend history (Have they missed any dividends in the last 20 years?)
 # 5. Have they had no earnings deficit in the last 10 years?
+#   - Need to handle if the stock is less than 10 years old (i.e. for TWTR)
 # 6. How is earnings growth? (At least 2.9% annually for 10 years)
-
-# Notes:
-# OperatingIncomeLoss = Earnings BEFORE taxes are deducted (but after operting expenses)
-# Revenues = Income before expenses AND taxes are deducted (gross sales)
-# So, therefore:
-#   - OperatingIncomeLoss = Revenues - expenses
-#   - Earnings = OperatingIncomeLoss - taxes
-# NetIncome = Earnings (which is income after taxes/expenses)
+#   - Need to handle if the stock is less than 10 years old (i.e. for TWTR)
 
 # TODO - Currently hardcodes to CIK "1418091" (Twitter) for testing purposes.
 #        Eventually, pass in the list of CIKs and run it on them all.
@@ -81,60 +75,76 @@ def analyze(ufApiKey, avApiKey):
         + '&companies=' + '1418091'
         + '&token=' + ufApiKey)
     if usfResp.status_code == 200:
+        # US Fund API Calls
         indicators = usfResp.text
         print('USFund Resp: ' + indicators)
-        # 1. Earnings per share from most recent year
-        indicator = indicators.split('\n')[4]
-        totalShares = int(indicator.split(',')[-1]) # Gets most recent year
-        print('Total Shares: ' + str(totalShares)) # FIXME - Remove later
+        for line in indicators.splitlines():
+            ind = str(line).split(',')[1]
+            if ind == 'AssetsCurrent':
+                currAssets = float(line.split(',')[-1])
+                print('Current Assets: ' + str(currAssets))
+            elif ind == 'LiabilitiesCurrent':
+                currLiabilities = float(line.split(',')[-1])
+                print('Current Liabilities: ' + str(currLiabilities))
+            elif ind == 'NetIncomeLoss':
+                # FIXME - For all the returned results, create an earnings var for it. Need this to determine earnings growth.
+                earnings = float(line.split(',')[-1])
+                print('Earnings: ' + str(earnings))
+            elif ind == 'WeightedAverageNumberOfDilutedSharesOutstanding':
+                totalShares = float(line.split(',')[-1])
+                print('Total Shares: ' + str(totalShares))
+            else:
+                print('Error - Unknown indicator fetched.')
+
+        # AV API Calls
+        # TODO - See if the current price is needed, for now just use EoY values for consistency
+        #      - Could be beneficial in determining a recent Cheap Assets Ratio
+        # FIXME - Generate a string of today's date to pass to this, as it's currently hardcoded to a date
+        # currPrice = float(tsdJson['Time Series (Daily)']['2019-09-30']['4. close'])
+        # print('Current Price: ' + str(currPrice)) # FIXME - Remove later
+
         # FIXME - Currently hardcoded to Twitter's symbol, fetch this from a dict based on each CIK later
         tsdJson = json.loads(timeSeriesDaily('TWTR', avApiKey).text)
-        eoyPrice = float(tsdJson['Time Series (Daily)']['2018-12-31']['4. close']) # End of year price
-        print('End of Year Price: ' + str(eoyPrice)) # FIXME - Remove later
-        # FIXME - Generate a string of today's date to pass to this, as it's currently hardcoded to a date
-        currPrice = float(tsdJson['Time Series (Daily)']['2019-09-30']['4. close'])
-        print('Current Price: ' + str(currPrice)) # FIXME - Remove later
-        marketCap = eoyPrice * float(totalShares)
-        print('Market Cap: ' + str(marketCap))
-        # 2. Current Ratio from most recent year
-        indicator = indicators.split('\n')[1]
-        currAssets = int(indicator.split(',')[-1])
-        print('Current Assets: ' + str(currAssets))
-        indicator = indicators.split('\n')[2]
-        currLiabilities = int(indicator.split(',')[-1])
-        print('Current Liabilities: ' + str(currLiabilities))
-        currRatio = currAssets / currLiabilities
-        print('Current Ratio: ' + str(currRatio)) # FIXME - Remove later
-        if(currRatio > 2.0):
-            print('Over 200% current ratio? ' + 'Y')
-        else:
-            print('Over 200% current ratio? ' + 'N')
-        # 3. Earnings from most recent year
-        indicator = indicators.split('\n')[3]
-        earnings = int(indicator.split(',')[-1])
-        print('Earnings: ' + str(earnings)) # FIXME - Remove later
-        if(earnings > 700000000):
-            print('Over $700M/yr? ' + 'Y')
-        else:
-            print('Over $700M/yr? ' + 'N')
+        eoyPrice = float(tsdJson['Time Series (Daily)']['2018-12-31']['4. close']) # End of year price  
+        # Calculations
         earningsPerShare = float(earnings) / float(totalShares)
-        print('Earnings/Share (EPS): ' + str(earningsPerShare)) # FIXME - Remove later
+        currRatio = currAssets / currLiabilities
         epsPercentage = 100 * (earningsPerShare / eoyPrice)
-        print('EPS Percentage: ' + str(round(epsPercentage, 2)) + '%') # FIXME - Remove later
-        # 7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5
+        marketCap = eoyPrice * float(totalShares)
         cheapAssetsRatio = marketCap / (float((currAssets - currLiabilities) * 1.5))
-        print('Cheap Assets Ratio (< 1 is good): ' + str(cheapAssetsRatio)) # FIXME - Remove later
-        if(marketCap < ((currAssets - currLiabilities) * 1.5)):
-            print('Cheap assets? ' + 'Y')
-        else:
-            print('Cheap assets? ' + 'N')
-        # 8. Does it have Cheap earnings? (P/E ratio < 15)
         priceToEarningsRatio = eoyPrice / float(earningsPerShare)
+        
+        # 1. Earnings per share from most recent year
+        print('1. Earnings/Share (EPS): ' + str(earningsPerShare)) # FIXME - Remove later
+        # 2. Current Ratio from most recent year
+        if(currRatio > 2.0):
+            print('2. Over 200% current ratio? ' + 'Y')
+        else:
+            print('2. Over 200% current ratio? ' + 'N')
+        # 3. Earnings from most recent year
+        if(earnings > 700000000):
+            print('3. Over $700M/yr? ' + 'Y')
+        else:
+            print('3. Over $700M/yr? ' + 'N')
+        # 7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5)
+        if(marketCap < ((currAssets - currLiabilities) * 1.5)):
+            print('7. Cheap assets? ' + 'Y')
+        else:
+            print('7. Cheap assets? ' + 'N')
+        # 8. Does it have Cheap earnings? (P/E ratio < 15)
         print('P/E Ratio (< 15 is good): ' + str(priceToEarningsRatio)) # FIXME - Remove later
         if(priceToEarningsRatio < 15):
-            print('Does it have cheap earnings? ' + 'Y')
+            print('8. Does it have cheap earnings? ' + 'Y')
         else:
-            print('Does it have cheap earnings? ' + 'N')
+            print('8. Does it have cheap earnings? ' + 'N')
+
+        # Additional datapoints. Relevant for testing.
+        print('End of Year Price: ' + str(eoyPrice)) # FIXME - Remove later
+        print('Market Cap: ' + str(marketCap))
+        print('Current Ratio: ' + str(currRatio)) # FIXME - Remove later
+        print('EPS Percentage: ' + str(round(epsPercentage, 2)) + '%') # FIXME - Remove later
+        print('Cheap Assets Ratio (< 1 is good): ' + str(cheapAssetsRatio)) # FIXME - Remove later
+
     return
 
 # Command processing
