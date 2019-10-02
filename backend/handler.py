@@ -8,14 +8,17 @@ import json
 # TIME_SERIES_INTRADAY API call
 def timeSeriesDaily(symbol, avApiKey):
     resp = requests.get('https://www.alphavantage.co/query?'
-    + 'function=TIME_SERIES_DAILY&symbol=' + symbol
+    + 'function=TIME_SERIES_DAILY'
+    + '&symbol=' + symbol
+    + '&outputsize=full'
     + '&apikey=' + avApiKey)
     return resp
 
 # TIME_SERIES_DAILY_ADJUSTED API call
 def timeSeriesDailyAdjusted(symbol, avApiKey):
     resp = requests.get('https://www.alphavantage.co/query?'
-    + 'function=TIME_SERIES_DAILY_ADJUSTED&symbol=' + symbol
+    + 'function=TIME_SERIES_DAILY_ADJUSTED'
+    + '&symbol=' + symbol
     + '&apikey=' + avApiKey)
     return resp
 
@@ -40,7 +43,6 @@ def getCikIds(ufApiKey):
 # 4. Dividend history (Have they missed any dividends in the last 20 years?)
 # 5. Have they had no earnings deficit in the last 10 years?
 # 6. How is earnings growth? (At least 2.9% annually for 10 years)
-# 8. Does it have Cheap earnings? (P/E ratio < 15)
 
 # Notes:
 # OperatingIncomeLoss = Earnings BEFORE taxes are deducted (but after operting expenses)
@@ -58,6 +60,7 @@ def getCikIds(ufApiKey):
 #      - Add the stock symbols to the CIK dict, so they can be easily referenced
 #      - Add status code check for AV API, also make the AV and USF calls not nested if possible
 #      - Move USF indicator API call to its own method
+#      - Some of my fundamentals values are based on TODAY, whereas others are EoY numbers. Make them consistent (e.g. Outstanding shares)
 
 # Note: The USF response puts the indicators in alphabetical order. Change the indicator arrays to match appropriately when adding new params to a request
 def analyze(ufApiKey, avApiKey):
@@ -69,6 +72,7 @@ def analyze(ufApiKey, avApiKey):
     # 	* Current ratio = Current assets / current liabilities
     # 7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5
     # 	* A ratio less than 1 is good
+    # 8. Does it have Cheap earnings? (P/E ratio < 15)
     usfResp = requests.get('https://api.usfundamentals.com/v1/indicators/xbrl?'
         + 'indicators=WeightedAverageNumberOfDilutedSharesOutstanding,'
         + 'AssetsCurrent,'
@@ -85,8 +89,12 @@ def analyze(ufApiKey, avApiKey):
         print('Total Shares: ' + str(totalShares)) # FIXME - Remove later
         # FIXME - Currently hardcoded to Twitter's symbol, fetch this from a dict based on each CIK later
         tsdJson = json.loads(timeSeriesDaily('TWTR', avApiKey).text)
+        eoyPrice = float(tsdJson['Time Series (Daily)']['2018-12-31']['4. close']) # End of year price
+        print('End of Year Price: ' + str(eoyPrice)) # FIXME - Remove later
+        # FIXME - Generate a string of today's date to pass to this, as it's currently hardcoded to a date
         currPrice = float(tsdJson['Time Series (Daily)']['2019-09-30']['4. close'])
-        marketCap = currPrice * totalShares
+        print('Current Price: ' + str(currPrice)) # FIXME - Remove later
+        marketCap = eoyPrice * float(totalShares)
         print('Market Cap: ' + str(marketCap))
         # 2. Current Ratio from most recent year
         indicator = indicators.split('\n')[1]
@@ -109,17 +117,24 @@ def analyze(ufApiKey, avApiKey):
             print('Over $700M/yr? ' + 'Y')
         else:
             print('Over $700M/yr? ' + 'N')
-        earningsPerShare = earnings / marketCap
+        earningsPerShare = float(earnings) / float(totalShares)
         print('Earnings/Share (EPS): ' + str(earningsPerShare)) # FIXME - Remove later
-        epsPercentage = 100 * earningsPerShare / currPrice
+        epsPercentage = 100 * (earningsPerShare / eoyPrice)
         print('EPS Percentage: ' + str(round(epsPercentage, 2)) + '%') # FIXME - Remove later
         # 7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5
-        cheapAssetsRatio = marketCap / ((currAssets - currLiabilities) * 1.5)
+        cheapAssetsRatio = marketCap / (float((currAssets - currLiabilities) * 1.5))
         print('Cheap Assets Ratio (< 1 is good): ' + str(cheapAssetsRatio)) # FIXME - Remove later
         if(marketCap < ((currAssets - currLiabilities) * 1.5)):
             print('Cheap assets? ' + 'Y')
         else:
             print('Cheap assets? ' + 'N')
+        # 8. Does it have Cheap earnings? (P/E ratio < 15)
+        priceToEarningsRatio = eoyPrice / float(earningsPerShare)
+        print('P/E Ratio (< 15 is good): ' + str(priceToEarningsRatio)) # FIXME - Remove later
+        if(priceToEarningsRatio < 15):
+            print('Does it have cheap earnings? ' + 'Y')
+        else:
+            print('Does it have cheap earnings? ' + 'N')
     return
 
 # Command processing
