@@ -4,11 +4,13 @@ import handler as handler
 f = open('./backend/avApiKey.txt', "r")
 lines = list(f)
 avApiKey = ''.join(lines)
+f.close()
 
 # Fetches your US Fundamentals API key from the "ufApiKey.txt" file in backend
 f = open('./backend/ufApiKey.txt', "r")
 lines = list(f)
 ufApiKey = ''.join(lines)
+f.close()
 
 # Command loop
 phrase = ''

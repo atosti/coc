@@ -22,23 +22,6 @@ def timeSeriesDailyAdjusted(symbol, avApiKey):
     + '&apikey=' + avApiKey)
     return resp
 
-# Fetches/Creates a list of CIK Ids for all US Companies
-def getCikIds(ufApiKey):
-    resp = requests.get('https://api.usfundamentals.com/v1/companies/xbrl?'
-    + 'format=json'
-    + '&token=' + ufApiKey)
-    if resp.status_code == 200:
-        # Populates a list of CIK Ids
-        f = open('./backend/ciks.txt','w')
-        companies = json.loads(resp.text)
-        for company in companies:
-            f.write(company["company_id"] + "\n")
-        f.close()
-    else:
-        print('Error when reaching UF API')
-        return
-    return
-
 # TODO - Analyze all of the following on each stock symbol
 # 4. Dividend history (Have they missed any dividends in the last 20 years?)
 # 5. Have they had no earnings deficit in the last 10 years?
@@ -55,11 +38,28 @@ def getCikIds(ufApiKey):
 #      - Add status code check for AV API, also make the AV and USF calls not nested if possible
 #      - Move USF indicator API call to its own method
 #      - Some of my fundamentals values are based on TODAY, whereas others are EoY numbers. Make them consistent (e.g. Outstanding shares)
+#      - Check that the USFund API works on all my CIK Ids, as they're not all from the same exchange
+#        I might need to take Exchange into consideration
 
-# Note: The USF response puts the indicators in alphabetical order. Change the indicator arrays to match appropriately when adding new params to a request
 def analyze(ufApiKey, avApiKey):
-    # https://api.usfundamentals.com/v1/indicators/xbrl?indicators=AssetsCurrent,LiabilitiesCurrent&companies=1418091&token=ZN6kXxgpXMxFUQGcUOkZGw
+    # Reads the tickerInfo file and fetches all the CIK Ids and ticker symbols
+    tickerList = list()
+    cikList = list()
+    with open('./backend/tickerInfo.txt', 'r') as tickerInfo:
+        lines = list(tickerInfo)
+        for line in lines:
+            #print("Line: " + line)
+            cikId = line.split('|')[0]
+            ticker = line.split('|')[1]
+            # Skips the first line, as it contains column headers
+            if(cikId != 'CIK'):
+                cikList.append(cikId)
+                tickerList.append(ticker)
+    # FIXME - Remove later. For testing only.
+    for cikId in cikList:
+        print("CIK Id: " + cikId)
 
+    # Currently Implemented Criteria
     # 1. What are the earnings per share?
     # 2. Are annual earnings over $700M? (Is it a large company?)
     # 3. Is it conservatively financed? (Current ratio of 200%)
@@ -167,10 +167,6 @@ def commands(phrase, avApiKey, ufApiKey):
         else:
             print('Response: '
             + timeSeriesDailyAdjusted(keywords[1], avApiKey).text)
-    # Fetches the list of all CIK Ids a writes them to a local dictionary
-    elif cmd == 'init':
-        getCikIds(ufApiKey)
-        print('CIK Ids successfully fetched from US Fundamentals')
     elif cmd == 'analyze' or cmd == 'analyse':
         analyze(ufApiKey, avApiKey)
     elif cmd == 'quit' or cmd == 'exit':
