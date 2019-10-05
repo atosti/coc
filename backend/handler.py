@@ -1,6 +1,7 @@
-import http.client
-import requests
-import json
+import http.client, requests, json, csv
+# import requests
+# import json
+# import csv
 
 # FIXME - Add HTTP status code checking for the AV API calls
 # FIXME - Add proper error handling for these methods
@@ -56,8 +57,8 @@ def analyze(ufApiKey, avApiKey):
                 cikList.append(cikId)
                 tickerList.append(ticker)
     # FIXME - Remove later. For testing only.
-    for cikId in cikList:
-        print("CIK Id: " + cikId)
+    # for cikId in cikList:
+    #     print("CIK Id: " + cikId)
 
     # Currently Implemented Criteria
     # 1. What are the earnings per share?
@@ -94,7 +95,8 @@ def analyze(ufApiKey, avApiKey):
                 totalShares = float(line.split(',')[-1])
                 print('Total Shares: ' + str(totalShares))
             else:
-                print('Error - Unknown indicator fetched.')
+                if ind != 'indicator_id':
+                    print('Error - Unknown indicator: ' + ind)
 
         # AV API Calls
         # TODO - See if the current price is needed, for now just use EoY values for consistency
@@ -113,7 +115,34 @@ def analyze(ufApiKey, avApiKey):
         marketCap = eoyPrice * float(totalShares)
         cheapAssetsRatio = marketCap / (float((currAssets - currLiabilities) * 1.5))
         priceToEarningsRatio = eoyPrice / float(earningsPerShare)
-        
+
+        # FIXME - Color code the cells based on if a stock passes its criteria
+        # CSV File Creation
+        with open('output.csv', 'w') as csvfile:
+            fieldnames = [
+                'CIK',
+                'Symbol',
+                'Earnings_Per_Share(EPS)',
+                'Current_Ratio',
+                'Earnings',
+                'Profits_to_Earnings_Ratio'
+            ]
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            # FIXME - Fetch the CIK and Symbol dynamically
+            writer.writerow({
+                'CIK': '1418091',
+                'Symbol': 'TWTR',
+                'Earnings_Per_Share(EPS)': str(earningsPerShare),
+                'Current_Ratio': str(currRatio),
+                'Earnings': str(earnings),
+                'Profits_to_Earnings_Ratio': str(priceToEarningsRatio)
+            })
+
+            # writer.writerow({'first_name': 'Baked', 'last_name': 'Beans'})
+            # writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
+            # writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
+
         # 1. Earnings per share from most recent year
         print('1. Earnings/Share (EPS): ' + str(earningsPerShare)) # FIXME - Remove later
         # 2. Current Ratio from most recent year
