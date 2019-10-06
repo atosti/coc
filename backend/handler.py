@@ -111,21 +111,62 @@ def analyze(ufApiKey, avApiKey):
         # Calculations
         earningsPerShare = float(earnings) / float(totalShares)
         currRatio = currAssets / currLiabilities
-        epsPercentage = 100 * (earningsPerShare / eoyPrice)
         marketCap = eoyPrice * float(totalShares)
-        cheapAssetsRatio = marketCap / (float((currAssets - currLiabilities) * 1.5))
         priceToEarningsRatio = eoyPrice / float(earningsPerShare)
+
+        epsPercentage = 100 * (earningsPerShare / eoyPrice)
+        cheapAssetsRatio = marketCap / (float((currAssets - currLiabilities) * 1.5))
+
+        # Criteria (Y/N)
+        # Keep them phrased where Y = Good, N = Bad
+        largeCompany = 'N'
+        conservativelyFinanced = 'N'
+        noMissedDividends = 'N'
+        noEarningsDeficit = 'N'
+        consistentEarningsGrowth = 'N'
+        cheapAssets = 'N'
+        cheapEarnings = 'N'
+        
+        # Large Company (Sales > 700M)
+        if(earnings >= 700000000):
+            largeCompany = 'Y'
+        # Conservatively Financed (Curr Ratio > 200%)
+        if(currRatio >= 2.0):
+            conservativelyFinanced = 'Y'
+        # No Missed Dividends (in the last 10 yrs)
+        # TODO
+        # No Earnings Deficit (in the last 10 yrs)
+        # TODO
+        # Consistent Earnings Growth (At least 2.9% annually for last 10 yrs)
+        # TODO
+        # Cheap Assets (Market cap < (Assets - Liabilites) * 1.5 )
+        if(marketCap < ((currAssets - currLiabilities) * 1.5)):
+            cheapAssets = 'Y'
+        # Cheap Earnings (P/E ratio < 15)
+        if(priceToEarningsRatio < 15):
+            cheapEarnings = 'Y'
+
+        # Additional datapoints. Relevant for testing.
+        # print('EPS Percentage: ' + str(round(epsPercentage, 2)) + '%') # FIXME - Remove later
 
         # FIXME - Color code the cells based on if a stock passes its criteria
         # CSV File Creation
-        with open('output.csv', 'w') as csvfile:
+        with open('output.csv', 'w', newline='') as csvfile:
+            # All Y/N criteria are listed as the final fields and have a '?'
             fieldnames = [
                 'CIK',
                 'Symbol',
                 'Earnings_Per_Share(EPS)',
                 'Current_Ratio',
                 'Earnings',
-                'Profits_to_Earnings_Ratio'
+                'Profits_to_Earnings_Ratio(PE)',
+                'Large_Company?',
+                'Conservatively_Financed?',
+                'No_Missed_Dividends?',
+                'No_Earnings_Deficit?',
+                'Consistent_Earnings_Growth?',
+                'Cheap_Assets?',
+                'Cheap_Earnings?'
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
@@ -136,44 +177,15 @@ def analyze(ufApiKey, avApiKey):
                 'Earnings_Per_Share(EPS)': str(earningsPerShare),
                 'Current_Ratio': str(currRatio),
                 'Earnings': str(earnings),
-                'Profits_to_Earnings_Ratio': str(priceToEarningsRatio)
+                'Profits_to_Earnings_Ratio(PE)': str(priceToEarningsRatio),
+                'Large_Company?': largeCompany,
+                'Conservatively_Financed?': conservativelyFinanced,
+                'No_Missed_Dividends?': noMissedDividends,
+                'No_Earnings_Deficit?': noEarningsDeficit,
+                'Consistent_Earnings_Growth?': consistentEarningsGrowth,
+                'Cheap_Assets?': cheapAssets,
+                'Cheap_Earnings?': cheapEarnings
             })
-
-            # writer.writerow({'first_name': 'Baked', 'last_name': 'Beans'})
-            # writer.writerow({'first_name': 'Lovely', 'last_name': 'Spam'})
-            # writer.writerow({'first_name': 'Wonderful', 'last_name': 'Spam'})
-
-        # 1. Earnings per share from most recent year
-        print('1. Earnings/Share (EPS): ' + str(earningsPerShare)) # FIXME - Remove later
-        # 2. Current Ratio from most recent year
-        if(currRatio > 2.0):
-            print('2. Over 200% current ratio? ' + 'Y')
-        else:
-            print('2. Over 200% current ratio? ' + 'N')
-        # 3. Earnings from most recent year
-        if(earnings > 700000000):
-            print('3. Over $700M/yr? ' + 'Y')
-        else:
-            print('3. Over $700M/yr? ' + 'N')
-        # 7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5)
-        if(marketCap < ((currAssets - currLiabilities) * 1.5)):
-            print('7. Cheap assets? ' + 'Y')
-        else:
-            print('7. Cheap assets? ' + 'N')
-        # 8. Does it have Cheap earnings? (P/E ratio < 15)
-        print('P/E Ratio (< 15 is good): ' + str(priceToEarningsRatio)) # FIXME - Remove later
-        if(priceToEarningsRatio < 15):
-            print('8. Does it have cheap earnings? ' + 'Y')
-        else:
-            print('8. Does it have cheap earnings? ' + 'N')
-
-        # Additional datapoints. Relevant for testing.
-        print('End of Year Price: ' + str(eoyPrice)) # FIXME - Remove later
-        print('Market Cap: ' + str(marketCap))
-        print('Current Ratio: ' + str(currRatio)) # FIXME - Remove later
-        print('EPS Percentage: ' + str(round(epsPercentage, 2)) + '%') # FIXME - Remove later
-        print('Cheap Assets Ratio (< 1 is good): ' + str(cheapAssetsRatio)) # FIXME - Remove later
-
     return
 
 # Command processing
