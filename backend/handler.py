@@ -89,8 +89,34 @@ def analyze(ufApiKey, avApiKey):
                 print('Current Liabilities: ' + str(currLiabilities))
             elif ind == 'NetIncomeLoss':
                 # FIXME - For all the returned results, create an earnings var for it. Need this to determine earnings growth.
-                earnings = float(line.split(',')[-1])
-                print('Earnings: ' + str(earnings))
+                earnings = float(line.split(',')[-1]) # Gets current year
+                print('Earnings: ' + str(earnings)) # FIXME - Remove later, for testing.
+                # List of annual earnings numbers, removes CIK and Metric items
+                earningsDataList = line.split(',')
+                earningsDataList.pop(1)
+                earningsDataList.pop(0)
+                print('Earnings Data List: ' + str(earningsDataList)) # FIXME - Remove later, for testing.
+                # Determines if 10 years of earnings growth data exist
+                tenYearEarningsGrowthAvailable = False
+
+                # Holds the avg of the last 10(or less) available years of EG
+                earningsGrowthAvg = float(0)
+                # Requires 11 values to determine last 10 years of growth
+                if(len(earningsDataList) > 11):
+                    tenYearEarningsGrowthAvailable = True
+                # FIXME - If not enough years exist, still calc EG with what's available.
+                #       - But if MORE than 11 years exist, only calc the last 10 years
+                # FIXME - Refine this. Also, it negates growth when swapping from years of loss to years of growth. Also, am I doing this calculation correctly? -76% seems insane.
+                if(tenYearEarningsGrowthAvailable):
+                    # FIXME - Find if: At least 33% earnings growth over the last 10 yrs.
+                    earningsGrowthAvg = abs(float(earningsDataList[-10]) - float(earningsDataList[-1])) / float(earningsDataList[-10]) * 100
+                else:
+                    earliestIndex = -1 * len(earningsDataList)
+                    earningsGrowthAvg = abs(float(earningsDataList[earliestIndex]) - float(earningsDataList[-1])) / float(earningsDataList[earliestIndex]) * 100
+                    # Handles the negative if going from a loss to a profit
+                    if(int(earningsDataList[earliestIndex]) < 0):
+                        earningsGrowthAvg *= -1
+                print('EG Avg: ' + str(earningsGrowthAvg)) # FIXME - For testing only
             elif ind == 'WeightedAverageNumberOfDilutedSharesOutstanding':
                 totalShares = float(line.split(',')[-1])
                 print('Total Shares: ' + str(totalShares))
@@ -119,13 +145,13 @@ def analyze(ufApiKey, avApiKey):
 
         # Criteria (Y/N)
         # Keep them phrased where Y = Good, N = Bad
-        largeCompany = 'N'
-        conservativelyFinanced = 'N'
-        noMissedDividends = 'N'
-        noEarningsDeficit = 'N'
-        consistentEarningsGrowth = 'N'
-        cheapAssets = 'N'
-        cheapEarnings = 'N'
+        largeCompany = 'Unk.'
+        conservativelyFinanced = 'Unk.'
+        noMissedDividends = 'Unk.'
+        noEarningsDeficit = 'Unk.'
+        consistentEarningsGrowth = 'Unk.'
+        cheapAssets = 'Unk.'
+        cheapEarnings = 'Unk.'
         
         # Large Company (Sales > 700M)
         if(earnings >= 700000000):
@@ -134,11 +160,14 @@ def analyze(ufApiKey, avApiKey):
         if(currRatio >= 2.0):
             conservativelyFinanced = 'Y'
         # No Missed Dividends (in the last 10 yrs)
-        # TODO
+        # TODO - What API can I get this from?
         # No Earnings Deficit (in the last 10 yrs)
         # TODO
-        # Consistent Earnings Growth (At least 2.9% annually for last 10 yrs)
-        # TODO
+        # Consistent Earnings Growth (At least 33% earnings growth over the last 10 yrs. So, 2.9% annually for last 10 yrs)
+        if(tenYearEarningsGrowthAvailable and (earningsGrowthAvg > 33.0)):
+            consistentEarningsGrowth = 'Y'
+        else:
+            consistentEarningsGrowth = 'N'
         # Cheap Assets (Market cap < (Assets - Liabilites) * 1.5 )
         if(marketCap < ((currAssets - currLiabilities) * 1.5)):
             cheapAssets = 'Y'
@@ -146,13 +175,10 @@ def analyze(ufApiKey, avApiKey):
         if(priceToEarningsRatio < 15):
             cheapEarnings = 'Y'
 
-        # Additional datapoints. Relevant for testing.
-        # print('EPS Percentage: ' + str(round(epsPercentage, 2)) + '%') # FIXME - Remove later
-
-        # FIXME - Color code the cells based on if a stock passes its criteria
+        # FIXME - Ensure this overwrites an existing file
         # CSV File Creation
         with open('output.csv', 'w', newline='') as csvfile:
-            # All Y/N criteria are listed as the final fields and have a '?'
+            # All criteria fields (Y/N) are listed last and contain a '?'
             fieldnames = [
                 'CIK',
                 'Symbol',
@@ -170,6 +196,8 @@ def analyze(ufApiKey, avApiKey):
             ]
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
+            # FIXME - Color code the cells based on if a stock passes its criteria
+            # FIXME - Add a column for the annual price chart, that generates a Morningstar link for easy access
             # FIXME - Fetch the CIK and Symbol dynamically
             writer.writerow({
                 'CIK': '1418091',
