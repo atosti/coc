@@ -1,7 +1,4 @@
 import http.client, requests, json, csv
-# import requests
-# import json
-# import csv
 
 # FIXME - Add HTTP status code checking for the AV API calls
 # FIXME - Add proper error handling for these methods
@@ -23,19 +20,9 @@ def timeSeriesDailyAdjusted(symbol, avApiKey):
     + '&apikey=' + avApiKey)
     return resp
 
-# TODO - Analyze all of the following on each stock symbol
-# 4. Dividend history (Have they missed any dividends in the last 20 years?)
-# 5. Have they had no earnings deficit in the last 10 years?
-#   - Need to handle if the stock is less than 10 years old (i.e. for TWTR)
-# 6. How is earnings growth? (At least 2.9% annually for 10 years)
-#   - Need to handle if the stock is less than 10 years old (i.e. for TWTR)
-
 # TODO - Currently hardcodes to CIK "1418091" (Twitter) for testing purposes.
 #        Eventually, pass in the list of CIKs and run it on them all.
-#      - Additionally, arrange this output into an EXCEL document
-#      - Add proper handling for indicators that aren't returned
 #      - Check the figures being passed for a company match its official financial reports
-#      - Add the stock symbols to the CIK dict, so they can be easily referenced
 #      - Add status code check for AV API, also make the AV and USF calls not nested if possible
 #      - Move USF indicator API call to its own method
 #      - Some of my fundamentals values are based on TODAY, whereas others are EoY numbers. Make them consistent (e.g. Outstanding shares)
@@ -49,25 +36,12 @@ def analyze(ufApiKey, avApiKey):
     with open('./backend/tickerInfo.txt', 'r') as tickerInfo:
         lines = list(tickerInfo)
         for line in lines:
-            #print("Line: " + line)
             cikId = line.split('|')[0]
             ticker = line.split('|')[1]
             # Skips the first line, as it contains column headers
             if(cikId != 'CIK'):
                 cikList.append(cikId)
                 tickerList.append(ticker)
-    # FIXME - Remove later. For testing only.
-    # for cikId in cikList:
-    #     print("CIK Id: " + cikId)
-
-    # Currently Implemented Criteria
-    # 1. What are the earnings per share?
-    # 2. Are annual earnings over $700M? (Is it a large company?)
-    # 3. Is it conservatively financed? (Current ratio of 200%)
-    # 	* Current ratio = Current assets / current liabilities
-    # 7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5
-    # 	* A ratio less than 1 is good
-    # 8. Does it have Cheap earnings? (P/E ratio < 15)
     usfResp = requests.get('https://api.usfundamentals.com/v1/indicators/xbrl?'
         + 'indicators=WeightedAverageNumberOfDilutedSharesOutstanding,'
         + 'AssetsCurrent,'
@@ -88,7 +62,6 @@ def analyze(ufApiKey, avApiKey):
                 currLiabilities = float(line.split(',')[-1])
                 print('Current Liabilities: ' + str(currLiabilities))
             elif ind == 'NetIncomeLoss':
-                # FIXME - For all the returned results, create an earnings var for it. Need this to determine earnings growth.
                 earnings = float(line.split(',')[-1]) # Gets current year
                 print('Earnings: ' + str(earnings)) # FIXME - Remove later, for testing.
                 # List of annual earnings numbers, removes CIK and Metric items
@@ -96,27 +69,22 @@ def analyze(ufApiKey, avApiKey):
                 earningsDataList.pop(1)
                 earningsDataList.pop(0)
                 print('Earnings Data List: ' + str(earningsDataList)) # FIXME - Remove later, for testing.
-                # Determines if 10 years of earnings growth data exist
-                tenYearEarningsGrowthAvailable = False
-
+                # Determines if 10 years of earnings data exists
+                tenYearEarningsAvailable = False
                 # Holds the avg of the last 10(or less) available years of EG
                 earningsGrowthAvg = float(0)
                 # Requires 11 values to determine last 10 years of growth
                 if(len(earningsDataList) > 11):
-                    tenYearEarningsGrowthAvailable = True
-                # FIXME - If not enough years exist, still calc EG with what's available.
-                #       - But if MORE than 11 years exist, only calc the last 10 years
-                # FIXME - Refine this. Also, it negates growth when swapping from years of loss to years of growth. Also, am I doing this calculation correctly? -76% seems insane.
-                if(tenYearEarningsGrowthAvailable):
-                    # FIXME - Find if: At least 33% earnings growth over the last 10 yrs.
+                    tenYearEarningsAvailable = True
+                if(tenYearEarningsAvailable):
                     earningsGrowthAvg = abs(float(earningsDataList[-10]) - float(earningsDataList[-1])) / float(earningsDataList[-10]) * 100
                 else:
                     earliestIndex = -1 * len(earningsDataList)
                     earningsGrowthAvg = abs(float(earningsDataList[earliestIndex]) - float(earningsDataList[-1])) / float(earningsDataList[earliestIndex]) * 100
-                    # Handles the negative if going from a loss to a profit
+                    # Handles the negative if switching from loss to profit
                     if(int(earningsDataList[earliestIndex]) < 0):
                         earningsGrowthAvg *= -1
-                print('EG Avg: ' + str(earningsGrowthAvg)) # FIXME - For testing only
+                print('EG Avg: ' + str(earningsGrowthAvg)) # FIXME - For testing only.
             elif ind == 'WeightedAverageNumberOfDilutedSharesOutstanding':
                 totalShares = float(line.split(',')[-1])
                 print('Total Shares: ' + str(totalShares))
@@ -139,20 +107,15 @@ def analyze(ufApiKey, avApiKey):
         currRatio = currAssets / currLiabilities
         marketCap = eoyPrice * float(totalShares)
         priceToEarningsRatio = eoyPrice / float(earningsPerShare)
-
-        epsPercentage = 100 * (earningsPerShare / eoyPrice)
-        cheapAssetsRatio = marketCap / (float((currAssets - currLiabilities) * 1.5))
-
         # Criteria (Y/N)
         # Keep them phrased where Y = Good, N = Bad
-        largeCompany = 'Unk.'
-        conservativelyFinanced = 'Unk.'
-        noMissedDividends = 'Unk.'
-        noEarningsDeficit = 'Unk.'
-        consistentEarningsGrowth = 'Unk.'
-        cheapAssets = 'Unk.'
-        cheapEarnings = 'Unk.'
-        
+        largeCompany = 'N'
+        conservativelyFinanced = 'N'
+        noMissedDividends = 'N'
+        noEarningsDeficit = 'N'
+        consistentEarningsGrowth = 'N'
+        cheapAssets = 'N'
+        cheapEarnings = 'N'
         # Large Company (Sales > 700M)
         if(earnings >= 700000000):
             largeCompany = 'Y'
@@ -161,20 +124,22 @@ def analyze(ufApiKey, avApiKey):
             conservativelyFinanced = 'Y'
         # No Missed Dividends (in the last 10 yrs)
         # TODO - What API can I get this from?
+        noMissedDividends = 'Unk.'
         # No Earnings Deficit (in the last 10 yrs)
-        # TODO
+        if(tenYearEarningsAvailable):
+            noEarningsDeficit = 'Y'
+            for i in range(-10, -1):
+                if(earningsDataList[i] < 0):
+                    noEarningsDeficit = 'N'
         # Consistent Earnings Growth (At least 33% earnings growth over the last 10 yrs. So, 2.9% annually for last 10 yrs)
-        if(tenYearEarningsGrowthAvailable and (earningsGrowthAvg > 33.0)):
+        if(tenYearEarningsAvailable and (earningsGrowthAvg > 33.0)):
             consistentEarningsGrowth = 'Y'
-        else:
-            consistentEarningsGrowth = 'N'
         # Cheap Assets (Market cap < (Assets - Liabilites) * 1.5 )
         if(marketCap < ((currAssets - currLiabilities) * 1.5)):
             cheapAssets = 'Y'
         # Cheap Earnings (P/E ratio < 15)
         if(priceToEarningsRatio < 15):
             cheapEarnings = 'Y'
-
         # FIXME - Ensure this overwrites an existing file
         # CSV File Creation
         with open('output.csv', 'w', newline='') as csvfile:
@@ -186,6 +151,7 @@ def analyze(ufApiKey, avApiKey):
                 'Current_Ratio',
                 'Earnings',
                 'Profits_to_Earnings_Ratio(PE)',
+                'Earnings_Growth_Avg',
                 'Large_Company?',
                 'Conservatively_Financed?',
                 'No_Missed_Dividends?',
@@ -206,6 +172,7 @@ def analyze(ufApiKey, avApiKey):
                 'Current_Ratio': str(currRatio),
                 'Earnings': str(earnings),
                 'Profits_to_Earnings_Ratio(PE)': str(priceToEarningsRatio),
+                'Earnings_Growth_Avg': str(earningsGrowthAvg),
                 'Large_Company?': largeCompany,
                 'Conservatively_Financed?': conservativelyFinanced,
                 'No_Missed_Dividends?': noMissedDividends,
