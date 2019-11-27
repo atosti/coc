@@ -1,3 +1,5 @@
 # Untracked files
 backend/avApiKey.txt
 backend/ufApiKey.txt
+backend/quandlApiKey.txt
+output.csv

@@ -14,7 +14,7 @@ This project uses the APIs available at [US Fundamentals](https://www.usfundamen
 2. Create quick setup steps for others to use this repository.
 3. Add a 'help' command.
 4. Create quick setup steps for others to use this repository.
-### US Fundamentals 
+5. Create basic calls to Finviz for further analysis/links to charts
 
 ## Core Analysis Criteria
 1. What are the earnings per share?
