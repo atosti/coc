@@ -1,5 +1,4 @@
 # Untracked files
-backend/avApiKey.txt
-backend/ufApiKey.txt
-backend/quandlApiKey.txt
+backend/keys/alpha-vantage.txt
+backend/keys/us-fundamentals.txt
 output.csv
