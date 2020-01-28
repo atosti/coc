@@ -16,10 +16,15 @@ eoyDateStr = '2018-12-31'
 
 # Holds all data returned from a US Fundamentals call
 class UF:
-    assets = 0
-    earnings = 0
-    liabilities = 0
-    shares = 0
+    assets = []
+    earnings = []
+    liabilities = []
+    shares = []
+    years = []
+    # assets = 0
+    # earnings = 0
+    # liabilities = 0
+    # shares = 0
 
     def fetch(self, cik):
         ufResp = requests.get(
@@ -36,19 +41,38 @@ class UF:
             indicatorRows = ufResp.text
             for row in indicatorRows.splitlines():
                 ind = str(row).split(',')[1]
-                if ind == 'AssetsCurrent':
-                    self.assets = float(row.split(',')[-1])
+                if ind == 'indicator_id':
+                    for item in row.split(',')[2:]:
+                        self.years.append(item)
+                elif ind == 'AssetsCurrent':
+                    for item in row.split(',')[2:]:
+                        self.assets.append(item)
                 elif ind == 'LiabilitiesCurrent':
-                    self.liabilities = float(row.split(',')[-1])
+                    for item in row.split(',')[2:]:
+                        self.liabilities.append(item)
                 elif ind == 'NetIncomeLoss':
-                    self.earnings = float(row.split(',')[-1])
+                    for item in row.split(',')[2:]:
+                        self.earnings.append(item)
                 elif ind == 'WeightedAverageNumberOfDilutedSharesOutstanding':
-                    self.shares = float(row.split(',')[-1])
+                    for item in row.split(',')[2:]:
+                        self.shares.append(item)
         return
+
+# Holds all the data associated with an 'output.csv' row
+class CsvRow:
+    symbol = ''
+    numCriteria = 0
+    healthyMarketCap = False
+    healthyPeRatio = False
+    healthyCurrRatio = False
+    healthyEarnings = False
+    healthyDividends = False
+    healthyEps = False
+    cheapAssets = False
 
 # Creates a CSV for storing ticker output
 def createCsv():
-    with open('output.csv', 'w', newline='') as csvfile:
+    with open('output.csv', 'w', newline = '') as csvfile:
         fieldnames = [
             'Symbol',
             'Criteria_of_7',
@@ -58,7 +82,7 @@ def createCsv():
             'No_earnings_deficit_(10yrs)?',
             'No_missed_dividends_(20yrs)?',
             'EPS_avg_over_33%_(10yrs)?',
-            "Cheap_assets?"
+            'Cheap_assets?'
         ]
         writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
         writer.writeheader()
@@ -140,9 +164,39 @@ def hasCheapAssets(assets, liabilities, marketCap):
         return False
     return True
 
+# Updates the csv with a new row
+# TODO - Prevent Symbol dupes. Currently will simply append a new row.
+def updateCsv(symbol, csvRow):
+    fieldnames = [
+            'Symbol',
+            'Criteria_of_7',
+            'Market_Cap_over_$700M?',
+            'P/E_below_15?',
+            'Curr_Ratio_over_2?',
+            'No_earnings_deficit_(10yrs)?',
+            'No_missed_dividends_(20yrs)?',
+            'EPS_avg_over_33%_(10yrs)?',
+            'Cheap_assets?'
+        ]
+    with open('output.csv', 'a', newline = '') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+        writer.writerow({
+            'Symbol': csvRow.symbol,
+            'Criteria_of_7': csvRow.numCriteria,
+            'Market_Cap_over_$700M?': csvRow.healthyMarketCap,
+            'P/E_below_15?': csvRow.healthyPeRatio,
+            'Curr_Ratio_over_2?': csvRow.healthyCurrRatio,
+            'No_earnings_deficit_(10yrs)?': csvRow.healthyEarnings,
+            'No_missed_dividends_(20yrs)?': csvRow.healthyDividends,
+            'EPS_avg_over_33%_(10yrs)?': csvRow.healthyEps,
+            'Cheap_assets?': csvRow.cheapAssets
+        })
+    return
+
 # Analyzes a symbol and writes it to the output csv
 def check(symbol):
     # All of the 7 criteria
+    numCriteria = 0
     healthyMarketCap = False
     healthyPeRatio = False
     healthyCurrRatio = False
@@ -150,35 +204,47 @@ def check(symbol):
     healthyDividends = False
     healthyEps = False
     cheapAssets = False
+
     # All the values required for determining health
-    cik = fetchCik(symbol)
-    uf = UF()
-    uf.fetch(cik)
-    price = sharePrice(symbol)
-    marketCap = price * float(uf.shares)
-    eps = float(uf.earnings / uf.shares)
-    peRatio = float(price / eps)
-    currRatio = float(uf.assets / uf.liabilities)
+    # cik = fetchCik(symbol)
+    # uf = UF()
+    # uf.fetch(cik)
+    # price = sharePrice(symbol)
+    # marketCap = price * float(uf.shares)
+    # eps = float(uf.earnings / uf.shares)
+    # peRatio = float(price / eps)
+    # currRatio = float(uf.assets / uf.liabilities)
+
     # TODO - Fetch arrays of 10yr earnings, dividends, eps
 
     # Calls to determine health
-    if hasHealthyMarketCap(marketCap):
-        healthyMarketCap = True
-    if hasHealthyPeRatio(peRatio):
-        healthyPeRatio = True
-    if hasHealthyCurrRatio(currRatio):
-        healthyCurrRatio = True
+    # if hasHealthyMarketCap(marketCap):
+    #     healthyMarketCap = True
+    # if hasHealthyPeRatio(peRatio):
+    #     healthyPeRatio = True
+    # if hasHealthyCurrRatio(currRatio):
+    #     healthyCurrRatio = True
     # if hasHealthyEarnings(earnings10yrs):
     #     healthyEarnings = True
     # if hasHealthyDividends(dividends20yrs):
     #     healthyDividends = True
     # if hasHealthyEps(eps10yrs):
     #     healthyEps = True
-    if hasCheapAssets(uf.assets, uf.liabilities, marketCap):
-        cheapAssets = True
+    # if hasCheapAssets(uf.assets, uf.liabilities, marketCap):
+    #     cheapAssets = True
 
-    # TODO - Call a method for modifying the csv
-    #   1) First just add a new line with the proper data
-    #   2) Then change it to search for a symbol and write that row
+    # Create a row to be written and write it to the csv
+    csvRow = CsvRow()
+    # TODO - Consider uppercasing symbol
+    csvRow.symbol = symbol
+    csvRow.numCriteria = numCriteria
+    csvRow.healthyMarketCap = healthyMarketCap
+    csvRow.healthyPeRatio = healthyPeRatio
+    csvRow.healthyCurrRatio = healthyCurrRatio
+    csvRow.healthyEarnings = healthyEarnings
+    csvRow.healthyDividends = healthyDividends
+    csvRow.healthyEps = healthyEps
+    csvRow.cheapAssets = cheapAssets
+    updateCsv(symbol, csvRow)
 
     return
