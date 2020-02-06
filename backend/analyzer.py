@@ -13,6 +13,7 @@ f.close()
 
 # Sets the end of year date (can be updated as years change)
 eoyDateStr = '2018-12-31'
+eoyDateYr = '2018'
 
 # Holds all data returned from a US Fundamentals call
 class UF:
@@ -21,12 +22,18 @@ class UF:
     liabilities = []
     shares = []
     years = []
-    # assets = 0
-    # earnings = 0
-    # liabilities = 0
-    # shares = 0
 
     def fetch(self, cik):
+        print('UF Call:\n' +
+            'https://api.usfundamentals.com/v1/indicators/xbrl?' +
+            'indicators=' +
+            'AssetsCurrent,' +
+            'LiabilitiesCurrent,' +
+            'NetIncomeLoss,' +
+            'WeightedAverageNumberOfDilutedSharesOutstanding' +
+            '&companies=' + cik +
+            '&token=' + ufKey
+        ) # FIXME - Remove later
         ufResp = requests.get(
             'https://api.usfundamentals.com/v1/indicators/xbrl?' +
             'indicators=' +
@@ -46,16 +53,16 @@ class UF:
                         self.years.append(item)
                 elif ind == 'AssetsCurrent':
                     for item in row.split(',')[2:]:
-                        self.assets.append(item)
+                        self.assets.append(float(item))
                 elif ind == 'LiabilitiesCurrent':
                     for item in row.split(',')[2:]:
-                        self.liabilities.append(item)
+                        self.liabilities.append(float(item))
                 elif ind == 'NetIncomeLoss':
                     for item in row.split(',')[2:]:
-                        self.earnings.append(item)
+                        self.earnings.append(float(item))
                 elif ind == 'WeightedAverageNumberOfDilutedSharesOutstanding':
                     for item in row.split(',')[2:]:
-                        self.shares.append(item)
+                        self.shares.append(float(item))
         return
 
 # Holds all the data associated with an 'output.csv' row
@@ -68,11 +75,11 @@ class CsvRow:
     healthyEarnings = False
     healthyDividends = False
     healthyEps = False
-    cheapAssets = False
+    healthyAssets = False
 
 # Creates a CSV for storing ticker output
 def createCsv():
-    with open('output.csv', 'w', newline = '') as csvfile:
+    with open('output.csv', 'w', newline = '') as file:
         fieldnames = [
             'Symbol',
             'Criteria_of_7',
@@ -84,7 +91,7 @@ def createCsv():
             'EPS_avg_over_33%_(10yrs)?',
             'Cheap_assets?'
         ]
-        writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+        writer = csv.DictWriter(file, fieldnames = fieldnames)
         writer.writeheader()
     return
 
@@ -132,6 +139,7 @@ def hasHealthyCurrRatio(currRatio):
         return True
     return False
 
+# FIXME - Change to only consider the most recent 10 years of data
 def hasHealthyEarnings(earnings10yrs):
     # Check for enough years of data
     if len(earnings10yrs) < 10:
@@ -141,25 +149,30 @@ def hasHealthyEarnings(earnings10yrs):
             return False
     return True
 
+# FIXME - Untested as no API data available to test this
 def hasHealthyDividends(dividends20yrs):
     # Check for enough years of data
     if len(dividends20yrs) < 20:
         return False
     # TODO - Need to check that its been increasing or constant each year
-    # for dividend in dividends20yrs:
-    #     if dividend
     return True
 
-def hasHealthyEps(eps10yrs):
-    # Check for enough years of data
-    if len(eps10yrs) < 10:
-        return False
-    for eps in eps10yrs:
-        if eps < 0:
-            return False
-    return True
+def hasHealthyEps(earnings, shares, years):
+    # Determines if EPS has increased on avg. > 33% over last 10 yrs
+    i = 0 # Index of the current Eoy Date
+    for year in years:
+        if year == eoyDateYr:
+            return i
+        i += 1
+    eps = earnings[i]
+    epsPrio = earnings[i - 10]
+    diff = float(epsPrio / eps)
+    print('Diff: ' + diff) # FIXME - Remove later
+    if diff >= 33.0:
+        return True
+    return False
 
-def hasCheapAssets(assets, liabilities, marketCap):
+def hasHealthyAssets(assets, liabilities, marketCap):
     if marketCap >= ((assets - liabilities) * 1.5):
         return False
     return True
@@ -178,8 +191,8 @@ def updateCsv(symbol, csvRow):
             'EPS_avg_over_33%_(10yrs)?',
             'Cheap_assets?'
         ]
-    with open('output.csv', 'a', newline = '') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames = fieldnames)
+    with open('output.csv', 'a', newline = '') as file:
+        writer = csv.DictWriter(file, fieldnames = fieldnames)
         writer.writerow({
             'Symbol': csvRow.symbol,
             'Criteria_of_7': csvRow.numCriteria,
@@ -189,62 +202,94 @@ def updateCsv(symbol, csvRow):
             'No_earnings_deficit_(10yrs)?': csvRow.healthyEarnings,
             'No_missed_dividends_(20yrs)?': csvRow.healthyDividends,
             'EPS_avg_over_33%_(10yrs)?': csvRow.healthyEps,
-            'Cheap_assets?': csvRow.cheapAssets
+            'Cheap_assets?': csvRow.healthyAssets
         })
     return
 
+# Determines the number of critera matched
+def numHealthyCriteria(csvRow):
+    totalMatches = 0
+    if csvRow.healthyMarketCap == True:
+        totalMatches += 1
+    if csvRow.healthyPeRatio == True:
+        totalMatches += 1
+    if csvRow.healthyCurrRatio == True:
+        totalMatches += 1
+    if csvRow.healthyEarnings == True:
+        totalMatches += 1
+    if csvRow.healthyDividends == True:
+        totalMatches += 1
+    if csvRow.healthyEps == True:
+        totalMatches += 1
+    if csvRow.healthyAssets == True:
+        totalMatches += 1
+    return totalMatches
+
 # Analyzes a symbol and writes it to the output csv
 def check(symbol):
-    # All of the 7 criteria
-    numCriteria = 0
-    healthyMarketCap = False
-    healthyPeRatio = False
-    healthyCurrRatio = False
-    healthyEarnings = False
-    healthyDividends = False
-    healthyEps = False
-    cheapAssets = False
-
-    # All the values required for determining health
-    # cik = fetchCik(symbol)
-    # uf = UF()
-    # uf.fetch(cik)
-    # price = sharePrice(symbol)
-    # marketCap = price * float(uf.shares)
-    # eps = float(uf.earnings / uf.shares)
-    # peRatio = float(price / eps)
-    # currRatio = float(uf.assets / uf.liabilities)
-
-    # TODO - Fetch arrays of 10yr earnings, dividends, eps
-
-    # Calls to determine health
-    # if hasHealthyMarketCap(marketCap):
-    #     healthyMarketCap = True
-    # if hasHealthyPeRatio(peRatio):
-    #     healthyPeRatio = True
-    # if hasHealthyCurrRatio(currRatio):
-    #     healthyCurrRatio = True
-    # if hasHealthyEarnings(earnings10yrs):
-    #     healthyEarnings = True
-    # if hasHealthyDividends(dividends20yrs):
-    #     healthyDividends = True
-    # if hasHealthyEps(eps10yrs):
-    #     healthyEps = True
-    # if hasCheapAssets(uf.assets, uf.liabilities, marketCap):
-    #     cheapAssets = True
-
-    # Create a row to be written and write it to the csv
+    # Create/Initialize a row for CSV
     csvRow = CsvRow()
-    # TODO - Consider uppercasing symbol
-    csvRow.symbol = symbol
-    csvRow.numCriteria = numCriteria
-    csvRow.healthyMarketCap = healthyMarketCap
-    csvRow.healthyPeRatio = healthyPeRatio
-    csvRow.healthyCurrRatio = healthyCurrRatio
-    csvRow.healthyEarnings = healthyEarnings
-    csvRow.healthyDividends = healthyDividends
-    csvRow.healthyEps = healthyEps
-    csvRow.cheapAssets = cheapAssets
-    updateCsv(symbol, csvRow)
+    csvRow.symbol = symbol.upper()
+    csvRow.healthyMarketCap = False
+    csvRow.healthyPeRatio = False
+    csvRow.healthyCurrRatio = False
+    csvRow.healthyEarnings = False
+    csvRow.healthyDividends = False
+    csvRow.healthyEps = False
+    csvRow.healthyAssets = False
+    csvRow.numCriteria = False
+    # Fetch data from US Fundamentals call
+    cik = fetchCik(symbol)
+    uf = UF()
+    uf.fetch(cik)
 
+    # Calculate the values only if enough data is present
+    if uf.years[-1] != eoyDateYr:
+        # All values will be false. Data is unavailable.
+        print('No UF data for ' + eoyDateYr)
+    elif len(uf.years) < 10:
+        # Healthy earnings, eps, and dividends cannot be calculated
+        print('Less than 10 yrs of UF data available.')
+        price = sharePrice(symbol)
+        marketCap = float(price * uf.shares[-1])
+        eps = float(uf.earnings[-1] / uf.shares[-1])
+        peRatio = float(price / eps)
+        currRatio = float(uf.assets[-1] / uf.liabilities[-1])
+
+        csvRow.healthyMarketCap = hasHealthyMarketCap(marketCap)
+        csvRow.healthyPeRatio = hasHealthyPeRatio(peRatio)
+        csvRow.healthyCurrRatio = hasHealthyCurrRatio(currRatio)
+        csvRow.healthyEarnings = False
+        csvRow.healthyEps = False
+        csvRow.healthyAssets = hasHealthyAssets(
+            uf.assets[-1],
+            uf.liabilities[-1],
+            marketCap
+        )
+        # FIXME - No API known to fetch dividends. Set to False for now.
+        csvRow.healthyDividends = False
+    else:
+        # Enough UF data is available to calculate all 7 criteria.
+        price = sharePrice(symbol)
+        marketCap = float(price * uf.shares[-1])
+        eps = float(uf.earnings[-1] / uf.shares[-1])
+        peRatio = float(price / eps)
+        currRatio = float(uf.assets[-1] / uf.liabilities[-1])
+
+        csvRow.healthyMarketCap = hasHealthyMarketCap(marketCap)
+        csvRow.healthyPeRatio = hasHealthyPeRatio(peRatio)
+        csvRow.healthyCurrRatio = hasHealthyCurrRatio(currRatio)
+        csvRow.healthyEarnings = hasHealthyEarnings(uf.earnings)
+        csvRow.healthyEps = hasHealthyEps(uf.earnings, uf.shares, uf.years)
+        csvRow.healthyAssets = hasHealthyAssets(
+            uf.assets[-1],
+            uf.liabilities[-1],
+            marketCap
+        )
+        # FIXME - No API known to fetch dividends. Set to False for now.
+        csvRow.healthyDividends = False
+    # Calculates the num criteria based on csvRow object
+    csvRow.numCriteria = numHealthyCriteria(csvRow)
+    # Write the CSV Row to the output csv
+    updateCsv(symbol, csvRow)
     return
