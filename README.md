@@ -15,6 +15,8 @@ This program examines Market Capitalization, P/E Ratio, Current Ratio, EPS, EPS 
 7. Does it have cheap earnings?
 	* Is its P/E ratio < 15?
 
+Currently, it checks for everything except for #3 (dividends). Also, it only checks with the last 5 years of data instead of the last 10 or 20 as some criteria specify. This is to be fixed in coming updates.
+
 ## Instructions to Run on your system
 1. Clone the repository
 2. Run the `redux.py` file in `/backend/redux/`
@@ -24,6 +26,7 @@ This program examines Market Capitalization, P/E Ratio, Current Ratio, EPS, EPS 
 6. Type 'exit' to quit
 
 ## To Do List
-### General tasks
 1. Add error handling for invalid stock symbols.
 2. Output the analysis results to an Excel document.
+3. Scrape a list of dividends for analysis.
+4. Fetch 10, or 20 years for EPS and dividends respectively.
