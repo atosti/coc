@@ -251,6 +251,7 @@ def check(symbol):
         # Healthy earnings, eps, and dividends cannot be calculated
         print('Less than 10 yrs of UF data available.')
         price = sharePrice(symbol)
+        print('ufshares: ' + str(uf.shares)) # FIXME - remove later
         marketCap = float(price * uf.shares[-1])
         eps = float(uf.earnings[-1] / uf.shares[-1])
         peRatio = float(price / eps)
