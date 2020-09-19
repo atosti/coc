@@ -17,7 +17,7 @@ This program examines Market Capitalization, P/E Ratio, Current Ratio, EPS, EPS 
 
 ## Instructions to Run on your system
 1. Clone the repository
-2. Run the `redux.py` file in `/redux/`
+2. Run the `redux.py` file in `/backend/redux/`
 3. Enter a US stock symbol you wish to analyze.
 4. View the score (out of 7) for the symbol's health in your console.
 5. Repeat the above as necessary.
