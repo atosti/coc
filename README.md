@@ -1,5 +1,5 @@
 ## Circle of Competence
-A program to web-scrape stock data, and analyze symbols based on various criteria discussed in Warren Buffett's The Intelligent Investor. The goal is to quickly analyze a stock and determine its rough intrinsic value.
+A program to web-scrape stock data, and analyze symbols based on various criteria discussed in Benjamin Graham's __The Intelligent Investor__. The goal is to quickly analyze a stock and determine its rough intrinsic value.
 
 As with all investing tools, use it at your own risk. ;)
 
