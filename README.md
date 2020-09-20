@@ -1,51 +1,32 @@
 ## Circle of Competence
-A work in progress to analyze stock symbols based on various criteria.
-The aim of this project is to quickly analyze a stock with Value Investing
-criteria, with the aim of determining a rough intrinsic value.
+A program to web-scrape stock data, and analyze symbols based on various criteria discussed in Benjamin Graham's __The Intelligent Investor__. The goal is to quickly analyze a stock and determine its rough intrinsic value.
 
 As with all investing tools, use it at your own risk. ;)
 
-This project uses the APIs available at [US Fundamentals](https://www.usfundamentals.com/) and [Alpha Vantage](https://www.alphavantage.co/).
+## The 7 Criteria
+This program examines Market Capitalization, P/E Ratio, Current Ratio, EPS, EPS Growth, Assets, and Liabilities. It analyzes them based on the following criteria, where an answer of TRUE is viewed as healthy.
+1. Does the company have over $700M in annual sales? 
+2. Does it have a current ratio of at least 200%?
+3. Has it not missed any dividends in the last 20 years?
+4. Has it not had an earnings deficit in the last 10 years?
+5. Does it have earnings growth of at least 2.9% annually for the last 10 years?
+6. Does it have cheap assets?
+	* Is Market Capitalization < (Assets - Liabilities) * 1.5
+7. Does it have cheap earnings?
+	* Is its P/E ratio < 15?
 
-## To Do List (Core features)
-### General tasks
-1. Add the ability to save the values to a local file.
-    * Consider making an xlsx, so the raw data is human readable.
-2. Create quick setup steps for others to use this repository.
-3. Add a 'help' command.
-4. Create quick setup steps for others to use this repository.
-5. Create basic calls to Finviz for further analysis/links to charts
-
-## Core Analysis Criteria
-1. What are the earnings per share?
-2. Are annual earnings over $700M? (Is it a large company?)
-3. Is it conservatively financed? (Current ratio of 200%)
-	* Current ratio = Current assets / current liabilities
-4. Dividend history (Have they missed any dividends in the last 20 years?)
-5. Have they had no earnings deficit in the last 10 years?
-6. How is earnings growth? (At least 2.9% annually for 10 years)
-7. Does it have Cheap Assets? (Market cap < (Assets - liabilities) * 1.5
-	* A ratio less than 1 is good
-8. Does it have Cheap earnings? (P/E ratio < 15)
+Currently, it checks for everything except for #3 (dividends). Also, it only checks with the last 5 years of data instead of the last 10 or 20 as some criteria specify. This is to be fixed in coming updates.
 
 ## Instructions to Run on your system
 1. Clone the repository
-2. Open the `backend` folder and create two new files.
-    * A file called `avApiKey.txt` containing your Alpha Vantage API key.
-    * A file called `ufApiKey.txt` containing your US Fundamentals API key.
-3. Inside these files, simply paste your API key on a single line.
-4. Run `main.py` inside the `backend` folder, it should now read your API keys automatically.
+2. Run the `redux.py` file in `/backend/redux/`
+3. Enter a US stock symbol you wish to analyze.
+4. View the score (out of 7) for the symbol's health in your console.
+5. Repeat the above as necessary.
+6. Type 'exit' to quit
 
-## Commands (to be moved to the wiki later)
-1. Exit/Quit
-    * Simply exits the program.
-2. Tsd
-    * Makes a Time Series Daily API call. Requires two parameters:
-    A stock symbol, and the time interval.
-    `tsd MSFT 5min`
-3. Tsda
-    * Makes a Time Series Daily Adjusted API call. Requires one parameter:
-    A stock symbol
-    `tsda MSFT`
-4. Help
-    * TBD - Will eventually provide a basic use guide inside the prompt.
+## To Do List
+1. Add error handling for invalid stock symbols.
+2. Output the analysis results to an Excel document.
+3. Scrape a list of dividends for analysis.
+4. Fetch 10, or 20 years for EPS and dividends respectively.
