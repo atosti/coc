@@ -28,9 +28,10 @@ from bs4 import BeautifulSoup
 
 def scrape(symbol):
     #Initialize criteria
-    price = shares = mktCap = eps = peRatio = currRatio = assets = liabilities = epsList = dividends = None
+    price = shares = sales = mktCap = eps = peRatio = currRatio = None
+    assets = liabilities = epsList = dividends = None
     # Elements are ordered from 2015 -> 2019
-    assetList = epsList = dividendList = liabilitiesList = None
+    epsList = dividendList = []
     # Yahoo Finance
     # Market Cap
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
@@ -56,6 +57,13 @@ def scrape(symbol):
             values = json.loads(curr.get("data-chart"))["chartValues"]
             epsList = values
             eps = float(values[-1])
+    # Revenue
+    fetch = soup.find("a", {"data-ref": "ratio_SalesNet1YrGrowth"}).parent.parent.findChildren()
+    for elem in fetch:
+        curr = elem.find("div", {"class": "miniGraph"})
+        if curr:
+            values = json.loads(curr.get("data-chart"))["chartValues"]
+            sales = float(values[-1])
 
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/balance-sheet'
     page = requests.get(url)
@@ -71,18 +79,14 @@ def scrape(symbol):
     for elem in fetch:
         curr = elem.find("div", {"class": "miniGraph"})
         if curr:
-            # Elements are ordered from 2015 -> 2019
             values = json.loads(curr.get("data-chart"))["chartValues"]
-            assetList = values
             assets = int(values[-1])
     # Liabilities
     fetch = soup.find("a", {"data-ref": "ratio_TotalLiabilitiesToTotalAssets"}).parent.parent.findChildren()
     for elem in fetch:
         curr = elem.find("div", {"class": "miniGraph"})
         if curr:
-            # Elements are ordered from 2015 -> 2019
             values = json.loads(curr.get("data-chart"))["chartValues"]
-            liabilitiesList = values
             liabilities = int(values[-1])
     # Current Ratio
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/profile'
@@ -93,14 +97,15 @@ def scrape(symbol):
     # P/E Ratio
     fetch = soup.find(text='P/E Current').parent.parent
     peRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
+    # Shares
     shares = int(mktCap / price)
-    earnings = int(shares * eps)
+
     # TODO - Fetch the following, final criteria:
-    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/cash-flow'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
+    # url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/cash-flow'
+    # page = requests.get(url)
+    # soup = BeautifulSoup(page.content, 'html.parser')
     # dividendList
-    score = alg.score(mktCap, peRatio, currRatio, epsList, dividends, assets, liabilities)
+    
     # TODO = Print this data to an excel document. Update each symbol per fetch
     # print("MktCap: " + str(mktCap))
     # print("Price: " + str(price))
@@ -114,6 +119,8 @@ def scrape(symbol):
     # print(liabilitiesList)
     # print("EPS: " + str(eps))
     # print(epsList)
+
+    score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabilities)
     print("Score: " + str(score) + "/7")
     return
 
