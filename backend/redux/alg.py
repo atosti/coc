@@ -11,6 +11,7 @@ def peRatio(price, eps):
 def score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabilities):
     score = 0
     fails = []
+
     if goodSales(sales):
         score += 1
     else:
@@ -27,10 +28,13 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabili
         score += 1
     else:
         deficitYrs = []
-        for idx, eps in enumerate(epsList):
-            if eps < 0:
-                deficitYrs.append(2015 + idx)
-        fails.append("Low EPS|" + str(deficitYrs))
+        if epsList is not None:
+            for idx, eps in enumerate(epsList):
+                if eps < 0:
+                    deficitYrs.append(2015 + idx)
+            fails.append("Low EPS|" + str(deficitYrs))
+        else:
+            fails.append("Low EPS|" + str(epsList))
     # TODO - Properly pass dividends here and check the logic on the method.
     # if goodDividend(dividends):
     #     score += 1
@@ -39,10 +43,13 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabili
     if goodEpsGrowth(epsList):
         score += 1
     else:
-        prevEps = epsList[0]
-        eps = epsList[-1]
-        percentGrowth = float(eps / prevEps) - 1.0
-        fails.append("Low EPS Growth %|" + str(percentGrowth))
+        if epsList is not None:
+            prevEps = epsList[0]
+            eps = epsList[-1]
+            percentGrowth = float(eps / prevEps) - 1.0
+            fails.append("Low EPS Growth %|" + str(percentGrowth))
+        else:
+            fails.append("Low EPS Growth %|" + str(epsList))
     if goodAssets(mktCap, assets, liabilities):
         score += 1
     else:
@@ -51,20 +58,28 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabili
     return score
 
 def goodSales(sales):
+    if sales is None:
+        return False
     if sales >= 700000000:
         return True
     return False
 def goodPeRatio(peRatio):
+    if peRatio is None:
+        return False
     if peRatio < 15:
         return True
     return False
 def goodCurrRatio(currRatio):
+    if currRatio is None:
+        return False
     if currRatio >= 2.0:
         return True
     return False
 # TODO - Needs a list of annual EPS over the last 10 years.
 # Checks for earnings deficit
 def goodEps(epsList):
+    if epsList is None:
+        return False
     for eps in epsList:
         if eps < 0:
             return False
@@ -78,6 +93,8 @@ def goodEps(epsList):
 #     return True
 # TODO - EPS needs to be a list from the last 10 years
 def goodEpsGrowth(epsList):
+    if epsList is None:
+        return False
     prevEps = epsList[0]
     eps = epsList[-1]
     percentGrowth = float(eps / prevEps) - 1.0
@@ -88,6 +105,8 @@ def goodEpsGrowth(epsList):
         return True
     return False
 def goodAssets(mktCap, assets, liabilities):
+    if mktCap is None or assets is None or liabilities is None:
+        return False
     if mktCap < ((assets - liabilities) * 1.5):
         return True
     return False

@@ -26,79 +26,129 @@ from bs4 import BeautifulSoup
 #         # return True
 #     return code
 
-def scrape(symbol):
-    #Initialize criteria
-    price = shares = sales = mktCap = eps = peRatio = currRatio = None
-    assets = liabilities = epsList = dividends = None
-    # Elements are ordered from 2015 -> 2019
-    epsList = dividendList = []
-    # Yahoo Finance
-    # Market Cap
+def fetchMktCap(symbol):
+    mktCap = None
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    mktCap = soup.find("td", {"data-test": "MARKET_CAP-value"}).get_text(strip=True)
-    if "T" in mktCap:
-        mktCap = float(mktCap[:-1]) * 1000000000000
-    elif "B" in mktCap:
-        mktCap = float(mktCap[:-1]) * 1000000000
-    elif "M" in mktCap:
-        mktCap = float(mktCap[:-1]) * 1000000
-    # Marketwatch
+    findMktCap = soup.find("td", {"data-test": "MARKET_CAP-value"})
+    if findMktCap:
+        mktCap = findMktCap.get_text(strip=True)
+        # Convert from Trillions/Billions/Millions to raw int
+        if "T" in mktCap:
+            mktCap = float(mktCap[:-1]) * 1000000000000
+        elif "B" in mktCap:
+            mktCap = float(mktCap[:-1]) * 1000000000
+        elif "M" in mktCap:
+            mktCap = float(mktCap[:-1]) * 1000000
+    return mktCap
+
+def fetchFinancials(symbol):
+    financialsDict = {"eps": None, "epsList": None, "sales": None}
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials'
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     # Earnings Per Share (EPS)
-    fetch = soup.find("a", {"data-ref": "ratio_Eps1YrAnnualGrowth"}).parent.parent.findChildren()
-    for elem in fetch:
-        curr = elem.find("div", {"class": "miniGraph"})
-        if curr:
-            # Elements are ordered from 2015 -> 2019
-            values = json.loads(curr.get("data-chart"))["chartValues"]
-            epsList = values
-            eps = float(values[-1])
+    findEps = soup.find("a", {"data-ref": "ratio_Eps1YrAnnualGrowth"})
+    if findEps:
+        fetch = findEps.parent.parent.findChildren()
+        for elem in fetch:
+            curr = elem.find("div", {"class": "miniGraph"})
+            if curr:
+                # Elements are ordered from 2015 -> 2019
+                values = json.loads(curr.get("data-chart"))["chartValues"]
+                epsList = values
+                eps = float(values[-1])
+                financialsDict.update(eps = eps, epsList = epsList)
     # Revenue
-    fetch = soup.find("a", {"data-ref": "ratio_SalesNet1YrGrowth"}).parent.parent.findChildren()
-    for elem in fetch:
-        curr = elem.find("div", {"class": "miniGraph"})
-        if curr:
-            values = json.loads(curr.get("data-chart"))["chartValues"]
-            sales = float(values[-1])
+    findSales = soup.find("a", {"data-ref": "ratio_SalesNet1YrGrowth"})
+    if findSales:
+        fetch = findSales.parent.parent.findChildren()
+        for elem in fetch:
+            curr = elem.find("div", {"class": "miniGraph"})
+            if curr:
+                values = json.loads(curr.get("data-chart"))["chartValues"]
+                sales = float(values[-1])
+                financialsDict.update(sales = sales)
+    return financialsDict
 
+def fetchBalanceSheet(symbol):
+    balanceSheetDict = {"price": None, "assets": None, "liabilities": None}
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/balance-sheet'
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     # Price
-    fetch = soup.find("div", {"class": "lastprice"}).findChildren()
-    for elem in fetch:
-        curr = elem.find("p", {"class": "data bgLast"})
-        if curr:
-            price = float(curr.get_text(strip=True))
+    findPrice = soup.find("div", {"class": "lastprice"})
+    if findPrice:
+        fetch = findPrice.findChildren()
+        for elem in fetch:
+            curr = elem.find("p", {"class": "data bgLast"})
+            if curr:
+                price = float(curr.get_text(strip=True))
+                balanceSheetDict.update(price = price)
     # Total Assets of last 5 years
-    fetch = soup.find("tr", {"class": "totalRow"}).findChildren()
-    for elem in fetch:
-        curr = elem.find("div", {"class": "miniGraph"})
-        if curr:
-            values = json.loads(curr.get("data-chart"))["chartValues"]
-            assets = int(values[-1])
+    findAssets = soup.find("tr", {"class": "totalRow"})
+    if findAssets:
+        fetch = findAssets.findChildren()
+        for elem in fetch:
+            curr = elem.find("div", {"class": "miniGraph"})
+            if curr:
+                values = json.loads(curr.get("data-chart"))["chartValues"]
+                assets = int(values[-1])
+                balanceSheetDict.update(assets = assets)
     # Liabilities
-    fetch = soup.find("a", {"data-ref": "ratio_TotalLiabilitiesToTotalAssets"}).parent.parent.findChildren()
-    for elem in fetch:
-        curr = elem.find("div", {"class": "miniGraph"})
-        if curr:
-            values = json.loads(curr.get("data-chart"))["chartValues"]
-            liabilities = int(values[-1])
+    findLiabilites = soup.find("a", {"data-ref": "ratio_TotalLiabilitiesToTotalAssets"})
+    if findLiabilites:
+        fetch = findLiabilites.parent.parent.findChildren()
+        for elem in fetch:
+            curr = elem.find("div", {"class": "miniGraph"})
+            if curr:
+                values = json.loads(curr.get("data-chart"))["chartValues"]
+                liabilities = int(values[-1])
+                balanceSheetDict.update(liabilities = liabilities)
+    return balanceSheetDict
+
+def fetchProfile(symbol):
+    profileDict = {"currRatio": None, "peRatio": None}
     # Current Ratio
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/profile'
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    fetch = soup.find(text='Current Ratio').parent.parent
-    currRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
+    findCurrRatio = soup.find(text='Current Ratio')
+    if findCurrRatio:
+        fetch = findCurrRatio.parent.parent
+        currRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
+        profileDict.update(currRatio = currRatio)
     # P/E Ratio
-    fetch = soup.find(text='P/E Current').parent.parent
-    peRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
-    # Shares
-    shares = int(mktCap / price)
+    findPeRatio = soup.find(text='P/E Current')
+    if findPeRatio:
+        fetch = findPeRatio.parent.parent
+        peRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
+        profileDict.update(peRatio = peRatio)
+    return profileDict
+
+def scrape(symbol):
+    #Initialize criteria
+    price = sales = mktCap = eps = peRatio = currRatio = None
+    assets = liabilities = epsList = dividends = None
+    # Elements are ordered from 2015 -> 2019
+    epsList = dividendList = []
+    # Yahoo Finance Market Cap
+    mktCap = fetchMktCap(symbol)
+    # MarketWatch Financials
+    financialsDict = fetchFinancials(symbol)
+    eps = financialsDict["eps"]
+    epsList = financialsDict["epsList"]
+    sales = financialsDict["sales"]
+    # MarketWatch Balance Sheet
+    balanceSheetDict = fetchBalanceSheet(symbol)
+    price = balanceSheetDict["price"]
+    assets = balanceSheetDict["assets"]
+    liabilities = balanceSheetDict["liabilities"]
+    # MarketWatch Profile
+    profileDict = fetchProfile(symbol)
+    currRatio = profileDict["currRatio"]
+    peRatio = profileDict["peRatio"]
 
     # TODO - Fetch the following, final criteria:
     # url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/cash-flow'
@@ -109,7 +159,6 @@ def scrape(symbol):
     # TODO = Print this data to an excel document. Update each symbol per fetch
     # print("MktCap: " + str(mktCap))
     # print("Price: " + str(price))
-    # print("Shares: " + str(shares))
     # print("Earnings: " + str(earnings))
     # print("Curr Ratio: " + str(currRatio))
     # print("P/E Ratio: " + str(peRatio))
