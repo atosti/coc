@@ -84,7 +84,7 @@ def goodEpsGrowth(epsList):
     # 2.9% annual growth over 10 years is ~33% total
     #100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
     # TODO - Currently using 15% growth, since it's using 5 years of data
-    if percentGrowth >= 15.0:
+    if percentGrowth >= 0.15:
         return True
     return False
 def goodAssets(mktCap, assets, liabilities):
