@@ -1,7 +1,7 @@
 import handler as handler
 
 phrase = ''
-print('Enter a symbol (type \'quit\' to exit): ')
+print('Enter a NYSE symbol (type \'quit\' to exit): ')
 while(phrase != 'quit'):
     print('$', end='')
     phrase = input().lower()
