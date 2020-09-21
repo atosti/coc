@@ -1,4 +1,7 @@
 # Untracked files
 backend/keys/alpha-vantage.txt
 backend/keys/us-fundamentals.txt
-output.csv
+backend/__pycache__/
+coc.xlsx
+
+.vscode/

@@ -1,30 +1,5 @@
-import requests, json, webbrowser, alg
+import requests, json, webbrowser, alg, excel
 from bs4 import BeautifulSoup
-
-# headers = requests.utils.default_headers()
-# headers.update({
-#     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0',
-# })
-
-# def captchaHandler(soup):
-#     code = ""
-#     captchaExists = soup.find("div", {"class": "g-recaptcha"})
-#     if captchaExists:
-#         captchaUrl = soup.find("iframe")["src"]
-#         sitekey = soup.find("div", {"class": "g-recaptcha"})["data-sitekey"]
-#         webbrowser.open(captchaUrl)
-#         # User enters code after completing captcha
-#         print('Enter the captcha code from your browser: ')
-#         print('$', end='')
-#         code = input()
-#         # Put code into the response and submit the form
-#         # data = {"g-recaptcha-response": code}
-#         # data = {"secret": sitekey, "response": code}
-#         # page = requests.post(captchaUrl, data = data)
-#         # tmp = BeautifulSoup(page.content, 'html.parser')
-#         # print(tmp)
-#         # return True
-#     return code
 
 def fetchMktCap(symbol):
     mktCap = None
@@ -157,17 +132,7 @@ def scrape(symbol):
     # dividendList
     
     # TODO = Print this data to an excel document. Update each symbol per fetch
-    # print("MktCap: " + str(mktCap))
-    # print("Price: " + str(price))
-    # print("Earnings: " + str(earnings))
-    # print("Curr Ratio: " + str(currRatio))
-    # print("P/E Ratio: " + str(peRatio))
-    # print("Assets: " + str(assets))
-    # print(assetList)
-    # print("Liabilities: " + str(liabilities))
-    # print(liabilitiesList)
-    # print("EPS: " + str(eps))
-    # print(epsList)
+    # excel.update(symbol, None)
 
     score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabilities)
     print("Score: " + str(score) + "/7")
