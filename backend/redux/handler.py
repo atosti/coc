@@ -43,7 +43,9 @@ def fetchFinancials(symbol):
             curr = elem.find("div", {"class": "miniGraph"})
             if curr:
                 values = json.loads(curr.get("data-chart"))["chartValues"]
-                sales = float(values[-1])
+                sales = None
+                if values[-1] is not None:
+                    sales = float(values[-1])
                 financialsDict.update(sales = sales)
     return financialsDict
 
