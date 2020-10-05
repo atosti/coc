@@ -21,7 +21,7 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 1. Clone the repository
 2. Run the `redux.py` file in `/backend/redux/`
 3. Enter a NYSE stock symbol you wish to analyze.
-4. View the score (out of 7) for the symbol's health in your console.
+4. View the score (out of 7) for the symbol's health, as well as its Graham Num.
 5. Repeat the above as necessary.
 6. Type 'exit' to quit
 
