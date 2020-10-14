@@ -108,20 +108,30 @@ def fetchProfile(symbol):
     findCurrRatio = soup.find(text='Current Ratio')
     if findCurrRatio:
         fetch = findCurrRatio.parent.parent
-        currRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
-        profileDict.update(currRatio = currRatio)
+        # currRatio = float(fetch.find("p", {"class": "lastcolumn"})
+        currRatio = fetch.find("td", {"class": "w25"})
+        if currRatio:
+            currRatio = float(currRatio.get_text(strip=True))
+            profileDict.update(currRatio = currRatio)
     # P/E Ratio
     findPeRatio = soup.find(text='P/E Current')
     if findPeRatio:
         fetch = findPeRatio.parent.parent
-        peRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
-        profileDict.update(peRatio = peRatio)
+        # peRatio = float(fetch.find("p", {"class": "lastcolumn"})
+        peRatio = fetch.find("td", {"class": "w25"})
+        if peRatio:
+            peRatio = float(peRatio.get_text(strip=True))
+            profileDict.update(peRatio = peRatio)
     # P/B Ratio
     findPbRatio = soup.find(text='Price to Book Ratio')
     if findPbRatio:
         fetch = findPbRatio.parent.parent
-        pbRatio = float(fetch.find("p", {"class": "lastcolumn"}).get_text(strip=True))
-        profileDict.update(pbRatio = pbRatio)
+        # pbRatio = float(fetch.find("p", {"class": "lastcolumn"})
+        pbRatio = fetch.find("td", {"class": "w25"})
+        if pbRatio:
+            pbRatio = float(pbRatio.get_text(strip=True))
+            profileDict.update(pbRatio = pbRatio)
+    print("Profile: " + str(profileDict))
     return profileDict
 
 # TODO - SeekingAlpha triggers a captcha. Either solve it or find a new site.
