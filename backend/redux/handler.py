@@ -1,23 +1,35 @@
-import requests, json, webbrowser, alg, excel
+import requests, json, webbrowser, alg, excel, locale
 from bs4 import BeautifulSoup
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8') 
 
-def fetchMktCap(symbol):
-    mktCap = None
+def yfQuoteSearch(soup, text):
+    item = None
+    found = soup.find("td", {"data-test": text})
+    if found:
+        item = found.get_text(strip=True)
+        if "T" in item:
+            item = float(locale.atof(item[:-1])) * 1000000000000
+        elif "B" in item:
+            item = float(locale.atof(item[:-1])) * 1000000000
+        elif "M" in item:
+            item = float(locale.atof(item[:-1])) * 1000000
+        else:
+            item = float(locale.atof(item))
+    return item
+
+# Yahoo Finance quote
+def fetchYahooQuote(symbol):
+    quoteDict = {"mktCap": None, "peRatio": None, "eps": None}
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    findMktCap = soup.find("td", {"data-test": "MARKET_CAP-value"})
-    if findMktCap:
-        mktCap = findMktCap.get_text(strip=True)
-        # Convert from Trillions/Billions/Millions to raw int
-        if "T" in mktCap:
-            mktCap = float(mktCap[:-1]) * 1000000000000
-        elif "B" in mktCap:
-            mktCap = float(mktCap[:-1]) * 1000000000
-        elif "M" in mktCap:
-            mktCap = float(mktCap[:-1]) * 1000000
-    return mktCap
-# Book value per share (mrq)
+    mktCap = yfQuoteSearch(soup, "MARKET_CAP-value")
+    peRatio = yfQuoteSearch(soup, "PE_RATIO-value")
+    eps = yfQuoteSearch(soup, "EPS_RATIO-value")
+    quoteDict.update(mktCap = mktCap, peRatio = peRatio, eps = eps)
+    return quoteDict
+
+# Yahoo Finance key stats
 def fetchBvps(symbol):
     bvps = None
     url = 'https://finance.yahoo.com/quote/' + symbol.upper() + '/key-statistics'
@@ -134,26 +146,32 @@ def scrape(symbol):
     #Initialize criteria
     price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
     grahamNum = assets = liabilities = epsList = None
-    # Elements are ordered from 2015 -> 2019
+    # List elements are ordered from 2015 -> 2019
     epsList = dividendList = []
-    # Yahoo Finance Quote
-    mktCap = fetchMktCap(symbol)
-    # Yahoo Finance Key Stats
+    # Website scraping
+
+    # FIXME - P/E Ratio and EPS are producing funky numbers.
+    # Try getting their TTM values from yahoo finance
+
+    # quoteDict = {"mktCap": None, "peRatio": None, "eps": None}
+    quoteDict = fetchYahooQuote(symbol)
+    mktCap = quoteDict["mktCap"]
+    peRatio = quoteDict["peRatio"]
+    eps = quoteDict["eps"]
+
+    # mktCap = fetchMktCap(symbol)
     bvps = fetchBvps(symbol)
-    # MarketWatch Financials
     financialsDict = fetchFinancials(symbol)
-    eps = financialsDict["eps"]
+    # eps = financialsDict["eps"]
     epsList = financialsDict["epsList"]
     sales = financialsDict["sales"]
-    # MarketWatch Balance Sheet
     balanceSheetDict = fetchBalanceSheet(symbol)
     price = balanceSheetDict["price"]
     assets = balanceSheetDict["assets"]
     liabilities = balanceSheetDict["liabilities"]
-    # MarketWatch Profile
     profileDict = fetchProfile(symbol)
     currRatio = profileDict["currRatio"]
-    peRatio = profileDict["peRatio"]
+    # peRatio = profileDict["peRatio"]
     pbRatio = profileDict["pbRatio"]
     # Seeking Alpha Dividends
     # dividendsList = fetchDividends(symbol)

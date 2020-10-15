@@ -85,7 +85,6 @@ def goodCurrRatio(currRatio):
     if currRatio >= 2.0:
         return True
     return False
-# TODO - Needs a list of annual EPS over the last 10 years.
 # Checks for earnings deficit
 def goodEps(epsList):
     if epsList is None:
