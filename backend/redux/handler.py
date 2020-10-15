@@ -32,35 +32,32 @@ def fetchBvps(symbol):
         bvps = float(elem.get_text(strip=True))
     return bvps
 
+def mwFinancialsSearch(soup, text):
+    itemDict = {"item": None, "itemList": None}
+    found = soup.find("a", {"data-ref": text})
+    if found:
+        fetch = found.parent.parent.findChildren()
+        for elem in fetch:
+            elemFound = elem.find("div", {"class": "miniGraph"})
+            if elemFound:
+                values = json.loads(elemFound.get("data-chart"))["chartValues"]
+                itemList = values
+                item = float(values[-1])
+                itemDict.update(itemList = itemList, item = item)
+    return itemDict
+
 def fetchFinancials(symbol):
-    financialsDict = {"eps": None, "epsList": None, "sales": None}
+    financialsDict = {"eps": None, "epsList": None, "sales": None, "salesList": None}
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials'
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    # Earnings Per Share (EPS)
-    findEps = soup.find("a", {"data-ref": "ratio_Eps1YrAnnualGrowth"})
-    if findEps:
-        fetch = findEps.parent.parent.findChildren()
-        for elem in fetch:
-            curr = elem.find("div", {"class": "miniGraph"})
-            if curr:
-                # Elements are ordered from 2015 -> 2019
-                values = json.loads(curr.get("data-chart"))["chartValues"]
-                epsList = values
-                eps = float(values[-1])
-                financialsDict.update(eps = eps, epsList = epsList)
-    # Revenue
-    findSales = soup.find("a", {"data-ref": "ratio_SalesNet1YrGrowth"})
-    if findSales:
-        fetch = findSales.parent.parent.findChildren()
-        for elem in fetch:
-            curr = elem.find("div", {"class": "miniGraph"})
-            if curr:
-                values = json.loads(curr.get("data-chart"))["chartValues"]
-                sales = None
-                if values[-1] is not None:
-                    sales = float(values[-1])
-                financialsDict.update(sales = sales)
+    itemDict = mwFinancialsSearch(soup, "ratio_Eps1YrAnnualGrowth")
+    financialsDict.update(eps = itemDict["item"])
+    financialsDict.update(epsList = itemDict["itemList"])
+    itemDict = mwFinancialsSearch(soup, "ratio_SalesNet1YrGrowth")
+    financialsDict.update(sales = itemDict["item"])
+    financialsDict.update(salesList = itemDict["itemList"])
+    # print("Financials: " + str(financialsDict))
     return financialsDict
 
 def fetchBalanceSheet(symbol):
@@ -77,7 +74,7 @@ def fetchBalanceSheet(symbol):
             if curr:
                 price = float(curr.get_text(strip=True))
                 balanceSheetDict.update(price = price)
-    # Total Assets of last 5 years
+    # Total Assets
     findAssets = soup.find("tr", {"class": "totalRow"})
     if findAssets:
         fetch = findAssets.findChildren()
@@ -97,56 +94,46 @@ def fetchBalanceSheet(symbol):
                 values = json.loads(curr.get("data-chart"))["chartValues"]
                 liabilities = int(values[-1])
                 balanceSheetDict.update(liabilities = liabilities)
+    # print("Balance Sheet: " + str(balanceSheetDict))
     return balanceSheetDict
+
+# Marketwatch Company Profile scraper
+def mwProfileSearch(soup, text):
+    item = None
+    found = soup.find(text=text)
+    if found:
+        fetch = found.parent.parent.find("td", {"class": "w25"})
+        if fetch:
+            value = fetch.get_text(strip=True)
+            if value != "N/A":
+                item = float(value)
+    return item
 
 def fetchProfile(symbol):
     profileDict = {"currRatio": None, "peRatio": None, "pbRatio": None}
-    # Current Ratio
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/profile'
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
-    findCurrRatio = soup.find(text='Current Ratio')
-    if findCurrRatio:
-        fetch = findCurrRatio.parent.parent
-        # currRatio = float(fetch.find("p", {"class": "lastcolumn"})
-        currRatio = fetch.find("td", {"class": "w25"})
-        if currRatio:
-            currRatio = float(currRatio.get_text(strip=True))
-            profileDict.update(currRatio = currRatio)
-    # P/E Ratio
-    findPeRatio = soup.find(text='P/E Current')
-    if findPeRatio:
-        fetch = findPeRatio.parent.parent
-        # peRatio = float(fetch.find("p", {"class": "lastcolumn"})
-        peRatio = fetch.find("td", {"class": "w25"})
-        if peRatio:
-            peRatio = float(peRatio.get_text(strip=True))
-            profileDict.update(peRatio = peRatio)
-    # P/B Ratio
-    findPbRatio = soup.find(text='Price to Book Ratio')
-    if findPbRatio:
-        fetch = findPbRatio.parent.parent
-        # pbRatio = float(fetch.find("p", {"class": "lastcolumn"})
-        pbRatio = fetch.find("td", {"class": "w25"})
-        if pbRatio:
-            pbRatio = float(pbRatio.get_text(strip=True))
-            profileDict.update(pbRatio = pbRatio)
-    print("Profile: " + str(profileDict))
+    profileDict.update(currRatio = mwProfileSearch(soup, "Current Ratio"))
+    profileDict.update(peRatio = mwProfileSearch(soup, "P/E Current"))
+    profileDict.update(pbRatio = mwProfileSearch(soup, "Price to Book Ratio"))
+    # print("Profile: " + str(profileDict))
     return profileDict
 
+
 # TODO - SeekingAlpha triggers a captcha. Either solve it or find a new site.
-def fetchDividends(symbol):
-    dividendsList = {"years": [], "avgDividend": []}
-    url = 'https://seekingalpha.com/symbol/' + symbol.upper() + '/dividends/history'
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    findDividends = soup.find("div", {"id": "history-container"})
-    return dividendsList
+# def fetchDividends(symbol):
+#     dividendsList = {"years": [], "avgDividend": []}
+#     url = 'https://seekingalpha.com/symbol/' + symbol.upper() + '/dividends/history'
+#     page = requests.get(url)
+#     soup = BeautifulSoup(page.content, 'html.parser')
+#     findDividends = soup.find("div", {"id": "history-container"})
+#     return dividendsList
 
 def scrape(symbol):
     #Initialize criteria
     price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
-    grahamNum = assets = liabilities = epsList = dividends = None
+    grahamNum = assets = liabilities = epsList = None
     # Elements are ordered from 2015 -> 2019
     epsList = dividendList = []
     # Yahoo Finance Quote
@@ -169,7 +156,7 @@ def scrape(symbol):
     peRatio = profileDict["peRatio"]
     pbRatio = profileDict["pbRatio"]
     # Seeking Alpha Dividends
-    dividendsList = fetchDividends(symbol)
+    # dividendsList = fetchDividends(symbol)
 
     # TODO - Fetch the following, final criteria:
     # Get last 20 years of dividend history. If they have a dividend, check whether they've had consistent payments.
@@ -179,14 +166,32 @@ def scrape(symbol):
     # TODO = Print this data to an excel document. Update each symbol per fetch
     # excel.update(symbol, None)
 
-    score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabilities)
+    # All values, used to simple bug testing.
+    overallDict = {
+        "assets": assets,
+        "bvps": bvps,
+        "currRatio": currRatio,
+        "dividendList": dividendList,
+        "eps": eps,
+        "epsList": epsList,
+        "grahamNum": grahamNum,
+        "liabilities": liabilities,
+        "mktCap": mktCap,
+        "pbRatio": pbRatio,
+        "peRatio": peRatio,
+        "price": price,
+        "sales": sales
+    }
+    # print("Overall: " + str(overallDict))
+
+    score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liabilities)
     print("Score: " + str(score) + "/7")
     grahamNum = None
     if bvps is not None and eps is not None:
         grahamNum = alg.grahamNum(eps, bvps)
         if grahamNum is not None:
             grahamNum = round(grahamNum, 2)
-    print("Graham Num|Price: " + str(grahamNum) + "|" + str(price))
+    print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
     return
 
 def commands(phrase):

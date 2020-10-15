@@ -11,12 +11,17 @@ def peRatio(price, eps):
     return peRatio
 # Returns the fair value of a stock. The highest price an investor should pay.
 def grahamNum(eps, bvps):
-    return math.sqrt(22.5 * eps * bvps)
+    grahamNum = None
+    product = 22.5 * eps * bvps
+    if bvps < 0 or eps < 0:
+        grahamNum = -1 * math.sqrt(abs(product))
+    else:
+        grahamNum = math.sqrt(product)
+    return grahamNum
 # Currently scores out of 7 to determine health of a stock.
-def score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabilities):
+def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liabilities):
     score = 0
     fails = []
-
     if goodSales(sales):
         score += 1
     else:
@@ -52,7 +57,7 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividends, assets, liabili
             prevEps = epsList[0]
             eps = epsList[-1]
             percentGrowth = float(eps / prevEps) - 1.0
-            fails.append("Low EPS Growth %|" + str(percentGrowth))
+            fails.append("Low EPS Growth %|" + str(round(percentGrowth,2)))
         else:
             fails.append("Low EPS Growth %|" + str(epsList))
     if goodAssets(mktCap, assets, liabilities):
