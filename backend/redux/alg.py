@@ -25,7 +25,7 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liab
     if goodSales(sales):
         score += 1
     else:
-        fails.append("Low Sales|" + str(sales))
+        fails.append("Low Sales|" + str(round(sales, 2)) + " of $700M")
     if goodPeRatio(peRatio):
         score += 1
     else:
@@ -63,7 +63,8 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liab
     if goodAssets(mktCap, assets, liabilities):
         score += 1
     else:
-        fails.append("Expensive Assets")
+        value = (assets - liabilities) * 1.5
+        fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
     print("Fails because: " + str(fails))
     return score
 
