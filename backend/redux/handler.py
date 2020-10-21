@@ -10,6 +10,7 @@ def getSoup(url):
 # Yahoo Finance quote
 def fetchYahooQuote(symbol):
     quoteDict = {"mktCap": None, "peRatio": None, "eps": None}
+    symbol = symbol.replace(".", "-") #Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
     soup = getSoup(url)
     mktCap = yfQuoteSearch(soup, "MARKET_CAP-value")
@@ -21,6 +22,7 @@ def fetchYahooQuote(symbol):
 # Yahoo Finance key stats
 def fetchYahooBvps(symbol):
     bvps = None
+    symbol = symbol.replace(".", "-") #Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.upper() + '/key-statistics'
     soup = getSoup(url)
     # findBvps = soup.find("td", {"data-reactid": "599"})
@@ -79,6 +81,7 @@ def mwProfileSearch(soup, text):
 
 def fetchFinancials(symbol):
     financialsDict = {"eps": None, "epsList": None, "sales": None, "salesList": None}
+    symbol = symbol.replace("-", ".") #Convert for URL
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials'
     soup = getSoup(url)
     itemDict = mwFinancialsSearch(soup, "ratio_Eps1YrAnnualGrowth")
@@ -92,6 +95,7 @@ def fetchFinancials(symbol):
 
 def fetchBalanceSheet(symbol):
     balanceSheetDict = {"price": None, "assets": None, "liabilities": None}
+    symbol = symbol.replace("-", ".") #Convert for URL
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/balance-sheet'
     soup = getSoup(url)
     # Price
@@ -128,6 +132,7 @@ def fetchBalanceSheet(symbol):
 
 def fetchProfile(symbol):
     profileDict = {"currRatio": None, "peRatio": None, "pbRatio": None}
+    symbol = symbol.replace("-", ".") #Convert for URL
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/profile'
     soup = getSoup(url)
     profileDict.update(currRatio = mwProfileSearch(soup, "Current Ratio"))
@@ -139,6 +144,7 @@ def fetchProfile(symbol):
 # TODO - Properly fetch dividends
 # def fetchCashFlow(symbol):
 #     cashFlowDict = {"dividends": None}
+#     symbol = symbol.replace("-", ".") #Convert for URL
 #     url = "https://www.marketwatch.com/investing/stock/" + symbol + "/financials/cash-flow"
 #     soup = getSoup(url)
 #     cashFlowDict.update(dividends = mwFinancialsSearch(soup, "Cash Dividends Paid - Total"))
@@ -180,7 +186,6 @@ def scrape(symbol):
     # TODO - Fetch the following, final criteria:
     # Get last 20 years of dividend history. If they have a dividend, check whether they've had consistent payments.
     # Determine if they ever missed a payment or paid a decreasing dividend
-    # url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/cash-flow'
     # dividendList
     # TODO = Print this data to an excel document. Update each symbol per fetch
     # excel.update(symbol, None)
