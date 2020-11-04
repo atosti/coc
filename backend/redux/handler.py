@@ -58,6 +58,7 @@ def mwFinancialsSearch(soup, text):
     found = soup.find("a", {"data-ref": text})
     if found:
         fetch = found.parent.parent.findChildren()
+        # print(fetch)
         for elem in fetch:
             elemFound = elem.find("div", {"class": "miniGraph"})
             if elemFound:
@@ -118,7 +119,7 @@ def fetchBalanceSheet(symbol):
                 assets = int(values[-1])
                 balanceSheetDict.update(assets = assets)
     # Liabilities
-    findLiabilites = soup.find("a", {"data-ref": "ratio_TotalLiabilitiesToTotalAssets"})
+    findLiabilites = soup.find(text=' Total Liabilities')
     if findLiabilites:
         fetch = findLiabilites.parent.parent.findChildren()
         for elem in fetch:
@@ -141,13 +142,17 @@ def fetchProfile(symbol):
     # print("Profile: " + str(profileDict))
     return profileDict
 
-# TODO - Properly fetch dividends
-# def fetchCashFlow(symbol):
-#     cashFlowDict = {"dividends": None}
-#     symbol = symbol.replace("-", ".") #Convert for URL
-#     url = "https://www.marketwatch.com/investing/stock/" + symbol + "/financials/cash-flow"
-#     soup = getSoup(url)
-#     cashFlowDict.update(dividends = mwFinancialsSearch(soup, "Cash Dividends Paid - Total"))
+# FIXME - Finish this
+def fetchCashFlow(symbol):
+    cashFlowDict = {"dividend": None, "dividendList": None}
+    symbol = symbol.replace("-", ".") #Convert for URL
+    url = "https://www.marketwatch.com/investing/stock/" + symbol + "/financials/cash-flow"
+    soup = getSoup(url)
+    itemDict = mwFinancialsSearch(soup, "Cash Dividends Paid - Total")
+    # print("ItemDict: " + str(itemDict))
+    cashFlowDict.update(dividend = itemDict["item"])
+    cashFlowDict.update(dividendList = itemDict["itemList"])
+    return cashFlowDict
 
 def scrape(symbol):
     #Initialize criteria
@@ -156,20 +161,12 @@ def scrape(symbol):
     # List elements are ordered from 2015 -> 2019
     epsList = dividendList = []
     # Website scraping
-
-    # FIXME - P/E Ratio and EPS are producing funky numbers.
-    # Try getting their TTM values from yahoo finance
-
-    # quoteDict = {"mktCap": None, "peRatio": None, "eps": None}
     quoteDict = fetchYahooQuote(symbol)
     mktCap = quoteDict["mktCap"]
     peRatio = quoteDict["peRatio"]
     eps = quoteDict["eps"]
-
-    # mktCap = fetchMktCap(symbol)
     bvps = fetchYahooBvps(symbol)
     financialsDict = fetchFinancials(symbol)
-    # eps = financialsDict["eps"]
     epsList = financialsDict["epsList"]
     sales = financialsDict["sales"]
     balanceSheetDict = fetchBalanceSheet(symbol)
@@ -178,10 +175,12 @@ def scrape(symbol):
     liabilities = balanceSheetDict["liabilities"]
     profileDict = fetchProfile(symbol)
     currRatio = profileDict["currRatio"]
-    # peRatio = profileDict["peRatio"]
     pbRatio = profileDict["pbRatio"]
-    # Seeking Alpha Dividends
-    # dividendsList = fetchDividends(symbol)
+    # cashFlowDict = fetchCashFlow(symbol)
+    # dividend = cashFlowDict["dividend"]
+    # dividendList = cashFlowDict["dividendList"]
+    # print("Dividends: " + str(dividendList))
+    # print("Dividend: " + str(dividend))
 
     # TODO - Fetch the following, final criteria:
     # Get last 20 years of dividend history. If they have a dividend, check whether they've had consistent payments.
@@ -189,6 +188,9 @@ def scrape(symbol):
     # dividendList
     # TODO = Print this data to an excel document. Update each symbol per fetch
     # excel.update(symbol, None)
+
+    # https://www.marketbeat.com/stocks/NYSE/WLKP/dividend/
+
     score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liabilities)
     print("Score: " + str(score) + "/7")
     grahamNum = None
