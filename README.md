@@ -31,3 +31,5 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 3. Scrape a list of dividends for analysis.
 4. Fetch 10, or 20 years for EPS and dividends respectively.
 5. Determine a symbol's industry/sector and output that information with its score.
+6. Check additional criteria:
+	* Annual and YoY growth of a company's revenue.
