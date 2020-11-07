@@ -40,7 +40,7 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liab
         deficitYrs = []
         if epsList is not None:
             for idx, eps in enumerate(epsList):
-                if eps < 0:
+                if eps is None or eps < 0:
                     deficitYrs.append(2015 + idx)
             fails.append("Low EPS|" + str(deficitYrs))
         else:
@@ -56,8 +56,12 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liab
         if epsList is not None:
             prevEps = epsList[0]
             eps = epsList[-1]
-            percentGrowth = float(eps / prevEps) - 1.0
-            fails.append("Low EPS Growth %|" + str(round(percentGrowth,2)))
+            if prevEps is None or eps is None:
+                percentGrowth = None
+                fails.append("Low EPS Growth %|" + str(percentGrowth))
+            else:
+                percentGrowth = float(eps / prevEps) - 1.0
+                fails.append("Low EPS Growth %|" + str(round(percentGrowth,2)))
         else:
             fails.append("Low EPS Growth %|" + str(epsList))
     if goodAssets(mktCap, assets, liabilities):
@@ -91,7 +95,9 @@ def goodEps(epsList):
     if epsList is None:
         return False
     for eps in epsList:
-        if eps < 0:
+        if eps is None:
+            return False
+        elif eps < 0:
             return False
     return True
 # TODO - Needs a list of annual dividend payouts over the last 20 years.
@@ -107,6 +113,8 @@ def goodEpsGrowth(epsList):
         return False
     prevEps = epsList[0]
     eps = epsList[-1]
+    if prevEps is None or eps is None:
+        return False
     percentGrowth = float(eps / prevEps) - 1.0
     # 2.9% annual growth over 10 years is ~33% total
     #100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093

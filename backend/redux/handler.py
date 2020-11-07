@@ -176,11 +176,11 @@ def scrape(symbol):
     profileDict = fetchProfile(symbol)
     currRatio = profileDict["currRatio"]
     pbRatio = profileDict["pbRatio"]
-    # cashFlowDict = fetchCashFlow(symbol)
-    # dividend = cashFlowDict["dividend"]
-    # dividendList = cashFlowDict["dividendList"]
-    # print("Dividends: " + str(dividendList))
-    # print("Dividend: " + str(dividend))
+    cashFlowDict = fetchCashFlow(symbol)
+    dividend = cashFlowDict["dividend"]
+    dividendList = cashFlowDict["dividendList"]
+    print("Dividends: " + str(dividendList))
+    print("Dividend: " + str(dividend))
 
     # TODO - Fetch the following, final criteria:
     # Get last 20 years of dividend history. If they have a dividend, check whether they've had consistent payments.
