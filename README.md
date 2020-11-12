@@ -29,14 +29,13 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 6. Type 'exit' to quit
 
 ## To Do List
-1. Add error handling for invalid stock symbols.
-2. Output the analysis results to an Excel document.
-3. Scrape a list of dividends for analysis.
-4. Fetch 10, or 20 years for EPS and dividends respectively.
-5. Determine a symbol's industry/sector and output that information with its score.
-6. Check additional criteria:
+1. Output the analysis results to an Excel document.
+2. Fetch 10, or 20 years for EPS and dividends respectively.
+3. Determine a symbol's industry/sector/sub-sector and output that information with its score.
+	* FinViz has this information, see what other sites might as well.
+4. Check additional criteria:
 	* Annual and YoY growth of a company's revenue.
-7. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
+5. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
 	* This would improve readability of some output and prevent misreading large numbers by the user.
-8. Fetch a subset of Stock symbols to check for the day.
+6. Fetch a subset of Stock symbols to check for the day.
 	* E.g. scraping a FinViz search and checking the symbols that are returned.
