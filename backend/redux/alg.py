@@ -19,7 +19,7 @@ def grahamNum(eps, bvps):
         grahamNum = math.sqrt(product)
     return grahamNum
 # Currently scores out of 7 to determine health of a stock.
-def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liabilities):
+def score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, assets, liabilities):
     score = 0
     fails = []
     if goodSales(sales):
@@ -45,11 +45,10 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liab
             fails.append("Low EPS|" + str(deficitYrs))
         else:
             fails.append("Low EPS|" + str(epsList))
-    # TODO - Properly pass dividends here and check the logic on the method.
-    # if goodDividend(dividends):
-    #     score += 1
-    # else:
-    fails.append("<Dividends>")
+    if goodDividend(dividend, dividends):
+        score += 1
+    else:
+        fails.append("Dividend decreased over last 5 yrs")
     if goodEpsGrowth(epsList):
         score += 1
     else:
@@ -102,11 +101,18 @@ def goodEps(epsList):
     return True
 # TODO - Needs a list of annual dividend payouts over the last 20 years.
 # TODO - Add logic to determine whether a dividend payment was missed
-# def goodDividend(dividends):
-#     for dividend in dividends:
-#         if dividend < 0:
-#             return False
-#     return True
+def goodDividend(dividend, dividends):
+    # If no dividend is paid, then it passes
+    if not dividend:
+        return True
+    # Otherwise, check for decreasing dividends
+    maxDividend = 0
+    for dividend in dividends:
+        if dividend > maxDividend:
+            maxDividend = dividend
+        elif dividend < maxDividend:
+            return False
+    return True
 # TODO - EPS needs to be a list from the last 10 years
 def goodEpsGrowth(epsList):
     if epsList is None:

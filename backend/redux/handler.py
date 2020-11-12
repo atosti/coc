@@ -58,7 +58,6 @@ def mwFinancialsSearch(soup, text):
     found = soup.find("a", {"data-ref": text})
     if found:
         fetch = found.parent.parent.findChildren()
-        # print(fetch)
         for elem in fetch:
             elemFound = elem.find("div", {"class": "miniGraph"})
             if elemFound:
@@ -93,6 +92,27 @@ def fetchFinancials(symbol):
     financialsDict.update(salesList = itemDict["itemList"])
     # print("Financials: " + str(financialsDict))
     return financialsDict
+
+# MarketWatch Company Cash Flow scraper
+def fetchCashFlow(symbol):
+    cashFlowDict = {"dividend": None, "dividendList": None}
+    symbol = symbol.replace("-", ".") #Convert for URL
+    url = "https://www.marketwatch.com/investing/stock/" + symbol.lower() + "/financials/cash-flow"
+    soup = getSoup(url)
+    found = soup.find(text='Cash Dividends Paid - Total')
+    if found:
+        fetch = found.parent.parent.findChildren()
+        for elem in fetch:
+            elemFound = elem.find("div", {"class": "miniGraph"})
+            if elemFound:
+                values = json.loads(elemFound.get("data-chart"))["chartValues"]
+                itemList = values
+                # Dividends are fetched as negative on MW, so convert them
+                for i in range(0, len(itemList)):
+                    itemList[i] = abs(itemList[i])
+                item = abs(float(values[-1]))
+                cashFlowDict.update(dividendList = itemList, dividend = item)
+    return cashFlowDict
 
 def fetchBalanceSheet(symbol):
     balanceSheetDict = {"price": None, "assets": None, "liabilities": None}
@@ -142,18 +162,6 @@ def fetchProfile(symbol):
     # print("Profile: " + str(profileDict))
     return profileDict
 
-# FIXME - Finish this
-def fetchCashFlow(symbol):
-    cashFlowDict = {"dividend": None, "dividendList": None}
-    symbol = symbol.replace("-", ".") #Convert for URL
-    url = "https://www.marketwatch.com/investing/stock/" + symbol + "/financials/cash-flow"
-    soup = getSoup(url)
-    itemDict = mwFinancialsSearch(soup, "Cash Dividends Paid - Total")
-    # print("ItemDict: " + str(itemDict))
-    cashFlowDict.update(dividend = itemDict["item"])
-    cashFlowDict.update(dividendList = itemDict["itemList"])
-    return cashFlowDict
-
 def scrape(symbol):
     #Initialize criteria
     price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
@@ -181,17 +189,8 @@ def scrape(symbol):
     dividendList = cashFlowDict["dividendList"]
     print("Dividends: " + str(dividendList))
     print("Dividend: " + str(dividend))
-
-    # TODO - Fetch the following, final criteria:
-    # Get last 20 years of dividend history. If they have a dividend, check whether they've had consistent payments.
-    # Determine if they ever missed a payment or paid a decreasing dividend
-    # dividendList
-    # TODO = Print this data to an excel document. Update each symbol per fetch
-    # excel.update(symbol, None)
-
-    # https://www.marketbeat.com/stocks/NYSE/WLKP/dividend/
-
-    score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividendList, assets, liabilities)
+    # Check the company against the core criteria
+    score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividendList, assets, liabilities)
     print("Score: " + str(score) + "/7")
     grahamNum = None
     if bvps is not None and eps is not None:
@@ -200,7 +199,7 @@ def scrape(symbol):
             grahamNum = round(grahamNum, 2)
     print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
 
-    # All values, used to simple bug testing.
+    # All values, used to do simple bug testing.
     overallDict = {
         "assets": assets,
         "bvps": bvps,
