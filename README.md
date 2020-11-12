@@ -38,3 +38,5 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 	* Annual and YoY growth of a company's revenue.
 7. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
 	* This would improve readability of some output and prevent misreading large numbers by the user.
+8. Fetch a subset of Stock symbols to check for the day.
+	* E.g. scraping a FinViz search and checking the symbols that are returned.
