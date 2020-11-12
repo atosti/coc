@@ -36,3 +36,5 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 5. Determine a symbol's industry/sector and output that information with its score.
 6. Check additional criteria:
 	* Annual and YoY growth of a company's revenue.
+7. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
+	* This would improve readability of some output and prevent misreading large numbers by the user.
