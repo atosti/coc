@@ -15,7 +15,8 @@ This program examines Market Capitalization, P/E Ratio, Current Ratio, EPS, EPS 
 7. Does it have cheap earnings?
 	* Is its P/E ratio < 15?
 8. Graham Number
-	* The Graham Number is a calculation to determine a fair value for a company's shares. It is calculated as the Square Root of (22.5*EPS*BVPS).
+	* The Graham Number is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
+	* It is calculated as the sqrt(22.5*EPS*BVPS).
 
 Currently, it checks for everything except for #3 (dividends). Also, it only checks with the last 5 years of data instead of the last 10 or 20 as some criteria specify. This is to be fixed in coming updates.
 
