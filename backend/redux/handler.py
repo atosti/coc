@@ -187,8 +187,6 @@ def scrape(symbol):
     cashFlowDict = fetchCashFlow(symbol)
     dividend = cashFlowDict["dividend"]
     dividendList = cashFlowDict["dividendList"]
-    print("Dividends: " + str(dividendList))
-    print("Dividend: " + str(dividend))
     # Check the company against the core criteria
     score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividendList, assets, liabilities)
     print("Score: " + str(score) + "/7")

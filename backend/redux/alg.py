@@ -68,7 +68,11 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, asset
     else:
         value = (assets - liabilities) * 1.5
         fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
-    print("Fails because: " + str(fails))
+    # Print fails
+    if score < 7:
+        print("Fails because: " + str(fails))
+    else:
+        print("Passes all criteria!")
     return score
 
 def goodSales(sales):
