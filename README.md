@@ -39,6 +39,7 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 	* This would improve readability of some output and prevent misreading large numbers by the user.
 6. Fetch a subset of Stock symbols to check for the day.
 	* E.g. scraping a FinViz search and checking the symbols that are returned.
+7. Add a debug flag that will allow you to see all the fetched data for a symbol alongside it.
 
 ## Symbols that return bad values
 1. FHI
