@@ -119,6 +119,8 @@ def goodDividend(dividend, dividends):
     # Otherwise, check for decreasing dividends
     maxDividend = 0
     for dividend in dividends:
+        if dividend == None:
+            return False
         if dividend > maxDividend:
             maxDividend = dividend
         elif dividend < maxDividend:

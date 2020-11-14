@@ -109,7 +109,8 @@ def fetchCashFlow(symbol):
                 itemList = values
                 # Dividends are fetched as negative on MW, so convert them
                 for i in range(0, len(itemList)):
-                    itemList[i] = abs(itemList[i])
+                    if itemList[i] != None:
+                        itemList[i] = abs(itemList[i])
                 item = abs(float(values[-1]))
                 cashFlowDict.update(dividendList = itemList, dividend = item)
     return cashFlowDict
