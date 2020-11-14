@@ -57,13 +57,16 @@ def mwFinancialsSearch(soup, text):
     itemDict = {"item": None, "itemList": None}
     found = soup.find("a", {"data-ref": text})
     if found:
+        item = None
+        itemList = None
         fetch = found.parent.parent.findChildren()
         for elem in fetch:
             elemFound = elem.find("div", {"class": "miniGraph"})
             if elemFound:
                 values = json.loads(elemFound.get("data-chart"))["chartValues"]
                 itemList = values
-                item = float(values[-1])
+                if values[-1] != None:
+                    item = float(values[-1])
                 itemDict.update(itemList = itemList, item = item)
     return itemDict
 
@@ -102,12 +105,13 @@ def fetchCashFlow(symbol):
     found = soup.find(text='Cash Dividends Paid - Total')
     if found:
         fetch = found.parent.parent.findChildren()
+        item = None
+        itemList = None
         for elem in fetch:
             elemFound = elem.find("div", {"class": "miniGraph"})
             if elemFound:
                 values = json.loads(elemFound.get("data-chart"))["chartValues"]
                 itemList = values
-                item = None
                 # Dividends are fetched as negative on MW, so convert them
                 for i in range(0, len(itemList)):
                     if itemList[i] != None:
