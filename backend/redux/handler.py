@@ -215,7 +215,7 @@ def scrape(symbol):
         "price": price,
         "sales": sales
     }
-    print("Overall: " + str(overallDict))
+    # print("Overall: " + str(overallDict))
     return
 
 def commands(phrase):
