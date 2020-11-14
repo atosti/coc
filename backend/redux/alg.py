@@ -13,7 +13,7 @@ def peRatio(price, eps):
 def grahamNum(eps, bvps):
     grahamNum = None
     product = 22.5 * eps * bvps
-    if bvps < 0 or eps < 0:
+    if product < 0:
         grahamNum = -1 * math.sqrt(abs(product))
     else:
         grahamNum = math.sqrt(product)

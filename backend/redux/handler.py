@@ -203,6 +203,7 @@ def scrape(symbol):
         "assets": assets,
         "bvps": bvps,
         "currRatio": currRatio,
+        "dividend": dividend,
         "dividendList": dividendList,
         "eps": eps,
         "epsList": epsList,
@@ -214,7 +215,7 @@ def scrape(symbol):
         "price": price,
         "sales": sales
     }
-    # print("Overall: " + str(overallDict))
+    print("Overall: " + str(overallDict))
     return
 
 def commands(phrase):
