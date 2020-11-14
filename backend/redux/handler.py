@@ -107,11 +107,13 @@ def fetchCashFlow(symbol):
             if elemFound:
                 values = json.loads(elemFound.get("data-chart"))["chartValues"]
                 itemList = values
+                item = None
                 # Dividends are fetched as negative on MW, so convert them
                 for i in range(0, len(itemList)):
                     if itemList[i] != None:
                         itemList[i] = abs(itemList[i])
-                item = abs(float(values[-1]))
+                if values[-1] != None:
+                    item = abs(float(values[-1]))
                 cashFlowDict.update(dividendList = itemList, dividend = item)
     return cashFlowDict
 
