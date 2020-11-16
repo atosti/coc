@@ -216,8 +216,16 @@ def scrape(symbol, flags):
         "pbRatio": pbRatio,
         "peRatio": peRatio,
         "price": price,
-        "sales": sales
+        "sales": sales,
+        "score": score
     }
+    outputHandler(overallDict, flags)
+    return
+
+def outputHandler(overallDict, flags):
+    score = overallDict["score"]
+    grahamNum = overallDict["grahamNum"]
+    price = overallDict["price"]
     # Check for relevant flags, and output accordingly
     print("Score: " + str(score) + "/7")
     print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
@@ -226,6 +234,7 @@ def scrape(symbol, flags):
         print("Debug: " + str(overallDict))
     return
 
+# Assembles a list of flags passed as arguments
 def flagHandler(args):
     flags = []
     for arg in args:
