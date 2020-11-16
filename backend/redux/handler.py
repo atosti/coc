@@ -169,7 +169,7 @@ def fetchProfile(symbol):
     # print("Profile: " + str(profileDict))
     return profileDict
 
-def scrape(symbol):
+def scrape(symbol, flags):
     #Initialize criteria
     price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
     grahamNum = assets = liabilities = epsList = None
@@ -196,15 +196,12 @@ def scrape(symbol):
     dividendList = cashFlowDict["dividendList"]
     # Check the company against the core criteria
     score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividendList, assets, liabilities)
-    print("Score: " + str(score) + "/7")
     grahamNum = None
     if bvps is not None and eps is not None:
         grahamNum = alg.grahamNum(eps, bvps)
         if grahamNum is not None:
             grahamNum = round(grahamNum, 2)
-    print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
-
-    # All values, used to do simple bug testing.
+    # All values, used to do simple debugging.
     overallDict = {
         "assets": assets,
         "bvps": bvps,
@@ -221,11 +218,24 @@ def scrape(symbol):
         "price": price,
         "sales": sales
     }
-    # print("Overall: " + str(overallDict))
+    # Check for relevant flags, and output accordingly
+    print("Score: " + str(score) + "/7")
+    print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
+    # Debug flag
+    if "-d" in flags:
+        print("Debug: " + str(overallDict))
     return
 
+def flagHandler(args):
+    flags = []
+    for arg in args:
+        if arg[:1] == "-":
+            flags.append(arg)
+    return flags
+    
 def commands(phrase):
     args = phrase.split(' ')
     symbol = str(args[0])
-    scrape(symbol)
+    flags = flagHandler(args)
+    scrape(symbol, flags)
     return
