@@ -29,8 +29,12 @@ Currently, it checks for everything except for #3 (dividends). Also, it only che
 6. Type 'exit' to quit
 
 ## Usable Flags
+Note that flags can be combined into strings prepended with a dash, so "-dx" would run both "-d" and "-x".
+
 1. "-d"
 	* Debug mode, prints all available fetched data for a symbol.
+2. "-x"
+	* Excel update. Appends the currently run symbol to an excel file for future reference.
 
 ## To Do List
 1. Output the analysis results to an Excel document.
