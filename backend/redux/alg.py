@@ -19,8 +19,9 @@ def grahamNum(eps, bvps):
         grahamNum = math.sqrt(product)
     return grahamNum
 # Currently scores out of 7 to determine health of a stock.
-def score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, assets, liabilities):
+def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, assets, liabilities):
     score = 0
+    result = ''
     fails = []
     if goodSales(sales):
         score += 1
@@ -75,12 +76,12 @@ def score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, asset
             fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
         else:
             fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
-    # Print fails
+    
     if score < 7:
-        print("Fails because: " + str(fails))
+        result = "Fails because: " + str(fails)
     else:
-        print("Passes all criteria!")
-    return score
+        result = "Passes all criteria!"
+    return result
 
 def goodSales(sales):
     if sales is None:
@@ -112,9 +113,9 @@ def goodEps(epsList):
     return True
 # TODO - Needs a list of annual dividend payouts over the last 20 years.
 # TODO - Add logic to determine whether a dividend payment was missed
-def goodDividend(dividend, dividends):
+def goodDividend(currDividend, dividends):
     # If no dividend is paid, then it passes
-    if not dividend:
+    if not currDividend:
         return True
     # Otherwise, check for decreasing dividends
     maxDividend = 0

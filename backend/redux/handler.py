@@ -169,6 +169,25 @@ def fetchProfile(symbol):
     # print("Profile: " + str(profileDict))
     return profileDict
 
+def scoreSummation(goodAssets, goodCurrRatio, goodDividend, goodEps,
+    goodEpsGrowth, goodPeRatio, goodSales):
+    score = 0
+    if(goodAssets):
+        score += 1
+    if(goodCurrRatio):
+        score += 1
+    if(goodDividend):
+        score += 1
+    if(goodEps):
+        score += 1
+    if(goodEpsGrowth):
+        score += 1
+    if(goodPeRatio):
+        score += 1
+    if(goodSales):
+        score += 1
+    return score
+
 def scrape(symbol, flags):
     #Initialize criteria
     price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
@@ -195,7 +214,17 @@ def scrape(symbol, flags):
     dividend = cashFlowDict["dividend"]
     dividendList = cashFlowDict["dividendList"]
     # Check the company against the core criteria
-    score = alg.score(mktCap, sales, peRatio, currRatio, epsList, dividend, dividendList, assets, liabilities)
+    healthResult = alg.healthCheck(mktCap, sales, peRatio, currRatio, epsList, 
+        dividend, dividendList, assets, liabilities)
+    goodAssets = alg.goodAssets(mktCap, assets, liabilities)
+    goodCurrRatio = alg.goodCurrRatio(currRatio)
+    goodDividend = alg.goodDividend(dividend, dividendList)
+    goodEps = alg.goodEps(epsList)
+    goodEpsGrowth = alg.goodEpsGrowth(epsList)
+    goodPeRatio = alg.goodPeRatio(peRatio)
+    goodSales = alg.goodSales(sales)
+    score = scoreSummation(goodAssets, goodCurrRatio, goodDividend, goodEps,
+        goodEpsGrowth, goodPeRatio, goodSales)
     grahamNum = None
     if bvps is not None and eps is not None:
         grahamNum = alg.grahamNum(eps, bvps)
@@ -203,35 +232,48 @@ def scrape(symbol, flags):
             grahamNum = round(grahamNum, 2)
     # All values, used to do simple debugging.
     overallDict = {
-        "assets": assets,
-        "bvps": bvps,
-        "currRatio": currRatio,
-        "dividend": dividend,
-        "dividendList": dividendList,
-        "eps": eps,
-        "epsList": epsList,
-        "grahamNum": grahamNum,
-        "liabilities": liabilities,
-        "mktCap": mktCap,
-        "pbRatio": pbRatio,
-        "peRatio": peRatio,
-        "price": price,
-        "sales": sales,
-        "score": score
+        'assets': assets,
+        'bvps': bvps,
+        'currRatio': currRatio,
+        'dividend': dividend,
+        'dividendList': dividendList,
+        'eps': eps,
+        'epsList': epsList,
+        'goodAssets': goodAssets,
+        'goodCurrRatio': goodCurrRatio,
+        'goodDividend': goodDividend,
+        'goodEps': goodEps,
+        'goodEpsGrowth': goodEpsGrowth,
+        'goodPeRatio': goodPeRatio,
+        'goodSales': goodSales,
+        'grahamNum': grahamNum,
+        'liabilities': liabilities,
+        'mktCap': mktCap,
+        'pbRatio': pbRatio,
+        'peRatio': peRatio,
+        'price': price,
+        'sales': sales,
+        'score': score,
+        'symbol': symbol
     }
-    outputHandler(overallDict, flags)
+    outputHandler(overallDict, healthResult, flags)
     return
 
-def outputHandler(overallDict, flags):
-    score = overallDict["score"]
+def outputHandler(overallDict, healthResult, flags):
     grahamNum = overallDict["grahamNum"]
     price = overallDict["price"]
+    score = overallDict["score"]
+    symbol = overallDict["symbol"]
     # Check for relevant flags, and output accordingly
+    print(healthResult)
     print("Score: " + str(score) + "/7")
     print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
     # Debug flag
-    if "-d" in flags:
+    if "d" in flags:
         print("Debug: " + str(overallDict))
+    # Excel update flag
+    if "x" in flags:
+        excel.update(symbol, overallDict)
     return
 
 # Assembles a list of flags passed as arguments
@@ -239,7 +281,8 @@ def flagHandler(args):
     flags = []
     for arg in args:
         if arg[:1] == "-":
-            flags.append(arg)
+            for flag in arg[1:]:
+                flags.append(flag)
     return flags
     
 def commands(phrase):
