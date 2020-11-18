@@ -9,14 +9,19 @@ def getSoup(url):
 
 # Yahoo Finance quote
 def fetchYahooQuote(symbol):
-    quoteDict = {"mktCap": None, "peRatio": None, "eps": None}
+    quoteDict = {'divYield': None, 'eps': None, 'mktCap': None, 'peRatio': None}
     symbol = symbol.replace(".", "-") #Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
     soup = getSoup(url)
     mktCap = yfQuoteSearch(soup, "MARKET_CAP-value")
     peRatio = yfQuoteSearch(soup, "PE_RATIO-value")
     eps = yfQuoteSearch(soup, "EPS_RATIO-value")
-    quoteDict.update(mktCap = mktCap, peRatio = peRatio, eps = eps)
+    # Separate Forward Dividend from Dividend Yield
+    forwardDivYield = yfQuoteSearch(soup, "DIVIDEND_AND_YIELD-value")
+    items = forwardDivYield.split(' ')
+    divYield = items[1].replace('(', '').replace(')', '')
+    quoteDict.update(divYield = divYield, eps = eps, mktCap = mktCap, 
+        peRatio = peRatio)
     return quoteDict
 
 # Yahoo Finance key stats
@@ -41,12 +46,14 @@ def yfQuoteSearch(soup, text):
     found = soup.find("td", {"data-test": text})
     if found:
         item = found.get_text(strip=True)
-        if "T" in item:
+        if 'T' in item:
             item = float(locale.atof(item[:-1])) * 1000000000000
-        elif "B" in item:
+        elif 'B' in item:
             item = float(locale.atof(item[:-1])) * 1000000000
-        elif "M" in item:
+        elif 'M' in item:
             item = float(locale.atof(item[:-1])) * 1000000
+        elif '(' in item or ')' in item:
+            item = item
         elif item != "N/A":
             item = float(locale.atof(item))
         else:
@@ -196,26 +203,27 @@ def scrape(symbol, flags):
     epsList = dividendList = []
     # Website scraping
     quoteDict = fetchYahooQuote(symbol)
-    mktCap = quoteDict["mktCap"]
-    peRatio = quoteDict["peRatio"]
-    eps = quoteDict["eps"]
+    mktCap = quoteDict['mktCap']
+    peRatio = quoteDict['peRatio']
+    eps = quoteDict['eps']
+    divYield = quoteDict['divYield']
     bvps = fetchYahooBvps(symbol)
     financialsDict = fetchFinancials(symbol)
-    epsList = financialsDict["epsList"]
-    sales = financialsDict["sales"]
+    epsList = financialsDict['epsList']
+    sales = financialsDict['sales']
     balanceSheetDict = fetchBalanceSheet(symbol)
-    price = balanceSheetDict["price"]
-    assets = balanceSheetDict["assets"]
-    liabilities = balanceSheetDict["liabilities"]
+    price = balanceSheetDict['price']
+    assets = balanceSheetDict['assets']
+    liabilities = balanceSheetDict['liabilities']
     profileDict = fetchProfile(symbol)
-    currRatio = profileDict["currRatio"]
-    pbRatio = profileDict["pbRatio"]
+    currRatio = profileDict['currRatio']
+    pbRatio = profileDict['pbRatio']
     # If Yahoo failed to fetch the P/E ratio, use Marketwatch's
     if peRatio == None:
         peRatio = profileDict['peRatio']
     cashFlowDict = fetchCashFlow(symbol)
-    dividend = cashFlowDict["dividend"]
-    dividendList = cashFlowDict["dividendList"]
+    dividend = cashFlowDict['dividend']
+    dividendList = cashFlowDict['dividendList']
     # Check the company against the core criteria
     healthResult = alg.healthCheck(mktCap, sales, peRatio, currRatio, epsList, 
         dividend, dividendList, assets, liabilities)
@@ -240,6 +248,7 @@ def scrape(symbol, flags):
         'currRatio': currRatio,
         'dividend': dividend,
         'dividendList': dividendList,
+        'divYield': divYield,
         'eps': eps,
         'epsList': epsList,
         'goodAssets': goodAssets,
@@ -269,13 +278,14 @@ def outputHandler(overallDict, healthResult, flags):
     symbol = overallDict["symbol"]
     # Check for relevant flags, and output accordingly
     print(healthResult)
-    print("Score: " + str(score) + "/7")
-    print("GrahamNum/Price: " + str(grahamNum) + "/" + str(price))
+    print('Score: ' + str(score) + '/7')
+    print('GrahamNum/Price: ' + str(grahamNum) + '/' + str(price))
+    print('Dividend Yield: ' + str(overallDict['divYield']))
     # Debug flag
-    if "d" in flags:
-        print("Debug: " + str(overallDict))
+    if 'd' in flags:
+        print('Debug: ' + str(overallDict))
     # Excel update flag
-    if "x" in flags:
+    if 'x' in flags:
         excel.update(symbol, overallDict)
     return
 
@@ -283,7 +293,7 @@ def outputHandler(overallDict, healthResult, flags):
 def flagHandler(args):
     flags = []
     for arg in args:
-        if arg[:1] == "-":
+        if arg[:1] == '-':
             for flag in arg[1:]:
                 flags.append(flag)
     return flags
