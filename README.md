@@ -37,17 +37,12 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 	* Excel update. Appends the currently run symbol to an excel file for future reference.
 
 ## To Do List
-1. Output the analysis results to an Excel document.
-2. Fetch 10, or 20 years for EPS and dividends respectively.
-3. Determine a symbol's industry/sector/sub-sector and output that information with its score.
+1. Fetch 10, or 20 years for EPS and dividends respectively.
+2. Determine a symbol's industry/sector/sub-sector and output that information with its score.
 	* FinViz has this information, see what other sites might as well.
-4. Check additional criteria:
+3. Check additional criteria:
 	* Annual and YoY growth of a company's revenue.
-5. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
+4. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
 	* This would improve readability of some output and prevent misreading large numbers by the user.
-6. Fetch a subset of Stock symbols to check for the day.
+5. Fetch a subset of Stock symbols to check for the day.
 	* E.g. scraping a FinViz search and checking the symbols that are returned.
-
-## Symbols that return bad values
-1. FHI
-2. DKNG
