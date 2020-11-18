@@ -2,6 +2,7 @@ import pandas as pd
 import openpyxl
 import os.path
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Color, PatternFill
 
 # Fetch the next alphabetical symbol in 'coc.xlsx'
 def getNextSymbol():
@@ -31,16 +32,32 @@ def update(symbol, dataDict):
     else:
         wb = Workbook()
         ws = wb.active
+        # Initializes the sheet name and header row
         ws.title = 'Analysis'
-        ws.append(['', 'Score', 'Graham Num.', 'Price',
+        ws.append(['', 'Score', 'Graham Num.', 'Price', 'Div. Yield',
             'Sales > $700M', 'Curr. Ratio >= 2', 
             'No Missed Dividend(5yrs)', 'No Earnings Deficit(5yrs)', 
             'EPS avg > 33%(5yrs)', 'Cheap Assets', 'P/E < 15'])
-    ws.append([dataDict['symbol'].upper(), dataDict['score'], dataDict['grahamNum'],
-        dataDict['price'], dataDict['goodSales'], dataDict['goodCurrRatio'],
+    # Appends the row with the data for the current symbol
+    ws.append([dataDict['symbol'].upper(), dataDict['score'],
+        dataDict['grahamNum'], dataDict['price'], dataDict['divYield'],
+        dataDict['goodSales'], dataDict['goodCurrRatio'],
         dataDict['goodDividend'], dataDict['goodEps'], 
         dataDict['goodEpsGrowth'], dataDict['goodAssets'],
         dataDict['goodPeRatio']
     ])
+    # Fills True/False cells green/red for better readability
+    greenFill = PatternFill(fill_type='solid', start_color='3CB371', 
+    end_color='3CB371')
+    redFill = PatternFill(fill_type='solid', start_color='CD5C5C', 
+        end_color='CD5C5C')
+    for alpha in range(ord('F'), ord('L') + 1):
+        currCell = ws[chr(alpha) + str(ws.max_row)]
+        if currCell.value:
+            currCell.fill = greenFill
+        else:
+            currCell.fill = redFill
+    # Freezes the top row of the excel file
+    wb['Analysis'].freeze_panes = 'A2'
     wb.save(filename = dest_filename)
     return

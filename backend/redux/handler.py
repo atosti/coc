@@ -18,7 +18,10 @@ def fetchYahooQuote(symbol):
     eps = yfQuoteSearch(soup, "EPS_RATIO-value")
     # Separate Forward Dividend from Dividend Yield
     forwardDivYield = yfQuoteSearch(soup, "DIVIDEND_AND_YIELD-value")
-    items = forwardDivYield.split(' ')
+    if forwardDivYield != None:
+        items = forwardDivYield.split(' ')
+    else:
+        items = None
     divYield = items[1].replace('(', '').replace(')', '')
     quoteDict.update(divYield = divYield, eps = eps, mktCap = mktCap, 
         peRatio = peRatio)
