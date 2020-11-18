@@ -79,7 +79,7 @@ def mwProfileSearch(soup, text):
         if fetch:
             value = fetch.get_text(strip=True)
             if value != "N/A":
-                item = float(value)
+                item = float(locale.atof(value))
     return item
 
 def fetchFinancials(symbol):
@@ -210,6 +210,9 @@ def scrape(symbol, flags):
     profileDict = fetchProfile(symbol)
     currRatio = profileDict["currRatio"]
     pbRatio = profileDict["pbRatio"]
+    # If Yahoo failed to fetch the P/E ratio, use Marketwatch's
+    if peRatio == None:
+        peRatio = profileDict['peRatio']
     cashFlowDict = fetchCashFlow(symbol)
     dividend = cashFlowDict["dividend"]
     dividendList = cashFlowDict["dividendList"]
