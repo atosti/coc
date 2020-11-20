@@ -84,8 +84,11 @@ def mwFinancialsSearch(soup, text):
 def mwProfileSearch(soup, text):
     item = None
     found = soup.find(text=text)
-    if found:
-        fetch = found.parent.parent.find("td", {"class": "w25"})
+    if text == 'Sector' and found:
+        fetch = found.parent.parent.find('span', {'class': 'primary'})
+        item = fetch.get_text(strip=True)
+    elif found:
+        fetch = found.parent.parent.find('td', {'class': 'w25'})
         if fetch:
             value = fetch.get_text(strip=True)
             if value != "N/A":
@@ -169,13 +172,15 @@ def fetchBalanceSheet(symbol):
     return balanceSheetDict
 
 def fetchProfile(symbol):
-    profileDict = {"currRatio": None, "peRatio": None, "pbRatio": None}
+    profileDict = {'currRatio': None, 'peRatio': None, 'pbRatio': None, 
+        'sector': None}
     symbol = symbol.replace("-", ".") #Convert for URL
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/profile'
     soup = getSoup(url)
     profileDict.update(currRatio = mwProfileSearch(soup, "Current Ratio"))
     profileDict.update(peRatio = mwProfileSearch(soup, "P/E Current"))
     profileDict.update(pbRatio = mwProfileSearch(soup, "Price to Book Ratio"))
+    profileDict.update(sector = mwProfileSearch(soup, "Sector"))
     # print("Profile: " + str(profileDict))
     return profileDict
 
@@ -221,6 +226,8 @@ def scrape(symbol, flags):
     profileDict = fetchProfile(symbol)
     currRatio = profileDict['currRatio']
     pbRatio = profileDict['pbRatio']
+    sector = profileDict['sector']
+
     # If Yahoo failed to fetch the P/E ratio, use Marketwatch's
     if peRatio == None:
         peRatio = profileDict['peRatio']
@@ -269,24 +276,25 @@ def scrape(symbol, flags):
         'price': price,
         'sales': sales,
         'score': score,
+        'sector': sector,
         'symbol': symbol
     }
     outputHandler(overallDict, healthResult, flags)
     return
 
 def outputHandler(overallDict, healthResult, flags):
-    grahamNum = overallDict["grahamNum"]
-    price = overallDict["price"]
-    score = overallDict["score"]
-    symbol = overallDict["symbol"]
+    symbol = overallDict['symbol']
+    indent = '    '
     # Check for relevant flags, and output accordingly
-    print(healthResult)
-    print('Score: ' + str(score) + '/7')
-    print('GrahamNum/Price: ' + str(grahamNum) + '/' + str(price))
-    print('Dividend Yield: ' + str(overallDict['divYield']))
+    print(indent + 'Score: ' + str(overallDict['score']) + '/7')
+    print(indent + healthResult)
+    print(indent + 'GrahamNum/Price: ' + str(overallDict['grahamNum']) 
+        + '/' + str(overallDict['price']))
+    print(indent + 'Dividend Yield: ' + str(overallDict['divYield']))
+    print(indent + 'Sector: ' + str(overallDict['sector']))
     # Debug flag
     if 'd' in flags:
-        print('Debug: ' + str(overallDict))
+        print(indent + 'Debug: ' + str(overallDict))
     # Excel update flag
     if 'x' in flags:
         excel.update(symbol, overallDict)

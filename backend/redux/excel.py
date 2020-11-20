@@ -34,16 +34,16 @@ def update(symbol, dataDict):
         ws = wb.active
         # Initializes the sheet name and header row
         ws.title = 'Analysis'
-        ws.append(['', 'Score', 'Graham Num.', 'Price', 'Div. Yield',
-            'Sales > $700M', 'Curr. Ratio >= 2', 
-            'No Missed Dividend(5yrs)', 'No Earnings Deficit(5yrs)', 
-            'EPS avg > 33%(5yrs)', 'Cheap Assets', 'P/E < 15'])
+        ws.append(['', 'Score', 'Sector', 'Graham Num.', 'Price', 'Div. Yield',
+            'Sales > $700M', 'Curr. Ratio >= 2', 'No Missed Dividend(5yrs)', 
+            'No Earnings Deficit(5yrs)', 'EPS avg > 33%(5yrs)', 'Cheap Assets', 
+            'P/E < 15'])
     # Appends the row with the data for the current symbol
     ws.append([dataDict['symbol'].upper(), dataDict['score'],
-        dataDict['grahamNum'], dataDict['price'], dataDict['divYield'],
-        dataDict['goodSales'], dataDict['goodCurrRatio'],
+        dataDict['sector'], dataDict['grahamNum'], dataDict['price'], 
+        dataDict['divYield'], dataDict['goodSales'], dataDict['goodCurrRatio'], 
         dataDict['goodDividend'], dataDict['goodEps'], 
-        dataDict['goodEpsGrowth'], dataDict['goodAssets'],
+        dataDict['goodEpsGrowth'], dataDict['goodAssets'], 
         dataDict['goodPeRatio']
     ])
     # Fills True/False cells green/red for better readability
@@ -51,7 +51,7 @@ def update(symbol, dataDict):
     end_color='3CB371')
     redFill = PatternFill(fill_type='solid', start_color='CD5C5C', 
         end_color='CD5C5C')
-    for alpha in range(ord('F'), ord('L') + 1):
+    for alpha in range(ord('G'), ord('M') + 1):
         currCell = ws[chr(alpha) + str(ws.max_row)]
         if currCell.value:
             currCell.fill = greenFill
