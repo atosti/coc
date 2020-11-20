@@ -13,16 +13,22 @@ def fetchYahooQuote(symbol):
     symbol = symbol.replace(".", "-") #Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
     soup = getSoup(url)
-    mktCap = yfQuoteSearch(soup, "MARKET_CAP-value")
-    peRatio = yfQuoteSearch(soup, "PE_RATIO-value")
-    eps = yfQuoteSearch(soup, "EPS_RATIO-value")
-    # Separate Forward Dividend from Dividend Yield
-    forwardDivYield = yfQuoteSearch(soup, "DIVIDEND_AND_YIELD-value")
-    if forwardDivYield != None:
-        items = forwardDivYield.split(' ')
-    else:
-        items = None
-    divYield = items[1].replace('(', '').replace(')', '')
+    mktCap = yfQuoteSearch(soup, 'MARKET_CAP-value')
+    peRatio = yfQuoteSearch(soup, 'PE_RATIO-value')
+    eps = yfQuoteSearch(soup, 'EPS_RATIO-value')
+    # Div Yield can come in 2 locations, depending on symbol
+    findYield = yfQuoteSearch(soup, 'TD_YIELD-value')
+    findForwardDivYield = yfQuoteSearch(soup, 'DIVIDEND_AND_YIELD-value')
+    divYield = None
+    if findYield != None:
+        item = findYield
+        if item != None:
+            divYield = item
+    elif findForwardDivYield != None:
+        # Separates Forward Dividend from Dividend Yield
+        items = findForwardDivYield.split(' ')
+        if items != None:
+            divYield = items[1].replace('(', '').replace(')', '')
     quoteDict.update(divYield = divYield, eps = eps, mktCap = mktCap, 
         peRatio = peRatio)
     return quoteDict
@@ -49,13 +55,15 @@ def yfQuoteSearch(soup, text):
     found = soup.find("td", {"data-test": text})
     if found:
         item = found.get_text(strip=True)
+        # Handlers for Million/Billion/Trillion values
         if 'T' in item:
             item = float(locale.atof(item[:-1])) * 1000000000000
         elif 'B' in item:
             item = float(locale.atof(item[:-1])) * 1000000000
         elif 'M' in item:
             item = float(locale.atof(item[:-1])) * 1000000
-        elif '(' in item or ')' in item:
+        # Exceptions for dividend yield fetches
+        elif '%' in item:
             item = item
         elif item != "N/A":
             item = float(locale.atof(item))
