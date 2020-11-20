@@ -38,14 +38,14 @@ def update(symbol, dataDict):
             'Sales > $700M', 'Curr. Ratio >= 2', 'No Missed Dividend(5yrs)', 
             'No Earnings Deficit(5yrs)', 'EPS avg > 33%(5yrs)', 'Cheap Assets', 
             'P/E < 15'])
-        # Resize column widths to show full column titles
+        # Resize column widths to show full column titles. Skips (empty) Col A.
         for alpha in range(ord('B'), ord('M') + 1):
             currChar = chr(alpha)
             titleWidth = len(ws[currChar + '1'].value)
-            if titleWidth > 15:
+            if titleWidth > 12:
                 ws.column_dimensions[currChar].width = titleWidth
             else:
-                ws.column_dimensions[currChar].width = 15
+                ws.column_dimensions[currChar].width = 12
     # Appends the row with the data for the current symbol
     ws.append([dataDict['symbol'].upper(), dataDict['score'],
         dataDict['sector'], dataDict['grahamNum'], dataDict['price'], 
