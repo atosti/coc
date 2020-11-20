@@ -37,7 +37,7 @@ def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends,
     if goodCurrRatio(currRatio):
         score += 1
     else:
-        fails.append("Low Curr Ratio|" + str(currRatio))
+        fails.append("Low Curr Ratio|" + str(currRatio) + ' < 2.0')
     if goodEps(epsList):
         score += 1
     else:
