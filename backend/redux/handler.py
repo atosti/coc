@@ -156,7 +156,9 @@ def fetchBalanceSheet(symbol):
             curr = elem.find("div", {"class": "miniGraph"})
             if curr:
                 values = json.loads(curr.get("data-chart"))["chartValues"]
-                assets = int(values[-1])
+                assets = None
+                if values[-1] != None:
+                    assets = int(values[-1])
                 balanceSheetDict.update(assets = assets)
     # Liabilities
     findLiabilites = soup.find(text=' Total Liabilities')
@@ -166,7 +168,9 @@ def fetchBalanceSheet(symbol):
             curr = elem.find("div", {"class": "miniGraph"})
             if curr:
                 values = json.loads(curr.get("data-chart"))["chartValues"]
-                liabilities = int(values[-1])
+                liabilities = None
+                if values[-1] != None:
+                    liabilities = int(values[-1])
                 balanceSheetDict.update(liabilities = liabilities)
     # print("Balance Sheet: " + str(balanceSheetDict))
     return balanceSheetDict
