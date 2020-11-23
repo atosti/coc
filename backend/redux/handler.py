@@ -63,7 +63,7 @@ def yfQuoteSearch(soup, text):
         elif 'M' in item:
             item = float(locale.atof(item[:-1])) * 1000000
         # Exceptions for dividend yield fetches
-        elif '%' in item:
+        elif '%' in item or '(' in item or ')' in item:
             item = item
         elif item != "N/A":
             item = float(locale.atof(item))
