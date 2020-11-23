@@ -5,3 +5,5 @@ backend/redux/__pycache__/
 coc.xlsx
 .vscode/
 env/
+*.pyc
+.DS_Store

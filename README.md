@@ -5,7 +5,7 @@ As with all investing tools, use it at your own risk. ;)
 
 ## The 7 Criteria
 This program examines Market Capitalization, P/E Ratio, Current Ratio, EPS, EPS Growth, Assets, and Liabilities. It analyzes them based on the following criteria, where an answer of TRUE is viewed as healthy.
-1. Does the company have over $700M in annual sales? 
+1. Does the company have over $700M in annual sales?
 2. Does it have a current ratio of at least 200%?
 3. Has it not missed any dividends in the last 20 years?
 4. Has it not had an earnings deficit in the last 10 years?
@@ -50,3 +50,6 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 	* Adjust methods to handle either version of the page
 	* https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
 7. When the -x flag is ran on a symbol that already exists, update that row instead of appending a second copy.
+
+## Running Tests
+You can run the tests by installing the requirements from the `requirements.txt` file and then running `python -m pytest`

@@ -3,21 +3,22 @@ import math
 # Inputs: Outstanding num. of shares and share price in USD
 def mktCap(shares, price):
     return shares * price
+    
 def currRatio(assets, liabilities):
     currRatio = float(assets/liabilities)
     return currRatio
+    
 def peRatio(price, eps):
     peRatio = float(price / eps)
     return peRatio
+    
 # Returns the fair value of a stock. The highest price an investor should pay.
 def grahamNum(eps, bvps):
-    grahamNum = None
     product = 22.5 * eps * bvps
     if product < 0:
-        grahamNum = -1 * math.sqrt(abs(product))
-    else:
-        grahamNum = math.sqrt(product)
-    return grahamNum
+        return -1 * math.sqrt(abs(product))
+    return math.sqrt(product)
+    
 # Currently scores out of 7 to determine health of a stock.
 def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, assets, liabilities):
     score = 0
