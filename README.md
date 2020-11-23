@@ -46,3 +46,6 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 	* This would improve readability of some output and prevent misreading large numbers by the user.
 5. Fetch a subset of Stock symbols to check for the day.
 	* E.g. scraping a FinViz search and checking the symbols that are returned.
+6. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
+	* Adjust methods to handle either version of the page
+	* https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
