@@ -49,3 +49,4 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 6. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
 	* Adjust methods to handle either version of the page
 	* https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
+7. When the -x flag is ran on a symbol that already exists, update that row instead of appending a second copy.
