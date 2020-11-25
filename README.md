@@ -67,5 +67,6 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 	* Adjust methods to handle either version of the page
 	* https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
 	* This is because YYY is an ETF and not a company. Funds have different data about them entirely, figure a way to analyze these.
-6. Add unit tests for the handler methods.
+6. Add unit tests for the `handler.py` methods.
 	* Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.
+7. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
