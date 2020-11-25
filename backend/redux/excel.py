@@ -26,9 +26,15 @@ def getNextSymbol():
 # Adds a new row for this symbol to the end of the excel file
 def update(symbol, dataDict):
     dest_filename = 'coc.xlsx'
+    overwriteRow = None
     if os.path.isfile(dest_filename):
         wb = load_workbook(filename = dest_filename)
         ws = wb.active
+        for idx in range(2, ws.max_row + 1):
+            currSymbol = ws['A' + str(idx)].value
+            if currSymbol.lower() == symbol.lower():
+                overwriteRow = idx
+                break;
     else:
         wb = Workbook()
         ws = wb.active
@@ -46,15 +52,23 @@ def update(symbol, dataDict):
                 ws.column_dimensions[currChar].width = titleWidth
             else:
                 ws.column_dimensions[currChar].width = 12
-    # Appends the row with the data for the current symbol
-    ws.append([dataDict['symbol'].upper(), dataDict['score'],
+        # Freezes the top row of the excel file
+        wb['Analysis'].freeze_panes = 'A2'
+    # Stores the row being added
+    newRow = [dataDict['symbol'].upper(), dataDict['score'],
         dataDict['sector'], dataDict['grahamNum'], dataDict['price'], 
         dataDict['divYield'], dataDict['goodSales'], dataDict['goodCurrRatio'], 
         dataDict['goodDividend'], dataDict['goodEps'], 
         dataDict['goodEpsGrowth'], dataDict['goodAssets'], 
         dataDict['goodPeRatio']
-    ])
-    # Fills True/False cells green/red for better readability
+    ]
+    # Either overwrites the row for the symbol or adds a new row for it
+    if overwriteRow != None:
+        for col, val in enumerate(newRow, start=1):
+            ws.cell(row=overwriteRow, column=col).value = val
+    else:
+        ws.append(newRow)
+    # Fills True/False cells Green/Red in new row for readability
     greenFill = PatternFill(fill_type='solid', start_color='3CB371', 
     end_color='3CB371')
     redFill = PatternFill(fill_type='solid', start_color='CD5C5C', 
@@ -65,7 +79,5 @@ def update(symbol, dataDict):
             currCell.fill = greenFill
         else:
             currCell.fill = redFill
-    # Freezes the top row of the excel file
-    wb['Analysis'].freeze_panes = 'A2'
     wb.save(filename = dest_filename)
     return

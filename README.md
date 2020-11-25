@@ -34,7 +34,7 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 1. "-d"
 	* Debug mode, prints all available fetched data for a symbol.
 2. "-x"
-	* Excel update. Appends the currently run symbol to an excel file for future reference.
+	* Excel update. Appends the currently run symbol to an excel file for future reference. If the symbol already exists in the excel, it overwrites the row with fresh data.
 
 ## To Do List
 1. Fetch 10, or 20 years for EPS and dividends respectively.
@@ -49,4 +49,6 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 6. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
 	* Adjust methods to handle either version of the page
 	* https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
-7. When the -x flag is ran on a symbol that already exists, update that row instead of appending a second copy.
+	* This is because YYY is an ETF and not a company.
+7. Add unit tests for the handler methods.
+	* Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.

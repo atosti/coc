@@ -154,7 +154,7 @@ def fetchBalanceSheet(symbol):
         for elem in fetch:
             curr = elem.find("p", {"class": "data bgLast"})
             if curr:
-                price = float(curr.get_text(strip=True))
+                price = float(locale.atof(curr.get_text(strip=True)))
                 balanceSheetDict.update(price = price)
     # Total Assets
     findAssets = soup.find("tr", {"class": "totalRow"})
