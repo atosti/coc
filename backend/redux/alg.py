@@ -78,7 +78,7 @@ def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends,
             fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
     
     if score < 7:
-        result = "Fails because: " + str(fails)
+        result = "Weaknesses: " + str(fails)
     else:
         result = "Passes all criteria!"
     return result
