@@ -24,7 +24,7 @@ CoC examines a variety of key datapoints for a symbol, such as Market Capitaliza
 
 It analyzes symbols based on the following criteria, where a value of **True** is viewed as relative strength, and **False** is viewed as relative weakness.
 
-### The Criteria
+### The 7 Scoring Criteria
 1. Does the company have over $700M(USD) in annual sales?
 2. Does it have a current ratio of at least 2.0?
 	* This determines whether the company's underlying assets are worth at least twice its short-term debts (those owed in one year).
@@ -47,6 +47,8 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 2. Graham Number
 	* The Graham Number is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
 	* It is calculated as the sqrt(22.5 * EPS * BVPS).
+      * Sometimes CoC returns a negative value for the grahamn number. This means that either the EPS, the BVPS, or both are negative.
+      * This is considered a Weakness in the symbol, and indicates a need for manually examining these two values.
 3. Dividend Yield
 	* Relative to the currently traded price, what percentage is payed out annually by the company.
 4. Sector
