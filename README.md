@@ -38,17 +38,16 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 
 ## To Do List
 1. Fetch 10, or 20 years for EPS and dividends respectively.
-2. Determine a symbol's industry/sector/sub-sector and output that information with its score.
 	* FinViz has this information, see what other sites might as well.
-3. Check additional criteria:
+2. Check additional criteria:
 	* Annual and YoY growth of a company's revenue.
-4. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
+3. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
 	* This would improve readability of some output and prevent misreading large numbers by the user.
-5. Fetch a subset of Stock symbols to check for the day.
+4. Fetch a subset of Stock symbols to check for the day.
 	* E.g. scraping a FinViz search and checking the symbols that are returned.
-6. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
+5. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
 	* Adjust methods to handle either version of the page
 	* https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
-	* This is because YYY is an ETF and not a company.
-7. Add unit tests for the handler methods.
+	* This is because YYY is an ETF and not a company. Funds have different data about them entirely, figure a way to analyze these.
+6. Add unit tests for the handler methods.
 	* Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.
