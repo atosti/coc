@@ -73,3 +73,4 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 	* Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.
 7. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
 8. Add the dividend Payout Ratio to the console logs.
+9. Add a description of whether BVPS or EPS is higher to the console logs for the Graham Number.
