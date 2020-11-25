@@ -70,3 +70,4 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 6. Add unit tests for the `handler.py` methods.
 	* Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.
 7. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
+8. Add the dividend Payout Ratio to the console logs.
