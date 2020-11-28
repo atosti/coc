@@ -3,3 +3,6 @@
 coc.xlsx
 .vscode/
 env/
+*.DS_Store
+__pycache__
+.hypothesis
