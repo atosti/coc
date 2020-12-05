@@ -1,4 +1,4 @@
-import requests, json, webbrowser, alg, excel, locale
+import requests, json, webbrowser, locale, alg, excel
 from bs4 import BeautifulSoup
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8') 
 
@@ -72,20 +72,21 @@ def yfQuoteSearch(soup, text):
     return item
 
 def mwFinancialsSearch(soup, text):
-    itemDict = {"item": None, "itemList": None}
-    found = soup.find("a", {"data-ref": text})
+    itemDict = {'item': None, 'itemList': None}
+    found = soup.find(text = text)
     if found:
-        item = None
-        itemList = None
-        fetch = found.parent.parent.findChildren()
+        item = None # Most recent year's value
+        itemList = None # List of 5 previous years' values
+        fetch = found.parent.parent.parent.findChildren()
         for elem in fetch:
-            elemFound = elem.find("div", {"class": "miniGraph"})
+            elemFound = elem.find('div', {'class': 'chart--financials'})
             if elemFound:
-                values = json.loads(elemFound.get("data-chart"))["chartValues"]
-                itemList = values
-                if values[-1] != None:
-                    item = float(values[-1])
+                itemList = elemFound.get('data-chart-data').split(',')
+                itemList = [float(i) for i in itemList]
+                if itemList[-1] != None:
+                    item = float(itemList[-1])
                 itemDict.update(itemList = itemList, item = item)
+                break;
     return itemDict
 
 # Marketwatch Company Profile scraper
@@ -103,84 +104,50 @@ def mwProfileSearch(soup, text):
                 item = float(locale.atof(value))
     return item
 
+# MarketWatch Financials scraper
 def fetchFinancials(symbol):
     financialsDict = {"eps": None, "epsList": None, "sales": None, "salesList": None}
     symbol = symbol.replace("-", ".") #Convert for URL
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials'
     soup = getSoup(url)
-    itemDict = mwFinancialsSearch(soup, "ratio_Eps1YrAnnualGrowth")
-    financialsDict.update(eps = itemDict["item"])
-    financialsDict.update(epsList = itemDict["itemList"])
-    itemDict = mwFinancialsSearch(soup, "ratio_SalesNet1YrGrowth")
-    financialsDict.update(sales = itemDict["item"])
-    financialsDict.update(salesList = itemDict["itemList"])
-    # print("Financials: " + str(financialsDict))
+    itemDict = mwFinancialsSearch(soup, 'EPS (Basic)')
+    financialsDict.update(eps = itemDict['item'])
+    financialsDict.update(epsList = itemDict['itemList'])
+    itemDict = mwFinancialsSearch(soup, 'Sales/Revenue')
+    financialsDict.update(sales = itemDict['item'])
+    financialsDict.update(salesList = itemDict['itemList'])
+    # print('Financials: ' + str(financialsDict))
     return financialsDict
 
 # MarketWatch Company Cash Flow scraper
 def fetchCashFlow(symbol):
-    cashFlowDict = {"dividend": None, "dividendList": None}
-    symbol = symbol.replace("-", ".") #Convert for URL
-    url = "https://www.marketwatch.com/investing/stock/" + symbol.lower() + "/financials/cash-flow"
+    cashFlowDict = {'dividend': None, 'dividendList': None}
+    symbol = symbol.replace('-', '.') # Convert for URL
+    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/cash-flow'
     soup = getSoup(url)
-    found = soup.find(text='Cash Dividends Paid - Total')
-    if found:
-        fetch = found.parent.parent.findChildren()
-        item = None
-        itemList = None
-        for elem in fetch:
-            elemFound = elem.find("div", {"class": "miniGraph"})
-            if elemFound:
-                values = json.loads(elemFound.get("data-chart"))["chartValues"]
-                itemList = values
-                # Dividends are fetched as negative on MW, so convert them
-                for i in range(0, len(itemList)):
-                    if itemList[i] != None:
-                        itemList[i] = abs(itemList[i])
-                if values[-1] != None:
-                    item = abs(float(values[-1]))
-                cashFlowDict.update(dividendList = itemList, dividend = item)
+    itemDict = mwFinancialsSearch(soup, 'Cash Dividends Paid - Total')
+    # Marketwatch seems to list all dividends as negative, so adjust values
+    itemDict['item'] = abs(itemDict['item'])
+    itemDict['itemList'] = [abs(i) for i in itemDict['itemList']]
+    cashFlowDict.update(dividend = itemDict['item'])
+    cashFlowDict.update(dividendList = itemDict['itemList'])
     return cashFlowDict
 
+# Marketwatch Balance Sheet scraper
 def fetchBalanceSheet(symbol):
-    balanceSheetDict = {"price": None, "assets": None, "liabilities": None}
-    symbol = symbol.replace("-", ".") #Convert for URL
+    balanceSheetDict = {'price': None, 'assets': None, 'liabilities': None}
+    symbol = symbol.replace('-', '.') #Convert for URL
     url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/balance-sheet'
     soup = getSoup(url)
-    # Price
-    findPrice = soup.find("div", {"class": "lastprice"})
-    if findPrice:
-        fetch = findPrice.findChildren()
-        for elem in fetch:
-            curr = elem.find("p", {"class": "data bgLast"})
-            if curr:
-                price = float(locale.atof(curr.get_text(strip=True)))
-                balanceSheetDict.update(price = price)
-    # Total Assets
-    findAssets = soup.find("tr", {"class": "totalRow"})
-    if findAssets:
-        fetch = findAssets.findChildren()
-        for elem in fetch:
-            curr = elem.find("div", {"class": "miniGraph"})
-            if curr:
-                values = json.loads(curr.get("data-chart"))["chartValues"]
-                assets = None
-                if values[-1] != None:
-                    assets = int(values[-1])
-                balanceSheetDict.update(assets = assets)
-    # Liabilities
-    findLiabilites = soup.find(text=' Total Liabilities')
-    if findLiabilites:
-        fetch = findLiabilites.parent.parent.findChildren()
-        for elem in fetch:
-            curr = elem.find("div", {"class": "miniGraph"})
-            if curr:
-                values = json.loads(curr.get("data-chart"))["chartValues"]
-                liabilities = None
-                if values[-1] != None:
-                    liabilities = int(values[-1])
-                balanceSheetDict.update(liabilities = liabilities)
-    # print("Balance Sheet: " + str(balanceSheetDict))
+    itemDict = mwFinancialsSearch(soup, 'Total Assets')
+    balanceSheetDict.update(assets = itemDict['item'])
+    itemDict = mwFinancialsSearch(soup, 'Total Liabilities')
+    balanceSheetDict.update(liabilities = itemDict['item'])
+    # Fetch the price from the top of the page
+    price = soup.find('bg-quote', {'class': 'value'})
+    if price:
+        price = price.get_text(strip=True)
+    balanceSheetDict.update(price = price)
     return balanceSheetDict
 
 def fetchProfile(symbol):
@@ -219,8 +186,9 @@ def scrape(symbol, flags):
     #Initialize criteria
     price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
     grahamNum = assets = liabilities = epsList = None
-    # List elements are ordered from 2015 -> 2019
+    # Lists of annual values are ordered from 2015 -> 2019
     epsList = dividendList = []
+    # TODO - Try to store all fetches into one Dict that is just appended to.
     # Website scraping
     quoteDict = fetchYahooQuote(symbol)
     mktCap = quoteDict['mktCap']
@@ -239,11 +207,14 @@ def scrape(symbol, flags):
     currRatio = profileDict['currRatio']
     pbRatio = profileDict['pbRatio']
     sector = profileDict['sector']
-
-    # If Yahoo failed to fetch the P/E ratio, use Marketwatch's
+    # If Yahoo fails to fetch a P/E ratio, use Marketwatch's value
     if peRatio == None:
         peRatio = profileDict['peRatio']
+    # If Yahoo fails to fetch EPS, use Marketwatch's value
+    if eps == None:
+        eps = financialsDict['eps']
     cashFlowDict = fetchCashFlow(symbol)
+    # TODO - Dividend is the sum of all dividends paid. Divide it by num. shares
     dividend = cashFlowDict['dividend']
     dividendList = cashFlowDict['dividendList']
     # Check the company against the core criteria

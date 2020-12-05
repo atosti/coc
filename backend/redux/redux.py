@@ -1,4 +1,4 @@
-import handler as handler
+import handler
 
 phrase = ''
 print('Enter a stock symbol (type \'quit\' to exit): ')
