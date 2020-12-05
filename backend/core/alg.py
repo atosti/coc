@@ -3,21 +3,20 @@ import math
 # Inputs: Outstanding num. of shares and share price in USD
 def mktCap(shares, price):
     return shares * price
+    
 def currRatio(assets, liabilities):
-    currRatio = float(assets/liabilities)
-    return currRatio
+    return float(assets/liabilities)
+    
 def peRatio(price, eps):
-    peRatio = float(price / eps)
-    return peRatio
+    return float(price / eps)
+    
 # Returns the fair value of a stock. The highest price an investor should pay.
 def grahamNum(eps, bvps):
-    grahamNum = None
     product = 22.5 * eps * bvps
     if product < 0:
-        grahamNum = -1 * math.sqrt(abs(product))
-    else:
-        grahamNum = math.sqrt(product)
-    return grahamNum
+        return -1 * math.sqrt(abs(product))
+    return math.sqrt(product)
+    
 # Currently scores out of 7 to determine health of a stock.
 def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, assets, liabilities):
     score = 0
@@ -84,33 +83,29 @@ def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends,
     return result
 
 def goodSales(sales):
-    if sales is None:
-        return False
-    if sales >= 700000000:
+    if sales and sales >= 700000000:
         return True
     return False
+    
 def goodPeRatio(peRatio):
-    if peRatio is None:
+    if peRatio and peRatio >= 15:
         return False
-    if peRatio < 15:
-        return True
-    return False
+    return True
+    
 def goodCurrRatio(currRatio):
-    if currRatio is None:
-        return False
-    if currRatio >= 2.0:
+    if currRatio and abs(currRatio - 2.0) < 0: #currRatio >= 2.0 can incorrectly fail b/c of float rounding
         return True
     return False
+    
 # Checks for earnings deficit
 def goodEps(epsList):
     if epsList is None:
         return False
     for eps in epsList:
-        if eps is None:
-            return False
-        elif eps < 0:
+        if eps is None or eps < 0:
             return False
     return True
+    
 # TODO - Needs a list of annual dividend payouts over the last 20 years.
 # TODO - Add logic to determine whether a dividend payment was missed
 def goodDividend(currDividend, dividends):
@@ -127,6 +122,7 @@ def goodDividend(currDividend, dividends):
         elif dividend < maxDividend:
             return False
     return True
+    
 # TODO - EPS needs to be a list from the last 10 years
 def goodEpsGrowth(epsList):
     if epsList is None:
