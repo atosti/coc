@@ -1,6 +1,6 @@
 import os
 import datetime
-from backend.redux.alg import *
+from backend.core.alg import *
 import pytest
 from hypothesis import given
 import hypothesis.strategies as st
@@ -37,7 +37,7 @@ def test_good_pe_ratio(peRatio):
         assert result
     else:
         assert not result
-        
+
 @given(curr_ratio=st.floats())
 def test_good_curr_ratio(curr_ratio):
     result = goodCurrRatio(curr_ratio)
@@ -51,9 +51,3 @@ def test_good_eps(eps_list):
     expected = all(list(map(lambda x: x is not None and x >= 0, eps_list)))
     result = goodEps(eps_list)
     assert expected == result
-
-@given(current_dividend=st.integers(), dividends=st.integers())
-def test_good_dividend(current_dividend, dividends):
-    expected = all(list(map(lambda x: x is not None and x >= 0, eps_list)))
-    result = goodEps(eps_list)
-    assert expected == result 
