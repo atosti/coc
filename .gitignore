@@ -1,7 +1,5 @@
 # Untracked files
-backend/keys/alpha-vantage.txt
-backend/keys/us-fundamentals.txt
-backend/redux/__pycache__/
+**/__pycache__/
 coc.xlsx
 .vscode/
 env/
