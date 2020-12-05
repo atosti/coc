@@ -61,12 +61,12 @@ def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends,
             eps = epsList[-1]
             if prevEps is None or eps is None:
                 percentGrowth = None
-                fails.append("Low EPS Growth %|" + str(percentGrowth))
+                fails.append('Low EPS Growth %|' + str(percentGrowth) + ' < 15')
             else:
-                percentGrowth = float(eps / prevEps) - 1.0
-                fails.append("Low EPS Growth %|" + str(round(percentGrowth,2)))
+                percentGrowth = (float(eps / prevEps) - 1.0) * 100
+                fails.append('Low EPS Growth %|' + str(round(percentGrowth,2)) + ' < 15')
         else:
-            fails.append("Low EPS Growth %|" + str(epsList))
+            fails.append('Low EPS Growth %|' + str(epsList) + ' < 15')
     if goodAssets(mktCap, assets, liabilities):
         score += 1
     else:
