@@ -1,58 +1,61 @@
 import requests, json, webbrowser, locale, alg, excel
 from bs4 import BeautifulSoup
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8') 
 
-def getSoup(url):
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
+
+def get_soup(url):
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     return soup
 
+
 # Yahoo Finance quote
-def fetchYahooQuote(symbol):
-    quoteDict = {'divYield': None, 'eps': None, 'mktCap': None, 'peRatio': None}
-    symbol = symbol.replace(".", "-") #Convert for URL
+def fetch_yahoo_quote(symbol):
+    quote_dict = {'div_yield': None, 'eps': None, 'mkt_cap': None, 'pe_ratio': None}
+    symbol = symbol.replace('.', '-')  # Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.lower()
-    soup = getSoup(url)
-    mktCap = yfQuoteSearch(soup, 'MARKET_CAP-value')
-    peRatio = yfQuoteSearch(soup, 'PE_RATIO-value')
-    eps = yfQuoteSearch(soup, 'EPS_RATIO-value')
+    soup = get_soup(url)
+    mkt_cap = yf_quote_search(soup, 'MARKET_CAP-value')
+    pe_ratio = yf_quote_search(soup, 'PE_RATIO-value')
+    eps = yf_quote_search(soup, 'EPS_RATIO-value')
     # Div Yield can come in 2 locations, depending on symbol
-    findYield = yfQuoteSearch(soup, 'TD_YIELD-value')
-    findForwardDivYield = yfQuoteSearch(soup, 'DIVIDEND_AND_YIELD-value')
-    divYield = None
-    if findYield != None:
-        item = findYield
+    find_yield = yf_quote_search(soup, 'TD_YIELD-value')
+    find_forward_div_yield = yf_quote_search(soup, 'DIVIDEND_AND_YIELD-value')
+    div_yield = None
+    if find_yield != None:
+        item = find_yield
         if item != None:
-            divYield = item
-    elif findForwardDivYield != None:
+            div_yield = item
+    elif find_forward_div_yield != None:
         # Separates Forward Dividend from Dividend Yield
-        items = findForwardDivYield.split(' ')
+        items = find_forward_div_yield.split(' ')
         if items != None:
-            divYield = items[1].replace('(', '').replace(')', '')
-    quoteDict.update(divYield = divYield, eps = eps, mktCap = mktCap, 
-        peRatio = peRatio)
-    return quoteDict
+            div_yield = items[1].replace('(', '').replace(')', '')
+    quote_dict.update(div_yield=div_yield, eps=eps, mkt_cap=mkt_cap, pe_ratio=pe_ratio)
+    return quote_dict
+
 
 # Yahoo Finance key stats
-def fetchYahooBvps(symbol):
+def fetch_yahoo_bvps(symbol):
     bvps = None
-    symbol = symbol.replace(".", "-") #Convert for URL
+    symbol = symbol.replace('.', '-')  # Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.upper() + '/key-statistics'
-    soup = getSoup(url)
-    # findBvps = soup.find("td", {"data-reactid": "599"})
-    findBvps = soup.find(text='Book Value Per Share')
-    if findBvps:
-        fetch = findBvps.parent.parent.parent.findChildren()
+    soup = get_soup(url)
+    find_bvps = soup.find(text='Book Value Per Share')
+    if find_bvps:
+        fetch = find_bvps.parent.parent.parent.findChildren()
         # TODO - Currently just grabs the 4th element. Find a better way.
         elem = fetch[3]
         value = elem.get_text(strip=True)
-        if value != "N/A":
+        if value != 'N/A':
             bvps = float(value)
     return bvps
 
-def yfQuoteSearch(soup, text):
+
+def yf_quote_search(soup, text):
     item = None
-    found = soup.find("td", {"data-test": text})
+    found = soup.find('td', {'data-test': text})
     if found:
         item = found.get_text(strip=True)
         # Handlers for Million/Billion/Trillion values
@@ -65,32 +68,35 @@ def yfQuoteSearch(soup, text):
         # Exceptions for dividend yield fetches
         elif '%' in item or '(' in item or ')' in item:
             item = item
-        elif item != "N/A":
+        elif item != 'N/A':
             item = float(locale.atof(item))
         else:
             item = None
     return item
 
-def mwFinancialsSearch(soup, text):
-    itemDict = {'item': None, 'itemList': None}
-    found = soup.find(text = text)
+
+def mw_financials_search(soup, text):
+    item_dict = {'item': None, 'item_list': None}
+    found = soup.find(text=text)
     if found:
-        item = None # Most recent year's value
-        itemList = None # List of 5 previous years' values
+        item = None  # Most recent year's value
+        item_list = None  # List of 5 previous years' values
         fetch = found.parent.parent.parent.findChildren()
         for elem in fetch:
             elemFound = elem.find('div', {'class': 'chart--financials'})
             if elemFound:
-                itemList = elemFound.get('data-chart-data').split(',')
-                itemList = [float(i) for i in itemList]
-                if itemList[-1] != None:
-                    item = float(itemList[-1])
-                itemDict.update(itemList = itemList, item = item)
-                break;
-    return itemDict
+                item_list = elemFound.get('data-chart-data').split(',')
+                # TODO - Check for empty datacharts to prevent crashes
+                item_list = [float(i) for i in item_list]
+                if item_list[-1] != None:
+                    item = float(item_list[-1])
+                item_dict.update(item_list=item_list, item=item)
+                break
+    return item_dict
+
 
 # Marketwatch Company Profile scraper
-def mwProfileSearch(soup, text):
+def mw_profile_search(soup, text):
     item = None
     found = soup.find(text=text)
     if text == 'Sector' and found:
@@ -100,201 +106,247 @@ def mwProfileSearch(soup, text):
         fetch = found.parent.parent.find('td', {'class': 'w25'})
         if fetch:
             value = fetch.get_text(strip=True)
-            if value != "N/A":
+            if value != 'N/A':
                 item = float(locale.atof(value))
     return item
 
+
 # MarketWatch Financials scraper
-def fetchFinancials(symbol):
-    financialsDict = {"eps": None, "epsList": None, "sales": None, "salesList": None}
-    symbol = symbol.replace("-", ".") #Convert for URL
-    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials'
-    soup = getSoup(url)
-    itemDict = mwFinancialsSearch(soup, 'EPS (Basic)')
-    financialsDict.update(eps = itemDict['item'])
-    financialsDict.update(epsList = itemDict['itemList'])
-    itemDict = mwFinancialsSearch(soup, 'Sales/Revenue')
-    financialsDict.update(sales = itemDict['item'])
-    financialsDict.update(salesList = itemDict['itemList'])
-    # print('Financials: ' + str(financialsDict))
-    return financialsDict
+def fetch_financials(symbol):
+    financials_dict = {'eps': None, 'eps_list': None, 'sales': None, 'sales_list': None}
+    symbol = symbol.replace('-', '.')  # Convert for URL
+    url = (
+        'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials'
+    )
+    soup = get_soup(url)
+    item_dict = mw_financials_search(soup, 'EPS (Basic)')
+    financials_dict.update(eps=item_dict['item'])
+    financials_dict.update(eps_list=item_dict['item_list'])
+    item_dict = mw_financials_search(soup, 'Sales/Revenue')
+    financials_dict.update(sales=item_dict['item'])
+    financials_dict.update(sales_list=item_dict['item_list'])
+    # print('Financials: ' + str(financials_dict))
+    return financials_dict
+
 
 # MarketWatch Company Cash Flow scraper
-def fetchCashFlow(symbol):
-    cashFlowDict = {'dividend': None, 'dividendList': None}
-    symbol = symbol.replace('-', '.') # Convert for URL
-    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/cash-flow'
-    soup = getSoup(url)
-    itemDict = mwFinancialsSearch(soup, 'Cash Dividends Paid - Total')
+def fetch_cash_flow(symbol):
+    cash_flow_dict = {'dividend': None, 'dividend_list': None}
+    symbol = symbol.replace('-', '.')  # Convert for URL
+    url = (
+        'https://www.marketwatch.com/investing/stock/'
+        + symbol.lower()
+        + '/financials/cash-flow'
+    )
+    soup = get_soup(url)
+    item_dict = mw_financials_search(soup, 'Cash Dividends Paid - Total')
     # Marketwatch seems to list all dividends as negative, so adjust values
-    itemDict['item'] = abs(itemDict['item'])
-    itemDict['itemList'] = [abs(i) for i in itemDict['itemList']]
-    cashFlowDict.update(dividend = itemDict['item'])
-    cashFlowDict.update(dividendList = itemDict['itemList'])
-    return cashFlowDict
+    item_dict['item'] = abs(item_dict['item'])
+    item_dict['item_list'] = [abs(i) for i in item_dict['item_list']]
+    cash_flow_dict.update(dividend=item_dict['item'])
+    cash_flow_dict.update(dividend_list=item_dict['item_list'])
+    return cash_flow_dict
+
 
 # Marketwatch Balance Sheet scraper
-def fetchBalanceSheet(symbol):
-    balanceSheetDict = {'price': None, 'assets': None, 'liabilities': None}
-    symbol = symbol.replace('-', '.') #Convert for URL
-    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/financials/balance-sheet'
-    soup = getSoup(url)
-    itemDict = mwFinancialsSearch(soup, 'Total Assets')
-    balanceSheetDict.update(assets = itemDict['item'])
-    itemDict = mwFinancialsSearch(soup, 'Total Liabilities')
-    balanceSheetDict.update(liabilities = itemDict['item'])
+def fetch_balance_sheet(symbol):
+    balance_sheet_dict = {'price': None, 'assets': None, 'liabilities': None}
+    symbol = symbol.replace('-', '.')  # Convert for URL
+    url = (
+        'https://www.marketwatch.com/investing/stock/'
+        + symbol.lower()
+        + '/financials/balance-sheet'
+    )
+    soup = get_soup(url)
+    item_dict = mw_financials_search(soup, 'Total Assets')
+    balance_sheet_dict.update(assets=item_dict['item'])
+    item_dict = mw_financials_search(soup, 'Total Liabilities')
+    balance_sheet_dict.update(liabilities=item_dict['item'])
     # Fetch the price from the top of the page
     price = soup.find('bg-quote', {'class': 'value'})
     if price:
         price = price.get_text(strip=True)
-    balanceSheetDict.update(price = price)
-    return balanceSheetDict
+    balance_sheet_dict.update(price=price)
+    return balance_sheet_dict
 
-def fetchProfile(symbol):
-    profileDict = {'currRatio': None, 'peRatio': None, 'pbRatio': None, 
-        'sector': None}
-    symbol = symbol.replace("-", ".") #Convert for URL
-    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/profile'
-    soup = getSoup(url)
-    profileDict.update(currRatio = mwProfileSearch(soup, "Current Ratio"))
-    profileDict.update(peRatio = mwProfileSearch(soup, "P/E Current"))
-    profileDict.update(pbRatio = mwProfileSearch(soup, "Price to Book Ratio"))
-    profileDict.update(sector = mwProfileSearch(soup, "Sector"))
-    # print("Profile: " + str(profileDict))
-    return profileDict
 
-def scoreSummation(goodAssets, goodCurrRatio, goodDividend, goodEps,
-    goodEpsGrowth, goodPeRatio, goodSales):
+def fetch_profile(symbol):
+    profile_dict = {'curr_ratio': None, 'pe_ratio': None, 'pb_ratio': None, 'sector': None}
+    symbol = symbol.replace('-', '.')  # Convert for URL
+    url = 'https://www.marketwatch.com/investing/stock/' + symbol.lower() + '/company-profile'
+    soup = get_soup(url)
+    profile_dict.update(curr_ratio=mw_profile_search(soup, 'Current Ratio'))
+    profile_dict.update(pe_ratio=mw_profile_search(soup, 'P/E Current'))
+    profile_dict.update(pbRatio=mw_profile_search(soup, 'Price to Book Ratio'))
+    profile_dict.update(sector=mw_profile_search(soup, 'Sector'))
+    # print('Profile: ' + str(profile_dict))
+    return profile_dict
+
+
+def score_summation(
+    good_assets,
+    good_curr_ratio,
+    good_dividend,
+    good_eps,
+    good_eps_growth,
+    good_pe_ratio,
+    good_sales,
+):
     score = 0
-    if(goodAssets):
+    if good_assets:
         score += 1
-    if(goodCurrRatio):
+    if good_curr_ratio:
         score += 1
-    if(goodDividend):
+    if good_dividend:
         score += 1
-    if(goodEps):
+    if good_eps:
         score += 1
-    if(goodEpsGrowth):
+    if good_eps_growth:
         score += 1
-    if(goodPeRatio):
+    if good_pe_ratio:
         score += 1
-    if(goodSales):
+    if good_sales:
         score += 1
     return score
 
+
 def scrape(symbol, flags):
-    #Initialize criteria
-    price = sales = mktCap = eps = peRatio = pbRatio = currRatio = None
-    grahamNum = assets = liabilities = epsList = None
+    # Initialize criteria
+    price = sales = mkt_cap = eps = pe_ratio = pb_ratio = curr_ratio = None
+    graham_num = assets = liabilities = eps_list = None
     # Lists of annual values are ordered from 2015 -> 2019
-    epsList = dividendList = []
+    eps_list = dividend_list = []
     # TODO - Try to store all fetches into one Dict that is just appended to.
     # Website scraping
-    quoteDict = fetchYahooQuote(symbol)
-    mktCap = quoteDict['mktCap']
-    peRatio = quoteDict['peRatio']
-    eps = quoteDict['eps']
-    divYield = quoteDict['divYield']
-    bvps = fetchYahooBvps(symbol)
-    financialsDict = fetchFinancials(symbol)
-    epsList = financialsDict['epsList']
-    sales = financialsDict['sales']
-    balanceSheetDict = fetchBalanceSheet(symbol)
-    price = balanceSheetDict['price']
-    assets = balanceSheetDict['assets']
-    liabilities = balanceSheetDict['liabilities']
-    profileDict = fetchProfile(symbol)
-    currRatio = profileDict['currRatio']
-    pbRatio = profileDict['pbRatio']
-    sector = profileDict['sector']
+    quote_dict = fetch_yahoo_quote(symbol)
+    mkt_cap = quote_dict['mkt_cap']
+    pe_ratio = quote_dict['pe_ratio']
+    eps = quote_dict['eps']
+    div_yield = quote_dict['div_yield']
+    bvps = fetch_yahoo_bvps(symbol)
+    financials_dict = fetch_financials(symbol)
+    eps_list = financials_dict['eps_list']
+    sales = financials_dict['sales']
+    balance_sheet_dict = fetch_balance_sheet(symbol)
+    price = balance_sheet_dict['price']
+    assets = balance_sheet_dict['assets']
+    liabilities = balance_sheet_dict['liabilities']
+    profile_dict = fetch_profile(symbol)
+    curr_ratio = profile_dict['curr_ratio']
+    pb_ratio = profile_dict['pb_ratio']
+    sector = profile_dict['sector']
     # If Yahoo fails to fetch a P/E ratio, use Marketwatch's value
-    if peRatio == None:
-        peRatio = profileDict['peRatio']
+    if pe_ratio == None:
+        pe_ratio = profile_dict['pe_ratio']
     # If Yahoo fails to fetch EPS, use Marketwatch's value
     if eps == None:
-        eps = financialsDict['eps']
-    cashFlowDict = fetchCashFlow(symbol)
+        eps = financials_dict['eps']
+    cash_flow_dict = fetch_cash_flow(symbol)
     # TODO - Dividend is the sum of all dividends paid. Divide it by num. shares
-    dividend = cashFlowDict['dividend']
-    dividendList = cashFlowDict['dividendList']
+    dividend = cash_flow_dict['dividend']
+    dividend_list = cash_flow_dict['dividend_list']
     # Check the company against the core criteria
-    healthResult = alg.healthCheck(mktCap, sales, peRatio, currRatio, epsList, 
-        dividend, dividendList, assets, liabilities)
-    goodAssets = alg.goodAssets(mktCap, assets, liabilities)
-    goodCurrRatio = alg.goodCurrRatio(currRatio)
-    goodDividend = alg.goodDividend(dividend, dividendList)
-    goodEps = alg.goodEps(epsList)
-    goodEpsGrowth = alg.goodEpsGrowth(epsList)
-    goodPeRatio = alg.goodPeRatio(peRatio)
-    goodSales = alg.goodSales(sales)
-    score = scoreSummation(goodAssets, goodCurrRatio, goodDividend, goodEps,
-        goodEpsGrowth, goodPeRatio, goodSales)
-    grahamNum = None
+    health_result = alg.health_check(
+        mkt_cap,
+        sales,
+        pe_ratio,
+        curr_ratio,
+        eps_list,
+        dividend,
+        dividend_list,
+        assets,
+        liabilities,
+    )
+    good_assets = alg.good_assets(mkt_cap, assets, liabilities)
+    good_curr_ratio = alg.good_curr_ratio(curr_ratio)
+    good_dividend = alg.good_dividend(dividend, dividend_list)
+    good_eps = alg.good_eps(eps_list)
+    good_eps_growth = alg.good_eps_growth(eps_list)
+    good_pe_ratio = alg.good_pe_ratio(pe_ratio)
+    good_sales = alg.good_sales(sales)
+    score = score_summation(
+        good_assets,
+        good_curr_ratio,
+        good_dividend,
+        good_eps,
+        good_eps_growth,
+        good_pe_ratio,
+        good_sales,
+    )
+    graham_num = None
     if bvps is not None and eps is not None:
-        grahamNum = alg.grahamNum(eps, bvps)
-        if grahamNum is not None:
-            grahamNum = round(grahamNum, 2)
+        graham_num = alg.graham_num(eps, bvps)
+        if graham_num is not None:
+            graham_num = round(graham_num, 2)
     # All values, used to do simple debugging.
-    overallDict = {
+    overall_dict = {
         'assets': assets,
         'bvps': bvps,
-        'currRatio': currRatio,
+        'curr_ratio': curr_ratio,
         'dividend': dividend,
-        'dividendList': dividendList,
-        'divYield': divYield,
+        'dividend_list': dividend_list,
+        'div_yield': div_yield,
         'eps': eps,
-        'epsList': epsList,
-        'goodAssets': goodAssets,
-        'goodCurrRatio': goodCurrRatio,
-        'goodDividend': goodDividend,
-        'goodEps': goodEps,
-        'goodEpsGrowth': goodEpsGrowth,
-        'goodPeRatio': goodPeRatio,
-        'goodSales': goodSales,
-        'grahamNum': grahamNum,
+        'eps_list': eps_list,
+        'good_assets': good_assets,
+        'good_curr_ratio': good_curr_ratio,
+        'good_dividend': good_dividend,
+        'good_eps': good_eps,
+        'good_eps_growth': good_eps_growth,
+        'good_pe_ratio': good_pe_ratio,
+        'good_sales': good_sales,
+        'graham_num': graham_num,
         'liabilities': liabilities,
-        'mktCap': mktCap,
-        'pbRatio': pbRatio,
-        'peRatio': peRatio,
+        'mkt_cap': mkt_cap,
+        'pb_ratio': pb_ratio,
+        'pe_ratio': pe_ratio,
         'price': price,
         'sales': sales,
         'score': score,
         'sector': sector,
-        'symbol': symbol
+        'symbol': symbol,
     }
-    outputHandler(overallDict, healthResult, flags)
+    output_handler(overall_dict, health_result, flags)
     return
 
-def outputHandler(overallDict, healthResult, flags):
-    symbol = overallDict['symbol']
-    indent = '    '
+
+def output_handler(overall_dict, health_result, flags):
+    symbol = overall_dict['symbol']
+    indent = "    "
     # Check for relevant flags, and output accordingly
-    print(indent + 'Score: ' + str(overallDict['score']) + '/7')
-    print(indent + healthResult)
-    print(indent + 'GrahamNum/Price: ' + str(overallDict['grahamNum']) 
-        + '/' + str(overallDict['price']))
-    print(indent + 'Dividend Yield: ' + str(overallDict['divYield']))
-    print(indent + 'Sector: ' + str(overallDict['sector']))
+    print(indent + 'Score: ' + str(overall_dict['score']) + '/7')
+    print(indent + health_result)
+    print(
+        indent
+        + 'Graham Num/Price: '
+        + str(overall_dict['graham_num'])
+        + '/'
+        + str(overall_dict['price'])
+    )
+    print(indent + 'Dividend Yield: ' + str(overall_dict['div_yield']))
+    print(indent + 'Sector: ' + str(overall_dict['sector']))
     # Debug flag
     if 'd' in flags:
-        print(indent + 'Debug: ' + str(overallDict))
+        print(indent + 'Debug: ' + str(overall_dict))
     # Excel update flag
     if 'x' in flags:
-        excel.update(symbol, overallDict)
+        excel.update(symbol, overall_dict)
     return
 
+
 # Assembles a list of flags passed as arguments
-def flagHandler(args):
+def flag_handler(args):
     flags = []
     for arg in args:
         if arg[:1] == '-':
             for flag in arg[1:]:
                 flags.append(flag)
     return flags
-    
+
+
 def commands(phrase):
     args = phrase.split(' ')
     symbol = str(args[0])
-    flags = flagHandler(args)
+    flags = flag_handler(args)
     scrape(symbol, flags)
     return

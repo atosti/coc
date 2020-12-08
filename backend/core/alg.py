@@ -1,146 +1,145 @@
 import math
 
 # Inputs: Outstanding num. of shares and share price in USD
-def mktCap(shares, price):
+def mkt_cap(shares, price):
     return shares * price
-    
-def currRatio(assets, liabilities):
-    return float(assets/liabilities)
-    
-def peRatio(price, eps):
+
+def curr_ratio(assets, liabilities):
+    return float(assets / liabilities)
+
+def pe_ratio(price, eps):
     return float(price / eps)
-    
+
 # Returns the fair value of a stock. The highest price an investor should pay.
-def grahamNum(eps, bvps):
+def graham_num(eps, bvps):
     product = 22.5 * eps * bvps
     if product < 0:
         return -1 * math.sqrt(abs(product))
     return math.sqrt(product)
-    
+
 # Currently scores out of 7 to determine health of a stock.
-def healthCheck(mktCap, sales, peRatio, currRatio, epsList, dividend, dividends, assets, liabilities):
+def health_check(mkt_cap, sales, pe_ratio, curr_ratio, eps_list, dividend, dividends, assets, liabilities):
     score = 0
     result = ''
     fails = []
-    if goodSales(sales):
+    if good_sales(sales):
         score += 1
     else:
         if sales != None:
             fails.append("Low Sales|" + str(round(sales, 2)) + " of $700M")
         else:
             fails.append("Low Sales|" + str(sales) + " of $700M")
-    if goodPeRatio(peRatio):
+    if good_pe_ratio(pe_ratio):
         score += 1
     else:
-        fails.append("High P/E Ratio|" + str(peRatio) + ' > 15.0')
-    if goodCurrRatio(currRatio):
+        fails.append("High P/E Ratio|" + str(pe_ratio) + ' > 15.0')
+    if good_curr_ratio(curr_ratio):
         score += 1
     else:
-        fails.append("Low Curr Ratio|" + str(currRatio) + ' < 2.0')
-    if goodEps(epsList):
+        fails.append("Low Curr Ratio|" + str(curr_ratio) + ' < 2.0')
+    if good_eps(eps_list):
         score += 1
     else:
-        deficitYrs = []
-        if epsList is not None:
-            for idx, eps in enumerate(epsList):
+        deficit_yrs = []
+        if eps_list is not None:
+            for idx, eps in enumerate(eps_list):
                 if eps is None or eps < 0:
-                    deficitYrs.append(2015 + idx)
-            fails.append("Low EPS|" + str(deficitYrs))
+                    deficit_yrs.append(2015 + idx)
+            fails.append("Low EPS|" + str(deficit_yrs))
         else:
-            fails.append("Low EPS|" + str(epsList))
-    if goodDividend(dividend, dividends):
+            fails.append("Low EPS|" + str(eps_list))
+    if good_dividend(dividend, dividends):
         score += 1
     else:
         fails.append("Dividend decreased over last 5 yrs")
-    if goodEpsGrowth(epsList):
+    if good_eps_growth(eps_list):
         score += 1
     else:
-        if epsList is not None:
-            prevEps = epsList[0]
-            eps = epsList[-1]
-            if prevEps is None or eps is None:
-                percentGrowth = None
-                fails.append('Low EPS Growth %|' + str(percentGrowth) + ' < 15')
+        if eps_list is not None:
+            prev_eps = eps_list[0]
+            eps = eps_list[-1]
+            if prev_eps is None or eps is None:
+                percent_growth = None
+                fails.append('Low EPS Growth %|' + str(percent_growth) + ' < 15')
             else:
-                percentGrowth = (float(eps / prevEps) - 1.0) * 100
-                fails.append('Low EPS Growth %|' + str(round(percentGrowth,2)) + ' < 15')
+                percent_growth = (float(eps / prev_eps) - 1.0) * 100
+                fails.append('Low EPS Growth %|' + str(round(percent_growth,2)) + ' < 15')
         else:
-            fails.append('Low EPS Growth %|' + str(epsList) + ' < 15')
-    if goodAssets(mktCap, assets, liabilities):
+            fails.append('Low EPS Growth %|' + str(eps_list) + ' < 15')
+    if good_assets(mkt_cap, assets, liabilities):
         score += 1
     else:
         value = None
-        if assets != None and liabilities != None and mktCap != None:
+        if assets != None and liabilities != None and mkt_cap != None:
             value = (assets - liabilities) * 1.5
-            fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
+            fails.append("Expensive Assets|" + str(mkt_cap) + " !< " + str(value))
         else:
-            fails.append("Expensive Assets|" + str(mktCap) + " !< " + str(value))
-    
+            fails.append("Expensive Assets|" + str(mkt_cap) + " !< " + str(value))
     if score < 7:
         result = "Weaknesses: " + str(fails)
     else:
         result = "Passes all criteria!"
     return result
 
-def goodSales(sales):
-    if sales and sales >= 700000000:
+def good_sales(sales):
+    if sales >= 700000000:
         return True
     return False
-    
-def goodPeRatio(peRatio):
-    if peRatio and peRatio >= 15:
+
+def good_pe_ratio(pe_ratio):
+    if (pe_ratio >= 15) or math.isnan(pe_ratio):
         return False
     return True
-    
-def goodCurrRatio(currRatio):
-    if currRatio and abs(currRatio - 2.0) < 0: #currRatio >= 2.0 can incorrectly fail b/c of float rounding
-        return True
-    return False
-    
-# Checks for earnings deficit
-def goodEps(epsList):
-    if epsList is None:
+
+def good_curr_ratio(curr_ratio):
+    if (curr_ratio < 2.0) or math.isnan(curr_ratio):
         return False
-    for eps in epsList:
-        if eps is None or eps < 0:
+    return True
+
+# Checks for earnings deficit
+def good_eps(eps_list):
+    if len(eps_list) == 0:
+        return False
+    for eps in eps_list:
+        if eps is None or eps < 0 or math.isnan(eps):
             return False
     return True
-    
+
 # TODO - Needs a list of annual dividend payouts over the last 20 years.
 # TODO - Add logic to determine whether a dividend payment was missed
-def goodDividend(currDividend, dividends):
+def good_dividend(curr_dividend, dividends):
     # If no dividend is paid, then it passes
-    if not currDividend:
+    if not curr_dividend:
         return True
     # Otherwise, check for decreasing dividends
-    maxDividend = 0
+    max_dividend = 0
     for dividend in dividends:
         if dividend == None:
             return False
-        if dividend > maxDividend:
-            maxDividend = dividend
-        elif dividend < maxDividend:
+        if dividend > max_dividend:
+            max_dividend = dividend
+        elif dividend < max_dividend:
             return False
     return True
-    
+
 # TODO - EPS needs to be a list from the last 10 years
-def goodEpsGrowth(epsList):
-    if epsList is None:
+def good_eps_growth(eps_list):
+    if eps_list is None:
         return False
-    prevEps = epsList[0]
-    eps = epsList[-1]
-    if prevEps is None or eps is None:
+    prev_eps = eps_list[0]
+    eps = eps_list[-1]
+    if prev_eps is None or eps is None:
         return False
-    percentGrowth = float(eps / prevEps) - 1.0
+    percent_growth = float(eps / prev_eps) - 1.0
     # 2.9% annual growth over 10 years is ~33% total
     #100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
     # TODO - Currently using 15% growth, since it's using 5 years of data
-    if percentGrowth >= 0.15:
+    if percent_growth >= 0.15:
         return True
     return False
-def goodAssets(mktCap, assets, liabilities):
-    if mktCap is None or assets is None or liabilities is None:
+def good_assets(mkt_cap, assets, liabilities):
+    if mkt_cap is None or assets is None or liabilities is None:
         return False
-    if mktCap < ((assets - liabilities) * 1.5):
+    if mkt_cap < ((assets - liabilities) * 1.5):
         return True
     return False
