@@ -13,7 +13,6 @@ def test_market_cap(shares, price):
 @given(eps=st.integers(), bvps=st.integers())
 def test_graham_number(eps, bvps):
     result = graham_num(eps, bvps)
-
     product = 22.5 * eps * bvps
     if product < 0:
         assert result < 0

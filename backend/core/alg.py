@@ -12,6 +12,8 @@ def pe_ratio(price, eps):
 
 # Returns the fair value of a stock. The highest price an investor should pay.
 def graham_num(eps, bvps):
+    if eps == None or bvps == None:
+        return None
     product = 22.5 * eps * bvps
     if product < 0:
         return -1 * math.sqrt(abs(product))
@@ -55,7 +57,7 @@ def health_check(mkt_cap, sales, pe_ratio, curr_ratio, eps_list, dividend, divid
     if good_eps_growth(eps_list):
         score += 1
     else:
-        if eps_list is not None:
+        if eps_list is not None and eps_list:
             prev_eps = eps_list[0]
             eps = eps_list[-1]
             if prev_eps is None or eps is None:
@@ -82,23 +84,23 @@ def health_check(mkt_cap, sales, pe_ratio, curr_ratio, eps_list, dividend, divid
     return result
 
 def good_sales(sales):
-    if sales >= 700000000:
+    if sales and sales >= 700000000:
         return True
     return False
 
 def good_pe_ratio(pe_ratio):
-    if (pe_ratio >= 15) or math.isnan(pe_ratio):
+    if pe_ratio == None or pe_ratio >= 15 or math.isnan(pe_ratio):
         return False
     return True
 
 def good_curr_ratio(curr_ratio):
-    if (curr_ratio < 2.0) or math.isnan(curr_ratio):
+    if curr_ratio == None or curr_ratio < 2.0 or math.isnan(curr_ratio):
         return False
     return True
 
 # Checks for earnings deficit
 def good_eps(eps_list):
-    if len(eps_list) == 0:
+    if eps_list == None or len(eps_list) == 0:
         return False
     for eps in eps_list:
         if eps is None or eps < 0 or math.isnan(eps):
@@ -124,7 +126,7 @@ def good_dividend(curr_dividend, dividends):
 
 # TODO - EPS needs to be a list from the last 10 years
 def good_eps_growth(eps_list):
-    if eps_list is None:
+    if eps_list is None or not eps_list:
         return False
     prev_eps = eps_list[0]
     eps = eps_list[-1]
