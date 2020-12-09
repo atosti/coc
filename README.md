@@ -54,12 +54,12 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 2. Graham Number
    * The Graham Number is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
    * It is calculated as the sqrt(22.5 * EPS * BVPS).
-     * Sometimes CoC returns a negative value for the grahamn number. This means that either the EPS, the BVPS, or both are negative.
-     * This is considered a Weakness in the symbol, and indicates a need for manually examining these two values.
+     * Sometimes CoC returns a negative value for the graham number. This means that either the EPS, the BVPS, or both are negative.
+       * This is considered a Weakness in the symbol, and indicates a need for manually examining these two values further.
 3. Dividend Yield
-   * Relative to the currently traded price, what percentage is payed out annually by the company.
+   * Relative to the currently traded price, what percentage of profits are payed out annually by the company.
 4. Sector
-   * A descriptor of which industry the company does business in
+   * A descriptor of which industry the company does business in.
 
 ### Running the Tests
 
@@ -88,3 +88,4 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 9. Add a description of whether BVPS or EPS is higher to the console logs for the Graham Number.
 10. In `handler.py`update scrape() to append everything to one dictionary.
 11. Add a helper function to adjust urls to either use `.` or `-`as required by a website for scraping.
+12. Setup test coverage tools on the repo.
