@@ -10,9 +10,9 @@ def get_next_symbol():
     for row in ws.iter_rows(ws.max_row, ws.max_row):
         prev_symbol = row[0].value
     symbol = ''
-    f = open("backend/tickers.txt", "r")
+    f = open('backend/tickers.txt', 'r')
     lines = f.readlines()
-    print("prev_symbol: " + str(prev_symbol))
+    print('prev_symbol: ' + str(prev_symbol))
     for i in range (0, len(lines)):
         items = lines[i].split('|')
         if items[1] == prev_symbol:

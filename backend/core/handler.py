@@ -1,11 +1,15 @@
 import requests, json, webbrowser, locale, alg, excel
 from bs4 import BeautifulSoup
+from requests.auth import HTTPBasicAuth
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
-def get_soup(url):
-    page = requests.get(url)
+def get_soup(url, user='', password=''):
+    if user != '' and password != '':
+        page = requests.get(url, auth=(user, password))
+    else:
+        page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
     return soup
 
@@ -22,7 +26,7 @@ def yf_quote_fetch_div_yield(soup):
     return div_yield
 
 
-# Yahoo Finance scrape for: 'finance.yahoo.com/quote/symbol'
+# Yahoo Finance scrape for: 'https://finance.yahoo.com/quote/symbol'
 def scrape_yahoo_quote(symbol):
     quote_dict = {'div_yield': None, 'eps': None, 'mkt_cap': None, 'pe_ratio': None}
     symbol = symbol.replace('.', '-')  # Convert for URL
@@ -36,9 +40,8 @@ def scrape_yahoo_quote(symbol):
     return quote_dict
 
 
-# Yahoo Finance scrape for: 'finance.yahoo.com/quote/symbol/key-statistics'
+# Yahoo Finance scrape for: 'https://finance.yahoo.com/quote/symbol/key-statistics'
 def scrape_yahoo_key_stats(symbol):
-    # bvps = None
     key_stats_dict = {'bvps': None}
     symbol = symbol.replace('.', '-')  # Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.lower() + '/key-statistics'
@@ -99,7 +102,6 @@ def mw_financials_search(soup, text):
     return item_dict
 
 
-# Marketwatch Company Profile scraper
 def mw_profile_search(soup, text):
     item = None
     found = soup.find(text=text)
@@ -115,7 +117,7 @@ def mw_profile_search(soup, text):
     return item
 
 
-# MarketWatch scraper for: 'marketwatch.com/investing/stock/symbol/financials'
+# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials'
 def scrape_mw_financials(symbol):
     financials_dict = {'eps': None, 'eps_list': None, 'sales': None, 
         'sales_list': None
@@ -137,7 +139,7 @@ def scrape_mw_financials(symbol):
     return financials_dict
 
 
-# MarketWatch scraper for: 'marketwatch.com/investing/stock/symbol/financials/cash-flow'
+# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/cash-flow'
 def scrape_mw_cash_flow(symbol):
     cash_flow_dict = {'dividend': None, 'dividend_list': None}
     symbol = symbol.replace('-', '.')  # Convert for URL
@@ -158,7 +160,7 @@ def scrape_mw_cash_flow(symbol):
     return cash_flow_dict
 
 
-# MarketWatch scraper for: 'marketwatch.com/investing/stock/symbol/financials/balance-sheet'
+# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/balance-sheet'
 def scrape_mw_balance_sheet(symbol):
     balance_sheet_dict = {'price': None, 'assets': None, 'liabilities': None}
     symbol = symbol.replace('-', '.')  # Convert for URL
@@ -181,7 +183,7 @@ def scrape_mw_balance_sheet(symbol):
     return balance_sheet_dict
 
 
-# MarketWatch scraper for: 'marketwatch.com/investing/stock/symbol/company-profile'
+# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/company-profile'
 def scrape_mw_profile(symbol):
     profile_dict = {'curr_ratio': None, 'pe_ratio': None, 'pb_ratio': None, 'sector': None}
     symbol = symbol.replace('-', '.')  # Convert for URL
@@ -195,6 +197,24 @@ def scrape_mw_profile(symbol):
     profile_dict.update(pbRatio=mw_profile_search(soup, 'Price to Book Ratio'))
     profile_dict.update(sector=mw_profile_search(soup, 'Sector'))
     return profile_dict
+
+
+# Finviz scraper for 'https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4': 
+def scrape_finviz():
+    url = 'https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4'
+    user = password = ''
+    f = open('backend/finviz-creds.txt', 'r')
+    lines = f.read().splitlines()
+    if len(lines) > 1:
+        user = lines[0]
+        password = lines[1]
+    f.close()
+    print(user)
+    print(password)
+    soup = get_soup(url, user, password)
+    print(soup)
+    # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
+    return
 
 
 def score_summation(
@@ -225,28 +245,14 @@ def score_summation(
 
 
 def total_score(overall_dict):
-    good_assets = alg.good_assets(
-        overall_dict['mkt_cap'],
-        overall_dict['assets'],
-        overall_dict['liabilities']
-    )
-    good_curr_ratio = alg.good_curr_ratio(overall_dict['curr_ratio'])
-    good_dividend = alg.good_dividend(
-        overall_dict['dividend'], 
-        overall_dict['dividend_list']
-    )
-    good_eps = alg.good_eps(overall_dict['eps_list'])
-    good_eps_growth = alg.good_eps_growth(overall_dict['eps_list'])
-    good_pe_ratio = alg.good_pe_ratio(overall_dict['pe_ratio'])
-    good_sales = alg.good_sales(overall_dict['sales'])
     score = score_summation(
-        good_assets,
-        good_curr_ratio,
-        good_dividend,
-        good_eps,
-        good_eps_growth,
-        good_pe_ratio,
-        good_sales,
+        overall_dict['good_assets'],
+        overall_dict['good_curr_ratio'],
+        overall_dict['good_dividend'],
+        overall_dict['good_eps'],
+        overall_dict['good_eps_growth'],
+        overall_dict['good_pe_ratio'],
+        overall_dict['good_sales'],
     )
     return score
 
@@ -265,7 +271,28 @@ def check(symbol, flags):
         **scrape_yahoo_key_stats(symbol),
     }
     overall_dict.update(
-        graham_num=alg.graham_num(overall_dict['eps'], overall_dict['bvps'])
+        graham_num=alg.graham_num(overall_dict['eps'], overall_dict['bvps']),
+        good_assets=alg.good_assets(
+            overall_dict['mkt_cap'], 
+            overall_dict['assets'], 
+            overall_dict['liabilities']),
+        good_curr_ratio=alg.good_curr_ratio(overall_dict['curr_ratio']),
+        good_dividend = alg.good_dividend(
+            overall_dict['dividend'], 
+            overall_dict['dividend_list']),
+        good_eps = alg.good_eps(overall_dict['eps_list']),
+        good_eps_growth = alg.good_eps_growth(overall_dict['eps_list']),
+        good_pe_ratio = alg.good_pe_ratio(overall_dict['pe_ratio']),
+        good_sales = alg.good_sales(overall_dict['sales']),
+    )
+    score = score_summation(
+        overall_dict['good_assets'],
+        overall_dict['good_curr_ratio'],
+        overall_dict['good_dividend'],
+        overall_dict['good_eps'],
+        overall_dict['good_eps_growth'],
+        overall_dict['good_pe_ratio'],
+        overall_dict['good_sales'],
     )
     # TODO - Dividend is the sum of all dividends paid. Divide it by num. shares
     health_result = alg.health_check(
@@ -279,6 +306,7 @@ def check(symbol, flags):
         overall_dict['assets'],
         overall_dict['liabilities'],
     )
+    
     score = total_score(overall_dict)
     overall_dict.update(score=score)
     output_handler(overall_dict, health_result, flags)
@@ -287,7 +315,7 @@ def check(symbol, flags):
 
 def output_handler(overall_dict, health_result, flags):
     symbol = overall_dict['symbol']
-    indent = "    "
+    indent = "    " # TODO - Implement an actual indent that works past 1 line
     # Check for relevant flags, and output accordingly
     print(indent + 'Score: ' + str(overall_dict['score']) + '/7')
     print(indent + health_result)
@@ -306,6 +334,10 @@ def output_handler(overall_dict, health_result, flags):
     # Excel update flag
     if 'x' in flags:
         excel.update(symbol, overall_dict)
+    # Finviz check flag
+    if 'f' in flags:
+        # TODO - Finish implementing a way to fetch this. Auth is needed.
+        scrape_finviz()
     return
 
 
