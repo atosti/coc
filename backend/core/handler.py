@@ -322,7 +322,7 @@ def output_handler(overall_dict, health_result, flags):
     print(
         indent
         + 'Graham Num/Price: '
-        + str(round(overall_dict['graham_num'], 2))
+        + str(overall_dict['graham_num'])
         + '/'
         + str(overall_dict['price'])
     )

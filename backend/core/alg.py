@@ -16,8 +16,8 @@ def graham_num(eps, bvps):
         return None
     product = 22.5 * eps * bvps
     if product < 0:
-        return -1 * math.sqrt(abs(product))
-    return math.sqrt(product)
+        return -1 * round(math.sqrt(abs(product)), 2)
+    return round(math.sqrt(product), 2)
 
 # Currently scores out of 7 to determine health of a stock.
 def health_check(mkt_cap, sales, pe_ratio, curr_ratio, eps_list, dividend, dividends, assets, liabilities):

@@ -16,10 +16,10 @@ def test_graham_number(eps, bvps):
     product = 22.5 * eps * bvps
     if product < 0:
         assert result < 0
-        assert result == -1 * math.sqrt(abs(product))
+        assert result == -1 * round(math.sqrt(abs(product)), 2)
     else:
         assert result >= 0
-        assert result == math.sqrt(product)
+        assert result == round(math.sqrt(product), 2)
 
 @given(sales=st.integers())
 def test_good_sales(sales):
