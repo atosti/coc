@@ -179,6 +179,8 @@ def scrape_mw_balance_sheet(symbol):
     intraday_price = soup.find('h3', {'class': 'intraday__price'})
     if intraday_price:
         price = intraday_price.get_text(strip=True).replace('$', '')
+        if price != None and price != '':
+            price = round(float(price), 2)
     balance_sheet_dict.update(price=price)
     return balance_sheet_dict
 
