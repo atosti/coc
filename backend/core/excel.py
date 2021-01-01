@@ -23,6 +23,22 @@ def get_next_symbol():
     f.close()
     return symbol
 
+
+# Color codes columns G through M with green/red for true/false
+def color_code_row(row_num, ws):
+    # Fills True/False cells Green/Red in new row for readability
+    green_fill = PatternFill(fill_type='solid', start_color='3CB371', 
+    end_color='3CB371')
+    red_fill = PatternFill(fill_type='solid', start_color='CD5C5C', 
+        end_color='CD5C5C')
+    for alpha in range(ord('G'), ord('M') + 1):
+        curr_cell = ws[chr(alpha) + str(row_num)]
+        if curr_cell.value:
+            curr_cell.fill = green_fill
+        else:
+            curr_cell.fill = red_fill
+    
+
 # Adds a new row for this symbol to the end of the excel file
 def update(symbol, data_dict):
     dest_filename = 'coc.xlsx'
@@ -66,18 +82,9 @@ def update(symbol, data_dict):
     if overwrite_row != None:
         for col, val in enumerate(new_row, start=1):
             ws.cell(row=overwrite_row, column=col).value = val
+            color_code_row(overwrite_row, ws)
     else:
         ws.append(new_row)
-    # Fills True/False cells Green/Red in new row for readability
-    green_fill = PatternFill(fill_type='solid', start_color='3CB371', 
-    end_color='3CB371')
-    red_fill = PatternFill(fill_type='solid', start_color='CD5C5C', 
-        end_color='CD5C5C')
-    for alpha in range(ord('G'), ord('M') + 1):
-        curr_cell = ws[chr(alpha) + str(ws.max_row)]
-        if curr_cell.value:
-            curr_cell.fill = green_fill
-        else:
-            curr_cell.fill = red_fill
+        color_code_row(ws.max_row, ws)
     wb.save(filename = dest_filename)
     return

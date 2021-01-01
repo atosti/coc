@@ -89,3 +89,5 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 10. Add a helper function to adjust urls to either use `.` or `-`as required by a website for scraping.
 11. Setup test coverage tools on the repo.
 12. Setup coloring the output in console logs for some values (e.g. green/red for good/bad graham num vs. price ratio)
+13. Add the criteria number that a symbol is weak in to allow for easier manual review.
+14. Reformat the console output to be clearer and more aesthetic. Also add some color to it for quicker reading.

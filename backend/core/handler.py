@@ -43,6 +43,7 @@ def scrape_yahoo_quote(symbol):
 # Yahoo Finance scrape for: 'https://finance.yahoo.com/quote/symbol/key-statistics'
 def scrape_yahoo_key_stats(symbol):
     key_stats_dict = {'bvps': None}
+    bvps = None
     symbol = symbol.replace('.', '-')  # Convert for URL
     url = 'https://finance.yahoo.com/quote/' + symbol.lower() + '/key-statistics'
     soup = get_soup(url)
@@ -178,7 +179,7 @@ def scrape_mw_balance_sheet(symbol):
     price = None
     intraday_price = soup.find('h3', {'class': 'intraday__price'})
     if intraday_price:
-        price = intraday_price.get_text(strip=True).replace('$', '')
+        price = intraday_price.get_text(strip=True).replace('$', '').replace('€', '')
         if price != None and price != '':
             price = round(float(price), 2)
     balance_sheet_dict.update(price=price)
