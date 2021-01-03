@@ -1,6 +1,7 @@
 import requests, json, webbrowser, locale, alg, excel
 from bs4 import BeautifulSoup
 from requests.auth import HTTPBasicAuth
+from rich import print
 
 locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
@@ -316,24 +317,67 @@ def check(symbol, flags):
     return
 
 
+# TODO - Unused at the moment. Refine it, or trash it.
+# Gets a red to green color of 13 possibilities based on strength
+def gradient_color(strength):
+    # Gradient from red (0.0) to green (1.0)
+    gradients = ['cd5c5c', 'c1635e', 'b56b5f', 'a97261', '9d7963',
+        '918065', '848767', '788f68', '6c966a', '609d6c', 
+        '54a46e', '48ac6f', '3cb371']
+    color = '000000'
+    offset = 1/13 # Offset for each gradient value from 0 to 1
+    total = 0.0
+    for i in range (0, 12):
+        if strength >= total and  strength <= (total + offset):
+            color = gradients[i]
+            return color
+        total += offset
+    if strength >= 1:
+        color = gradients[12]
+    elif strength <= 0:
+        color = gradients[0]
+    return color 
+
+
+# TODO - Get this to work for handling indentation
+def reindent(s, num_spaces):
+    lines = s.split(s, '\n')
+    new_str = ''
+    for line in lines:
+        new_str += indent(line, num_spaces * ' ')
+    s = new_str.join('\n')
+    # s = indent(line, num_spaces * ' ') for line in lines
+    # lines = [(num_spaces * ' ') + s.lstrip(line) for line in s]
+    # s = s.join('\n')
+    return s
+
+
 def output_handler(overall_dict, health_result, flags):
+    # TODO - Create a text string object, and append everything to it
     symbol = overall_dict['symbol']
-    indent = "    " # TODO - Implement an actual indent that works past 1 line
-    # Check for relevant flags, and output accordingly
-    print(indent + 'Score: ' + str(overall_dict['score']) + '/7')
-    print(indent + health_result)
-    print(
-        indent
-        + 'Graham Num/Price: '
-        + str(overall_dict['graham_num'])
-        + '/'
-        + str(overall_dict['price'])
-    )
-    print(indent + 'Dividend Yield: ' + str(overall_dict['div_yield']))
-    print(indent + 'Sector: ' + str(overall_dict['sector']))
+    print('Sector: ' + str(overall_dict['sector']))
+    gp_ratio = 0.0
+    gp_ratio_color = 'red'
+    if overall_dict['graham_num'] != None and overall_dict['price'] != None:
+        gp_ratio = float(overall_dict['graham_num'] / overall_dict['price'])
+        # Color green or red depending on if it's above/below fair value
+        if overall_dict['graham_num'] >= overall_dict['price']:
+            gp_ratio_color = 'green'
+    print('Graham Num/Price: ' 
+        + str(overall_dict['graham_num']) + '/'
+        + str(overall_dict['price']) + ' (['
+        + gp_ratio_color + ']'
+        + str(round(gp_ratio, 2))
+        + '[/' + gp_ratio_color + '])')
+    print('Dividend Yield: ' + str(overall_dict['div_yield']))
+    print('Score: ' + str(overall_dict['score']) + '/7')
+    # TODO - Rework strength/weaknesses output
+    print(health_result)
+    # print(reindent(health_result, 4))
+
     # Debug flag
     if 'd' in flags:
-        print(indent + 'Debug: ' + str(overall_dict))
+        print('Debug: ' + str(overall_dict))
     # Excel update flag
     if 'x' in flags:
         excel.update(symbol, overall_dict)
