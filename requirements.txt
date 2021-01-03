@@ -14,7 +14,7 @@ click==7.1.2
 colorama==0.4.1
 commonmark==0.9.1
 constantly==15.1.0
-cryptography==2.7
+cryptography==3.2
 cssselect==1.1.0
 dataclasses==0.8
 distlib==0.3.0
