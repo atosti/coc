@@ -116,22 +116,16 @@ def mw_profile_search(soup, text):
 
 # MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials'
 def scrape_mw_financials(symbol):
-    financials_dict = {"eps": None, "eps_list": None, "sales": None, "sales_list": None}
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/" + symbol.lower() + "/financials"
-    )
+    url = f"https://www.marketwatch.com/investing/stock/{symbol.replace('-', '.').lower()}/financials"
     soup = get_soup(url)
-    item_dict = mw_financials_search(soup, "EPS (Basic)")
-    # Only overwrites EPS if it has a non nonetype value
-    eps = item_dict["item"]
-    if eps != None:
-        financials_dict.update(eps=eps)
-    financials_dict.update(eps_list=item_dict["item_list"])
-    item_dict = mw_financials_search(soup, "Sales/Revenue")
-    financials_dict.update(sales=item_dict["item"])
-    financials_dict.update(sales_list=item_dict["item_list"])
-    return financials_dict
+    eps_dict = mw_financials_search(soup, "EPS (Basic)")
+    sales_dict = mw_financials_search(soup, "Sales/Revenue")
+    return {
+        "eps": eps_dict.get("item"),
+        "eps_list": eps_dict["item_list"],
+        "sales": sales_dict["item"],
+        "sales_list": sales_dict["item_list"],
+    }
 
 
 # MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/cash-flow'
