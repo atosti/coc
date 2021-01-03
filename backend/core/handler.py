@@ -44,11 +44,9 @@ def scrape_yahoo_quote(symbol):
 
 # Yahoo Finance scrape for: 'https://finance.yahoo.com/quote/symbol/key-statistics'
 def scrape_yahoo_key_stats(symbol):
-    key_stats_dict = {"bvps": None}
-    bvps = None
-    symbol = symbol.replace(".", "-")  # Convert for URL
-    url = "https://finance.yahoo.com/quote/" + symbol.lower() + "/key-statistics"
-    soup = get_soup(url)
+    soup = get_soup(
+        f"https://finance.yahoo.com/quote/{symbol.replace('.', '-').lower()}/key-statistics"
+    )
     find_bvps = soup.find(text="Book Value Per Share")
     if find_bvps:
         fetch = find_bvps.parent.parent.parent.findChildren()
@@ -56,9 +54,8 @@ def scrape_yahoo_key_stats(symbol):
         elem = fetch[3]
         value = elem.get_text(strip=True)
         if value != "N/A":
-            bvps = float(value)
-    key_stats_dict.update(bvps=bvps)
-    return key_stats_dict
+            return {"bvps": float(value)}
+    return {"bvps": None}
 
 
 # Takes a fetched string number, such as '700M', and converts it to a float
