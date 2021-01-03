@@ -71,14 +71,13 @@ def str_to_num(num):
 
 
 def yf_quote_search(soup, text):
-    item = None
     found = soup.find("td", {"data-test": text})
-    if found:
-        item = found.get_text(strip=True)
-        special_values = ["%", "(", ")"]
-        if not any(value in item for value in special_values):
-            item = str_to_num(item)
-    return item
+    if not found:
+        return
+    item = found.get_text(strip=True)
+    if any(x in ["%", "(", ")"] for x in item):
+        return item
+    return str_to_num(item)
 
 
 def mw_financials_search(soup, text):
