@@ -2,6 +2,8 @@ import requests, json, webbrowser, locale
 from bs4 import BeautifulSoup
 from requests.auth import HTTPBasicAuth
 from rich import print
+from pprint import pprint
+import re
 from backend.core import alg, excel
 
 
@@ -58,16 +60,23 @@ def scrape_yahoo_key_stats(symbol):
     return {"bvps": None}
 
 
+def _valid_numeric_character(x):
+    return str.isdigit(x) or x in [".", ","]
+
+
 # Takes a fetched string number, such as '700M', and converts it to a float
-def str_to_num(num):
-    if "T" in num:
-        return float(locale.atof(num[:-1])) * 1000000000000
-    if "B" in num:
-        return float(locale.atof(num[:-1])) * 1000000000
-    if "M" in num:
-        return float(locale.atof(num[:-1])) * 1000000
-    if num != "N/A":
-        return float(locale.atof(num))
+def str_to_num(num_str):
+    digits = "".join(filter(_valid_numeric_character, num_str))
+    if not digits:
+        digits = "0"
+    if "T" in num_str:
+        return float(locale.atof(digits)) * 1000000000000
+    if "B" in num_str:
+        return float(locale.atof(digits)) * 1000000000
+    if "M" in num_str:
+        return float(locale.atof(digits)) * 1000000
+    if num_str != "N/A":
+        return float(locale.atof(digits))
 
 
 def yf_quote_search(soup, text):
@@ -80,9 +89,110 @@ def yf_quote_search(soup, text):
     return str_to_num(item)
 
 
+def _mw_combine_table_dicts(table_dicts):
+    combined_dict = {}
+    for table_dict in table_dicts:
+        for year, values in table_dict.items():
+            if year not in combined_dict:
+                combined_dict[year] = {}
+            for title, value in values.items():
+                combined_dict[year][title] = value
+    return combined_dict
+
+
+def mw_raw_tables_to_dict(soup):
+    tables = soup.find("div", {"class": "region--primary"}).findAll("table")
+    table_dicts = []
+    for table in tables:
+        ths = table.find("thead").find("tr").findAll("th")
+        column_headers = [x.find("div").get_text(strip=True) for x in ths]
+        trs = table.find("tbody").findAll("tr")
+        rows = []
+        for tr in trs:
+            tds = tr.findAll("td")
+            rows.append([x.find("div").get_text(strip=True) for x in tds])
+
+        out_dict = {}
+        for i in range(len(column_headers)):
+            header = column_headers[i]
+            out_dict[header] = {}
+            for row in rows:
+                row_header = row[0]
+                try:
+                    value = str_to_num(row[i])
+                except:
+                    value = row[i]
+
+                out_dict[header][row_header] = value
+
+        clean_dict = {}
+        for k, v in out_dict.items():
+            if re.match(r"\d{4}", k):  # Only take columns which are years
+                clean_dict[k] = v
+
+        table_dicts.append(clean_dict)
+    return table_dicts
+
+
+def mw_chart_financials_to_dict(soup):
+    tables = soup.find("div", {"class": "region--primary"}).findAll("table")
+    table_dicts = []
+    for table in tables:
+        ths = table.find("thead").find("tr").findAll("th")
+        column_headers = [x.find("div").get_text(strip=True) for x in ths]
+        trs = table.find("tbody").findAll("tr")
+        rows = []
+        for tr in trs:
+            row_header = tr.find("td").find("div").get_text(strip=True)
+            parsed_values = [row_header]
+
+            values = (
+                tr.find("div", {"class": "chart--financials"})
+                .get("data-chart-data")
+                .split(",")
+            )
+            for value in values:
+                if value:
+                    parsed_values.append(float(value))
+                else:
+                    parsed_values.append(0)
+            rows.append(parsed_values)
+
+        out_dict = {}
+        column_headers = [
+            x for x in column_headers if re.match(r"\d{4}", x)
+        ]  # Only take columns which are years
+        for i in range(len(column_headers)):
+            header = column_headers[i]
+            out_dict[header] = {}
+            for row in rows:
+                row_header = row[0]
+                value = row[i + 1]
+                out_dict[header][row_header] = value
+
+        table_dicts.append(out_dict)
+    return table_dicts
+
+
 def mw_financials_search(soup, text):
+    # setup for table based parsing
+    # tables = mw_chart_financials_to_dict(soup)
+    #  financials = _mw_combine_table_dicts(tables)
+    #  years = list(financials.keys())
+    #  years.sort()
+    #
+    #  item = None
+    #  items = []
+    #
+    #  for year in years:
+    #      value = financials.get(year, {}).get(text)
+    #      items.append(value)
+    #      item = value
+    #  return {"item" : item, "item_list" : items}
+
     item_dict = {"item": None, "item_list": None}
     found = soup.find(text=text)
+
     if found:
         item = None  # Most recent year's value
         item_list = None  # List of 5 previous years' values
@@ -258,6 +368,11 @@ def total_score(overall_dict):
 
 
 def check(symbol, flags):
+    overall_dict, health_result, flags = internal_check(symbol, flags)
+    output_handler(overall_dict, health_result, flags)
+
+
+def internal_check(symbol, flags):
     # Website scraping into a single dict
     # Notes: a. Lists of annual values are ordered from 2015 -> 2019
     #        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
@@ -308,8 +423,7 @@ def check(symbol, flags):
 
     score = total_score(overall_dict)
     overall_dict.update(score=score)
-    output_handler(overall_dict, health_result, flags)
-    return
+    return overall_dict, health_result, flags
 
 
 # TODO - Unused at the moment. Refine it, or trash it.
