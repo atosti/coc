@@ -1,6 +1,6 @@
 ## Circle of Competence
 
-This is a webscraping tool designed to analyze stock symbols according to criteria discussed in Benjamin Graham's __The Intelligent Investor__. It allows a user to quickly analyze a stock, roughly 3cb3713cb3713cb3713cb3713cb3713cb3713cb3713cb3713cb371determining its intrinsic value.
+This is a webscraping tool designed to analyze stock symbols according to criteria discussed in Benjamin Graham's __The Intelligent Investor__. It allows a user to quickly analyze a stock, roughly determining its intrinsic value.
 
 As with all investing tools, use it at your own risk. ;)
 
@@ -91,3 +91,4 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 12. Setup coloring the output in console logs for some values (e.g. green/red for good/bad graham num vs. price ratio)
 13. Add the criteria number that a symbol is weak in to allow for easier manual review.
 14. Reformat the console output to be clearer and more aesthetic. Also add some color.
+15. Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange))
