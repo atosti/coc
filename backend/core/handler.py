@@ -60,16 +60,14 @@ def scrape_yahoo_key_stats(symbol):
 
 # Takes a fetched string number, such as '700M', and converts it to a float
 def str_to_num(num):
-    raw_num = None
     if "T" in num:
-        raw_num = float(locale.atof(num[:-1])) * 1000000000000
-    elif "B" in num:
-        raw_num = float(locale.atof(num[:-1])) * 1000000000
-    elif "M" in num:
-        raw_num = float(locale.atof(num[:-1])) * 1000000
-    elif num != "N/A":
-        raw_num = float(locale.atof(num))
-    return raw_num
+        return float(locale.atof(num[:-1])) * 1000000000000
+    if "B" in num:
+        return float(locale.atof(num[:-1])) * 1000000000
+    if "M" in num:
+        return float(locale.atof(num[:-1])) * 1000000
+    if num != "N/A":
+        return float(locale.atof(num))
 
 
 def yf_quote_search(soup, text):
