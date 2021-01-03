@@ -368,15 +368,7 @@ def total_score(overall_dict):
 
 
 def check(symbol, flags):
-    overall_dict, health_result, flags = internal_check(symbol, flags)
-    output_handler(overall_dict, health_result, flags)
-
-
-def internal_check(symbol, flags):
-    # Website scraping into a single dict
-    # Notes: a. Lists of annual values are ordered from 2015 -> 2019
-    #        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
-    overall_dict = {
+    scraped_data = {
         "symbol": symbol,
         **scrape_mw_financials(symbol),
         **scrape_mw_balance_sheet(symbol),
@@ -385,6 +377,15 @@ def internal_check(symbol, flags):
         **scrape_yahoo_quote(symbol),
         **scrape_yahoo_key_stats(symbol),
     }
+    overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
+    output_handler(overall_dict, health_result, flags)
+
+
+def internal_check(symbol, overall_dict, flags):
+    # Website scraping into a single dict
+    # Notes: a. Lists of annual values are ordered from 2015 -> 2019
+    #        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
+
     overall_dict.update(
         graham_num=alg.graham_num(overall_dict["eps"], overall_dict["bvps"]),
         good_assets=alg.good_assets(
