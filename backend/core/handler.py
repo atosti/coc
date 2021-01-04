@@ -355,7 +355,7 @@ def score_summation(
 
 
 def total_score(overall_dict):
-    score = score_summation(
+    return score_summation(
         overall_dict["good_assets"],
         overall_dict["good_curr_ratio"],
         overall_dict["good_dividend"],
@@ -364,7 +364,6 @@ def total_score(overall_dict):
         overall_dict["good_pe_ratio"],
         overall_dict["good_sales"],
     )
-    return score
 
 
 def check(symbol, flags):
