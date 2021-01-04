@@ -65,3 +65,44 @@ def test_good_eps(eps_list):
         expected = False
     result = good_eps(eps_list)
     assert expected == result
+
+
+num_str_regex = r'[+-]?[\d]+(?:[,]?[\d{3}])*(?:[.]?[\d]+)?[BbMmTt]?$' # e.g. 321.98M
+@given(num_str=st.from_regex(num_str_regex))
+def test_get_digits(num_str):
+    result = get_digits(num_str)
+    negative = False
+    if num_str[0] == '-':
+        negative = True
+    for c in num_str:
+        if not c.isdigit() and c != '.' or c == '²' or c == '³' or c == '¹':
+            num_str = num_str.replace(c, '')
+    if negative:
+        num_str = '-' + num_str
+    expected = num_str
+    assert ',' not in result
+    assert 'B' not in result
+    assert 'b' not in result
+    assert 'M' not in result
+    assert 'm' not in result
+    assert 'T' not in result
+    assert 't' not in result
+    assert expected == result
+
+@given(num_str=st.from_regex(num_str_regex))
+def test_str_to_num(num_str):
+    result = str_to_num(num_str)
+    digits = get_digits(num_str)
+    multiplier = 1
+    if num_str[0] == '-':
+        multiplier *= -1
+    if 'T' in num_str.upper():
+        multiplier *= 1000000000000
+    elif 'B' in num_str.upper():
+        multiplier *= 1000000000
+    elif 'M' in num_str.upper():
+        multiplier *= 1000000
+    if num_str != 'N/A' and digits.count('.') <= 1:
+        num = float(locale.atof(digits)) * multiplier
+    expected = num
+    assert expected == result

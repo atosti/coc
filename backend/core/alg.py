@@ -1,4 +1,4 @@
-import math
+import math, locale
 
 # Inputs: Outstanding num. of shares and share price in USD
 def mkt_cap(shares, price):
@@ -22,6 +22,36 @@ def graham_num(eps, bvps):
     if product < 0:
         return -1 * normalized_value
     return normalized_value
+
+
+def get_digits(num_str):
+    negative = False
+    if num_str[0] == '-':
+        negative = True
+    for c in num_str:
+        if not c.isdigit() and c != '.' or c == '²' or c == '³' or c == '¹':
+            num_str = num_str.replace(c, '')
+    if negative:
+        num_str = '-' + num_str
+    return num_str
+
+
+# Adds or removes T/B/M for Trillion/Billion/Million numerical abbreviations
+def str_to_num(num_str):
+    num = None
+    digits = get_digits(num_str)
+    multiplier = 1
+    if num_str[0] == '-':
+        multiplier *= -1
+    if 'T' in num_str.upper():
+        multiplier *= 1000000000000
+    elif 'B' in num_str.upper():
+        multiplier *= 1000000000
+    elif 'M' in num_str.upper():
+        multiplier *= 1000000
+    if num_str != 'N/A' and digits.count('.') <= 1:
+        num = float(locale.atof(digits)) * multiplier
+    return num
 
 
 # Currently scores out of 7 to determine health of a stock.

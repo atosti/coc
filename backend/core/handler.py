@@ -60,25 +60,6 @@ def scrape_yahoo_key_stats(symbol):
     return {"bvps": None}
 
 
-def _valid_numeric_character(x):
-    return str.isdigit(x) or x in [".", ","]
-
-
-# Takes a fetched string number, such as '700M', and converts it to a float
-def str_to_num(num_str):
-    digits = "".join(filter(_valid_numeric_character, num_str))
-    if not digits:
-        digits = "0"
-    if "T" in num_str:
-        return float(locale.atof(digits)) * 1000000000000
-    if "B" in num_str:
-        return float(locale.atof(digits)) * 1000000000
-    if "M" in num_str:
-        return float(locale.atof(digits)) * 1000000
-    if num_str != "N/A":
-        return float(locale.atof(digits))
-
-
 def yf_quote_search(soup, text):
     found = soup.find("td", {"data-test": text})
     if not found:
@@ -86,7 +67,7 @@ def yf_quote_search(soup, text):
     item = found.get_text(strip=True)
     if any(x in ["%", "(", ")"] for x in item):
         return item
-    return str_to_num(item)
+    return alg.str_to_num(item)
 
 
 def _mw_combine_table_dicts(table_dicts):
@@ -119,7 +100,7 @@ def mw_raw_tables_to_dict(soup):
             for row in rows:
                 row_header = row[0]
                 try:
-                    value = str_to_num(row[i])
+                    value = alg.str_to_num(row[i])
                 except:
                     value = row[i]
 
