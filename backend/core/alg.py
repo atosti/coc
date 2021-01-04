@@ -39,64 +39,64 @@ def health_check(
     score = 0
     result = ""
     fails = []
-    if good_sales(sales):
-        score += 1
-    else:
-        if sales != None:
-            fails.append("Low Sales|" + str(round(sales, 2)) + " of $700M")
+    results = {}
+
+    if not sales:
+        sales = 0
+    sales_str = "${:,.2f}".format(sales)
+    results["sales"] = {
+        "success": good_sales(sales),
+        "message": f"Sales | {sales_str} of $700M",
+    }
+
+    results["pe_ratio"] = {
+        "success": good_pe_ratio(pe_ratio),
+        "message": f"P/E Ratio | {str(pe_ratio)} > 15.0",
+    }
+
+    results["curr_ratio"] = {
+        "success": good_curr_ratio(curr_ratio),
+        "message": f"Curr Ratio | {str(curr_ratio)} < 2.0",
+    }
+
+    deficit_yrs = []
+    if eps_list is not None:
+        for idx, eps in enumerate(eps_list):
+            if eps is None or eps < 0:
+                deficit_yrs.append(2015 + idx)
+    results["eps"] = {
+        "success": good_eps(eps_list),
+        "message": f"EPS | {str(deficit_yrs)}",
+    }
+
+    results["dividend"] = {
+        "success": good_dividend(dividend, dividends),
+        "message": "Dividend decreased over last 5 yrs",
+    }
+
+    results["eps_growth"] = {
+        "success": good_eps_growth(eps_list),
+        "message": f"Low EPS Growth | {str(eps_list)}",
+    }
+
+    message = "Assets |" + str(mkt_cap) + " !< " + str(None)
+    if assets and liabilities and mkt_cap:
+        value = (assets - liabilities) * 1.5
+        message = "Assets |" + str(mkt_cap) + " !< " + str(value)
+
+    results["assets"] = {
+        "success": good_assets(mkt_cap, assets, liabilities),
+        "message": message,
+    }
+
+    score = 0
+    fails = []
+    for k, v in results.items():
+        if v["success"]:
+            score += 1
         else:
-            fails.append("Low Sales|" + str(sales) + " of $700M")
-    if good_pe_ratio(pe_ratio):
-        score += 1
-    else:
-        fails.append("High P/E Ratio|" + str(pe_ratio) + " > 15.0")
-    if good_curr_ratio(curr_ratio):
-        score += 1
-    else:
-        fails.append("Low Curr Ratio|" + str(curr_ratio) + " < 2.0")
-    if good_eps(eps_list):
-        score += 1
-    else:
-        deficit_yrs = []
-        if eps_list is not None:
-            for idx, eps in enumerate(eps_list):
-                if eps is None or eps < 0:
-                    deficit_yrs.append(2015 + idx)
-            fails.append("Low EPS|" + str(deficit_yrs))
-        else:
-            fails.append("Low EPS|" + str(eps_list))
-    if good_dividend(dividend, dividends):
-        score += 1
-    else:
-        fails.append("Dividend decreased over last 5 yrs")
-    if good_eps_growth(eps_list):
-        score += 1
-    else:
-        if eps_list is not None and eps_list:
-            prev_eps = eps_list[0]
-            eps = eps_list[-1]
-            if prev_eps is None or eps is None:
-                percent_growth = None
-                fails.append("Low EPS Growth %|" + str(percent_growth) + " < 15")
-            else:
-                if prev_eps == 0:
-                    percent_growth = 0
-                else:
-                    percent_growth = (float(eps / prev_eps) - 1.0) * 100
-                fails.append(
-                    "Low EPS Growth %|" + str(round(percent_growth, 2)) + " < 15"
-                )
-        else:
-            fails.append("Low EPS Growth %|" + str(eps_list) + " < 15")
-    if good_assets(mkt_cap, assets, liabilities):
-        score += 1
-    else:
-        value = None
-        if assets != None and liabilities != None and mkt_cap != None:
-            value = (assets - liabilities) * 1.5
-            fails.append("Expensive Assets|" + str(mkt_cap) + " !< " + str(value))
-        else:
-            fails.append("Expensive Assets|" + str(mkt_cap) + " !< " + str(value))
+            fails.append(v["message"])
+
     if score < 7:
         result = "Weaknesses: " + str(fails)
     else:
@@ -105,7 +105,7 @@ def health_check(
 
 
 def good_sales(sales):
-    return sales >= 700000000
+    return sales and sales >= 700000000
 
 
 def good_pe_ratio(pe_ratio):
@@ -113,7 +113,7 @@ def good_pe_ratio(pe_ratio):
 
 
 def good_curr_ratio(curr_ratio):
-    return curr_ratio >= 2.0 and not math.isnan(curr_ratio)
+    return curr_ratio and curr_ratio >= 2.0 and not math.isnan(curr_ratio)
 
 
 # Checks for earnings deficit
