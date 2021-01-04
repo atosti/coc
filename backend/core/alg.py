@@ -15,12 +15,13 @@ def pe_ratio(price, eps):
 
 # Returns the fair value of a stock. The highest price an investor should pay.
 def graham_num(eps, bvps):
-    if eps == None or bvps == None:
-        return None
+    if eps is None or bvps is None:
+        return
     product = 22.5 * eps * bvps
+    normalized_value = round(math.sqrt(abs(product)), 2)
     if product < 0:
-        return -1 * round(math.sqrt(abs(product)), 2)
-    return round(math.sqrt(product), 2)
+        return -1 * normalized_value
+    return normalized_value
 
 
 # Currently scores out of 7 to determine health of a stock.
@@ -104,27 +105,22 @@ def health_check(
 
 
 def good_sales(sales):
-    if sales and sales >= 700000000:
-        return True
-    return False
+    return sales >= 700000000
 
 
 def good_pe_ratio(pe_ratio):
-    if pe_ratio == None or pe_ratio >= 15 or math.isnan(pe_ratio):
-        return False
-    return True
+    return pe_ratio != None and pe_ratio < 15 and not math.isnan(pe_ratio)
 
 
 def good_curr_ratio(curr_ratio):
-    if curr_ratio == None or curr_ratio < 2.0 or math.isnan(curr_ratio):
-        return False
-    return True
+    return curr_ratio >= 2.0 and not math.isnan(curr_ratio)
 
 
 # Checks for earnings deficit
 def good_eps(eps_list):
     if eps_list == None or len(eps_list) < 5:
         return False
+
     for eps in eps_list:
         if eps is None or eps < 0 or math.isnan(eps):
             return False
@@ -135,11 +131,7 @@ def good_eps(eps_list):
 # TODO - Add logic to determine whether a dividend payment was missed
 def good_dividend(curr_dividend, dividends):
     # If no dividend is paid, then it passes
-    if not curr_dividend:
-        return True
-
-    sorted_dividend = sorted(dividends)
-    return dividends == sorted_dividend
+    return not curr_dividend or dividends == sorted(dividends)
 
 
 # TODO - EPS needs to be a list from the last 10 years
@@ -151,15 +143,12 @@ def good_eps_growth(eps_list):
     if prev_eps is None or eps is None:
         return False
     if prev_eps == 0:
-        percent_growth = 0
-    else:
-        percent_growth = float(eps / prev_eps) - 1.0
+        return False
+    percent_growth = float(eps / prev_eps) - 1.0
     # 2.9% annual growth over 10 years is ~33% total
     # 100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
     # TODO - Currently using 15% growth, since it's using 5 years of data
-    if percent_growth >= 0.15:
-        return True
-    return False
+    return percent_growth >= 0.15
 
 
 def good_assets(mkt_cap, assets, liabilities):

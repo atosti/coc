@@ -6,11 +6,16 @@ from hypothesis import given
 import hypothesis.strategies as st
 from uuid import uuid4
 
+
 @given(shares=st.integers(), price=st.integers())
 def test_market_cap(shares, price):
-  assert mkt_cap(shares, price) == shares * price
+    assert mkt_cap(shares, price) == shares * price
 
-@given(eps=st.integers(), bvps=st.integers())
+
+@given(
+    eps=st.floats(min_value=-10000000, max_value=10000000),
+    bvps=st.floats(min_value=-10000000, max_value=10000000),
+)
 def test_graham_number(eps, bvps):
     result = graham_num(eps, bvps)
     product = 22.5 * eps * bvps
@@ -21,6 +26,7 @@ def test_graham_number(eps, bvps):
         assert result >= 0
         assert result == round(math.sqrt(product), 2)
 
+
 @given(sales=st.integers())
 def test_good_sales(sales):
     result = good_sales(sales)
@@ -28,6 +34,7 @@ def test_good_sales(sales):
         assert result
     else:
         assert not result
+
 
 @given(pe_ratio=st.floats())
 def test_good_pe_ratio(pe_ratio):
@@ -37,6 +44,7 @@ def test_good_pe_ratio(pe_ratio):
     else:
         assert not result
 
+
 @given(curr_ratio=st.floats())
 def test_good_curr_ratio(curr_ratio):
     result = good_curr_ratio(curr_ratio)
@@ -45,9 +53,14 @@ def test_good_curr_ratio(curr_ratio):
     else:
         assert not result
 
+
 @given(eps_list=st.lists(st.floats()))
 def test_good_eps(eps_list):
-    expected = all(list(map(lambda x: x is not None and x >= 0, eps_list)))
+    if len(eps_list) < 5:
+        expected = False
+    else:
+        expected = all(list(map(lambda x: x is not None and x >= 0, eps_list)))
+
     if len(eps_list) == 0:
         expected = False
     result = good_eps(eps_list)
