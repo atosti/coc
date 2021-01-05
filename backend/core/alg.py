@@ -167,9 +167,9 @@ def health_check(
     }
     # Criteria 7: P/E Ratio <= 15?
     per_success = good_pe_ratio(pe_ratio)
-    per_msg = f"C7: P/E Ratio of {str(pe_ratio)} < 15.0"
+    per_msg = f"C7: P/E Ratio of {str(pe_ratio)} > 15.0"
     if per_success:
-        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} >= 15.0"    
+        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} <= 15.0"    
     results["pe_ratio"] = {
         "success": per_success,
         "message": per_msg,
