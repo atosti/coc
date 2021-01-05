@@ -36,7 +36,7 @@ def get_digits(num_str):
     return num_str
 
 
-# Adds or removes T/B/M for Trillion/Billion/Million numerical abbreviations
+# Removes T/B/M for Trillion/Billion/Million numerical abbreviations
 def str_to_num(num_str):
     num = None
     digits = get_digits(num_str)
@@ -54,6 +54,25 @@ def str_to_num(num_str):
     return num
 
 
+# Adds T/B/M for Trillion/Billion/Million numerical abbreviations
+def num_to_str(num):
+    num_str = None
+    denominator = 1
+    abbrev = ''
+    if num >= 1000000000000:
+        denominator *= 1000000000000
+        abbrev = 'T'
+    elif num >= 1000000000:
+        denominator *= 1000000000
+        abbrev = 'B'
+    elif num >= 1000000:
+        denominator *= 1000000
+        abbrev = 'M'
+    if num != None:
+        num_str = str(round((num / denominator), 2)) + abbrev
+    return num_str
+
+
 # Currently scores out of 7 to determine health of a stock.
 def health_check(
     mkt_cap,
@@ -67,13 +86,12 @@ def health_check(
     liabilities,
 ):
     score = 0
-    result = ""
+    result = ''
     fails = []
     results = {}
-
     if not sales:
         sales = 0
-    sales_str = "${:,.2f}".format(sales)
+    sales_str = num_to_str(sales)
     results["sales"] = {
         "success": good_sales(sales),
         "message": f"Sales | {sales_str} of $700M",
@@ -96,7 +114,7 @@ def health_check(
                 deficit_yrs.append(2015 + idx)
     results["eps"] = {
         "success": good_eps(eps_list),
-        "message": f"EPS | {str(deficit_yrs)}",
+        "message": f"EPS Deficit | {str(deficit_yrs)}",
     }
 
     results["dividend"] = {
@@ -109,10 +127,12 @@ def health_check(
         "message": f"Low EPS Growth | {str(eps_list)}",
     }
 
-    message = "Assets |" + str(mkt_cap) + " !< " + str(None)
+    mkt_cap_str = num_to_str(mkt_cap)
+    message = "Assets | " + mkt_cap_str + " !< " + str(None)
     if assets and liabilities and mkt_cap:
         value = (assets - liabilities) * 1.5
-        message = "Assets |" + str(mkt_cap) + " !< " + str(value)
+        value_str = num_to_str(value)
+        message = "Assets | " + mkt_cap_str + " !< " + value_str
 
     results["assets"] = {
         "success": good_assets(mkt_cap, assets, liabilities),

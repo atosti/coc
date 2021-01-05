@@ -106,3 +106,9 @@ def test_str_to_num(num_str):
         num = float(locale.atof(digits)) * multiplier
     expected = num
     assert expected == result
+
+
+@given(num=st.floats())
+def num_to_str_floats(num):
+    result = num_to_str(num)
+    assert type(result) is str
