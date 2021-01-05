@@ -260,7 +260,7 @@ def scrape_mw_balance_sheet(symbol):
     if intraday_price:
         price = intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
         if price != None and price != "":
-            price = price.replace(',','')
+            price = price.replace(",", "")
             price = round(float(price), 2)
     balance_sheet_dict.update(price=price)
     return balance_sheet_dict
@@ -401,6 +401,7 @@ def internal_check(symbol, overall_dict, flags):
         overall_dict["dividend_list"],
         overall_dict["assets"],
         overall_dict["liabilities"],
+        overall_dict["div_yield"],
     )
 
     score = total_score(overall_dict)

@@ -1,18 +1,27 @@
 ## Circle of Competence
 
-This is a webscraping tool designed to analyze stock symbols according to criteria discussed in Benjamin Graham's __The Intelligent Investor__. It allows a user to quickly analyze a stock, roughly determining its intrinsic value.
+This is a webscraping tool designed to analyze stock symbols according to criteria discussed in Benjamin Graham's __The Intelligent Investor__. It allows a user to quickly analyze a publicly-traded company, and roughly determine its intrinsic value.
 
 As with all investing tools, use it at your own risk. ;)
 
 ## Running CoC on your system
 
+0. Have Python 3+ installed on your system.
 1. Clone the repository
-2. Run the `main.py` file in `/backend/core/`
+2. Run the `main.py` file.
 3. Enter a NYSE stock symbol you wish to analyze and any accompany flags.
 4. Wait for it to scrape the data (this can take a few seconds).
 5. View the score (out of 7) output into the
 6. Repeat the above as necessary.
 7. Type 'exit' to quit
+
+### Running the Tests
+
+1. From the main directory run `python -m pytest`.
+
+### Running the formatter
+
+This project uses Black. Simply run `black .` from the base directory.
 
 ## Usable Flags
 
@@ -38,13 +47,14 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 4. Has it not had an earnings deficit in the last 5 years?
    * Essentially, were there any years where it lost money?
 5. Does it have earnings growth of at least 2.9% annually for the last 5 years?
+   * This equates to approx. 15% total growth over 5 yrs.
 6. Does it have cheap assets?
    * This is calculated as the following:
      * Is Market Capitalization < (Assets - Liabilities) * 1.5?
    * Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
 7. Does it have cheap earnings?
    * This is calculated as the following:
-     * Is its Price-to-Earnings Ratio < 15?
+     * Is its Price-to-Earnings Ratio <= 15?
    * Essentially, is it priced no greater than 15x its annual earnings.
 
 ### Additional Criteria
@@ -52,18 +62,14 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 1. Weaknesses
    * A list of which criteria a symbol is weak in, and a brief description of why. Meant to better inform users of a company's risks.
 2. Graham Number
-   * The Graham Number is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
+   * The [Graham number](https://en.wikipedia.org/wiki/Graham_number) is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
    * It is calculated as the sqrt(22.5 * EPS * BVPS).
-     * Sometimes CoC returns a negative value for the graham number. This means that either the EPS, the BVPS, or both are negative.
+     * Sometimes CoC returns a negative value for the Graham number. This means that either the EPS, the BVPS, or both are negative.
        * This is considered a Weakness in the symbol, and indicates a need for manually examining these two values further.
 3. Dividend Yield
    * Relative to the currently traded price, what percentage of profits are payed out annually by the company.
 4. Sector
    * A descriptor of which industry the company does business in.
-
-### Running the Tests
-
-1. From the main directory run `python -m pytest`.
 
 ## To Do List
 
@@ -85,10 +91,13 @@ It analyzes symbols based on the following criteria, where a value of **True** i
    * Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.
 7. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
 8. Add the dividend Payout Ratio to the console logs.
-9. Add a description of whether BVPS or EPS is higher to the console logs for the Graham Number.
+9. Add a description of whether BVPS or EPS is higher to the console logs for the Graham number.
 10. Add a helper function to adjust urls to either use `.` or `-`as required by a website for scraping.
 11. Setup test coverage tools on the repo.
-12. Setup coloring the output in console logs for some values (e.g. green/red for good/bad graham num vs. price ratio)
-13. Add the criteria number that a symbol is weak in to allow for easier manual review.
-14. Reformat the console output to be clearer and more aesthetic. Also add some color.
-15. Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange))
+12. Add the criteria number that a symbol is weak in to allow for easier manual review.
+13. Reformat the console output to be clearer and more aesthetic. Also add some color.
+14. Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange))
+15. Use Log scale for color gradient. Could use percentage deviations as well. Could also weight based on where the weakness is (how many years ago).
+16. Apply color gradient to each Criteria passing/failing.
+17. Add a inverse of str_to_num method for appending B/M/T to large numbers. This will assist in readability of output.
+18. Update good_eps_growth() to handle any length of eps_list and calculate accordingly.
