@@ -100,4 +100,3 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 15. Use Log scale for color gradient. Could use percentage deviations as well. Could also weight based on where the weakness is (how many years ago).
 16. Apply color gradient to each Criteria passing/failing.
 17. Add a inverse of str_to_num method for appending B/M/T to large numbers. This will assist in readability of output.
-18. Update good_eps_growth() to handle any length of eps_list and calculate accordingly.

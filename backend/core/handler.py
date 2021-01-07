@@ -301,10 +301,10 @@ def scrape_finviz():
         user = lines[0]
         password = lines[1]
     f.close()
-    print(user)
-    print(password)
+    print(user) # FIXME - Remove later
+    print(password) # FIXME - Remove later
     soup = get_soup(url, user, password)
-    print(soup)
+    print(soup) #FIXME - Remove later
     # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
     return
 
@@ -377,7 +377,7 @@ def internal_check(symbol, overall_dict, flags):
             overall_dict["dividend"], overall_dict["dividend_list"]
         ),
         good_eps=alg.good_eps(overall_dict["eps_list"]),
-        good_eps_growth=alg.good_eps_growth(overall_dict["eps_list"]),
+        good_eps_growth=alg.good_eps_growth(overall_dict["eps_list"], 5),
         good_pe_ratio=alg.good_pe_ratio(overall_dict["pe_ratio"]),
         good_sales=alg.good_sales(overall_dict["sales"]),
     )
@@ -390,7 +390,6 @@ def internal_check(symbol, overall_dict, flags):
         overall_dict["good_pe_ratio"],
         overall_dict["good_sales"],
     )
-    # TODO - Dividend is the sum of all dividends paid. Divide it by num. shares
     health_result = alg.health_check(
         overall_dict["mkt_cap"],
         overall_dict["sales"],
@@ -482,7 +481,6 @@ def output_handler(overall_dict, health_result, flags):
     )
     print("Dividend Yield: " + str(overall_dict["div_yield"]))
     print("Score: " + str(overall_dict["score"]) + "/7")
-    # TODO - Rework strength/weaknesses output
     print(health_result)
     # print(reindent(health_result, 4))
 

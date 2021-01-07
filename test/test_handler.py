@@ -9,6 +9,7 @@ from pprint import pprint
 import math
 
 
+div_yield_regex = "[0-9]*[.]?[0-9]*[%]?"
 def generate_financials_dictionary():
     return st.fixed_dictionaries(
         {
@@ -25,6 +26,7 @@ def generate_financials_dictionary():
             ),
             "pe_ratio": st.floats(min_value=0, max_value=5),
             "sales": st.floats(min_value=1000000),
+            "div_yield": st.from_regex(div_yield_regex),
         }
     )
 
@@ -35,78 +37,59 @@ def test_scoring_logic(financials):
     overall_dict, health_result, flags = internal_check("CMC", financials, [])
     score = 7
 
-    # assets
-    if financials["mkt_cap"] >= (
-        (financials["assets"] - financials["liabilities"]) * 1.5
-    ):
-        print("failed market cap")
+    print("----------")
+    # C1: Sales
+    if not financials["sales"] or financials["sales"] < 700000000:
+        print("Failed C1")
         score -= 1
 
+    # C2: Curr Ratio
     if financials["curr_ratio"] < 2:
-        print("failed curr ratio")
+        print("Failed C2")
         score -= 1
 
+    # C3: Dividends
     sorted_dividend_list = sorted(financials["dividend_list"])
     valid_dividend = financials["dividend"] >= 0
     if not financials["dividend"]:
         pass  # considered valid
     elif financials["dividend_list"] != sorted_dividend_list:
-        print("failed dividend list")
+        print("Failed C3")
         score -= 1
 
+    # C4: EPS Deficit
     if not financials["eps_list"]:
-        print("failed eps list")
         score -= 1
     elif len(financials["eps_list"]) < 5:
-        print("failed eps list")
         score -= 1
     else:
         for x in financials["eps_list"]:
-            if x is None:
-                print("failed eps list")
-                score -= 1
-                break
-            if x < 0:
-                print("failed eps list")
-                score -= 1
-                break
-            if math.isnan(x):
-                print("failed eps list")
+            if x is None or x < 0 or math.isnan(x):
+                print("Failed C4")
                 score -= 1
                 break
 
-    if len(financials["eps_list"]) >= 2:
-        prev_eps = financials["eps_list"][0]
-        eps = financials["eps_list"][-1]
-        if prev_eps is None or eps is None:
-            percent_growth = 0
-        if prev_eps == 0:
-            percent_growth = 0
-        else:
-            percent_growth = float(eps / prev_eps) - 1.0
-
-        if percent_growth < 0.15:
-            print("failed eps")
-            score -= 1
-    else:
-        print("failed eps")
+    # C5: EPS Growth
+    if not alg.good_eps_growth(financials["eps_list"], 5):
+        print("Failed C5")
         score -= 1
 
+    # C6: Assets
+    if financials["mkt_cap"] >= (
+        (financials["assets"] - financials["liabilities"]) * 1.5
+    ):
+        print("Failed C6")
+        score -= 1
+
+    # C7: P/E Ratio
     if financials["pe_ratio"] == None:
-        print("failed pe_ratio")
+        print("Failed C7")
         score -= 1
     elif financials["pe_ratio"] >= 15:
-        print("failed pe_ratio")
+        print("Failed C7")
         score -= 1
     elif math.isnan(financials["pe_ratio"]):
-        print("failed pe_ratio")
-        score -= 1
-
-    if not financials["sales"]:
-        print("failed sales")
-        score -= 1
-    elif financials["sales"] < 700000000:
-        print("failed sales")
+        print("Failed C7")
         score -= 1
 
     assert financials["score"] <= score

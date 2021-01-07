@@ -129,19 +129,19 @@ def health_check(
         "success": ed_success,
         "message": ed_msg,
     }
-    # TODO - Update the msgs to adjust the 15% to be whatever matches the yrs of data calculated for.
-    #      - This requires adjustments to good_eps_growth() first.
-    # Criteria 5: Earnings growth >= 33% compared to 5 yrs ago
+    # Note: Currently hard-coding num_yrs to 5 years.
+    # Criteria 5: Earnings growth >= 15% compared to 5 yrs ago
     eps_growth = 0
     if eps_list is not None and len(eps_list) >= 5:
-        eps_list_5yrs = eps_list
         # Truncates list to only contain last 5 yrs of data
-        if len(eps_list) > 5:
+        if len(eps_list) >= 5:
+            eps_list_5yrs = eps_list
             for i in range (0, len(eps_list) - 5):
                 eps_list_5yrs.pop(0)
-        eps_growth = float(eps_list[-1] / eps_list[0]) - 1.0
-        eps_growth = round(eps_growth * 100, 2)
-    eg_success = good_eps_growth(eps_list)
+            if eps_list_5yrs[0] != 0:
+                eps_growth = float(eps_list_5yrs[-1] / eps_list_5yrs[0]) - 1
+                eps_growth = round(eps_growth * 100, 2)
+    eg_success = good_eps_growth(eps_list, 5)
     eg_msg = f"C5: Low EPS Growth of {str(eps_growth)}% < 15%"
     if eg_success:
         eg_msg = f"C5: EPS Growth of {str(eps_growth)}% >= 15%"
@@ -217,23 +217,24 @@ def good_dividend(curr_dividend, dividends):
     return not curr_dividend or dividends == sorted(dividends)
 
 
-# TODO - EPS needs to be a list from the last 10 years
-# TODO - Modify this to handle any length of eps_list, and calculate the relatively appropriate growth for 2.9% annually.
-def good_eps_growth(eps_list):
-    if eps_list is None or not eps_list:
+# Requires 2.9% annual growth YoY, with a minimum of 5 years of data
+# Growth is as follows: 100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
+def good_eps_growth(eps_list, num_yrs):
+    if eps_list is None or not eps_list or len(eps_list) < num_yrs:
         return False
-    # Note: If passing a list longer than 5 yrs, this will no longer be valid, as 15% is a value relative to 5 yrs.
-    prev_eps = eps_list[0]
-    eps = eps_list[-1]
-    if prev_eps is None or eps is None:
+    elif eps_list[0] is None or eps_list[-1] is None or eps_list[0] == 0:
         return False
-    if prev_eps == 0:
-        return False
-    percent_growth = float(eps / prev_eps) - 1.0
-    # 2.9% annual growth over 10 years is ~33% total
-    # Growth is as follows: 100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
-    # TODO - Currently using 15% growth, since it's using 5 years of data
-    return percent_growth >= 0.15
+    expected_growth = 1
+    actual_growth = 0
+    # Checks data only in last 'num_yrs' many years
+    for i in range(0, len(eps_list) - num_yrs):
+        eps_list.pop(0)
+    for i in range(0, len(eps_list)):
+        expected_growth += 0.029 * expected_growth
+    expected_growth -= 1
+    if eps_list[0] != 0:
+        actual_growth = float(eps_list[-1] / eps_list[0]) - 1.0
+    return actual_growth >= expected_growth
 
 
 def good_assets(mkt_cap, assets, liabilities):

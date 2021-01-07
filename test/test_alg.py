@@ -67,7 +67,7 @@ def test_good_eps(eps_list):
     assert expected == result
 
 
-num_str_regex = r"[+-]?[\d]+(?:[,]?[\d{3}])*(?:[.]?[\d]+)?[BbMmTt]?$"  # e.g. 321.98M
+num_str_regex = r"[+-]?[\d]+(?:[,]?[\d{3}])*(?:[.]?[\d]+)?[BbMmTt]?$" # 12.34M
 
 
 @given(num_str=st.from_regex(num_str_regex))
@@ -77,7 +77,7 @@ def test_get_digits(num_str):
     if num_str[0] == "-":
         negative = True
     for c in num_str:
-        if not c.isdigit() and c != "." or c == "²" or c == "³" or c == "¹":
+        if not c.isdigit() and c != "." or c == "¹" or c == "²" or c == "³":
             num_str = num_str.replace(c, "")
     if negative:
         num_str = "-" + num_str
