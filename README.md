@@ -79,24 +79,15 @@ It analyzes symbols based on the following criteria, where a value of **True** i
    * FinViz has this information, see what other sites might as well.
 2. Check additional criteria:
    * Annual and YoY growth of a company's revenue.
-3. Add/use helper functions to convert larger numbers to use M/B/T abbreviations for millions, billions, etc.
-   * This would improve readability of some output and prevent misreading large numbers by the user.
-4. Fetch a subset of Stock symbols to check for the day.
+3. Fetch a subset of Stock symbols to check for the day.
    * E.g. scraping a FinViz search and checking the symbols that are returned.
-5. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
+4. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
    * Adjust methods to handle either version of the page
    * https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
    * This is because YYY is an ETF and not a company. Funds have different data about them entirely, figure a way to analyze these.
-6. Add unit tests for the `handler.py` methods.
-   * Check handling of Nonetypes, Ints/Floats, String nums, numbers with commas, etc. are handled well.
-7. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
-8. Add the dividend Payout Ratio to the console logs.
-9. Add a description of whether BVPS or EPS is higher to the console logs for the Graham number.
-10. Add a helper function to adjust urls to either use `.` or `-`as required by a website for scraping.
-11. Setup test coverage tools on the repo.
-12. Add the criteria number that a symbol is weak in to allow for easier manual review.
-13. Reformat the console output to be clearer and more aesthetic. Also add some color.
-14. Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange))
-15. Use Log scale for color gradient. Could use percentage deviations as well. Could also weight based on where the weakness is (how many years ago).
-16. Apply color gradient to each Criteria passing/failing.
-17. Add a inverse of str_to_num method for appending B/M/T to large numbers. This will assist in readability of output.
+5. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
+6. Add the dividend Payout Ratio to the console logs.
+7.  Add a helper function to adjust urls to either use `.` or `-`as required by a website for scraping.
+8.  Setup test coverage tools on the repo.
+9.  Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange)
+10. Use Log scale for color gradient. Could use percentage deviations as well. Could also weight based on where the weakness is (how many years ago).
