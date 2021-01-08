@@ -471,7 +471,7 @@ def output_handler(overall_dict, health_result, flags):
     print("Score: " + str(overall_dict["score"]) + "/7")
     print("Analysis: ")
     for item in health_result:
-        print("    " + str(item))
+        print(" " * 4 + str(item))
 
     # Debug flag
     if "d" in flags:
