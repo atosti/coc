@@ -183,7 +183,7 @@ def health_check(
             criterion.append("[green]" + v["message"] + "[/green]")
         else:
             criterion.append("[red]" + v["message"] + "[/red]")
-    result = "Analysis: " + str(criterion)
+    result = criterion
     return result
 
 

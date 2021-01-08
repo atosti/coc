@@ -91,3 +91,8 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 8.  Setup test coverage tools on the repo.
 9.  Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange)
 10. Use Log scale for color gradient. Could use percentage deviations as well. Could also weight based on where the weakness is (how many years ago).
+11. Create a method for checking completeness of data. If something's missing, attempt to find from other sources.
+   * Start with Marketwatch -> Yahoo Finance for data present on both, such as price. I think Curr Ratio exists as well.
+   * Build in a decoupled way, so any data stream can be swapped in/out.
+12. Create a way to fetch large batches of data, but then update a dict with only singular values at a time.
+   * And do this cleanly/concisely.

@@ -442,19 +442,6 @@ def gradient_color(strength):
     return color
 
 
-# TODO - Get this to work for handling indentation
-def reindent(s, num_spaces):
-    lines = s.split(s, "\n")
-    new_str = ""
-    for line in lines:
-        new_str += indent(line, num_spaces * " ")
-    s = new_str.join("\n")
-    # s = indent(line, num_spaces * ' ') for line in lines
-    # lines = [(num_spaces * ' ') + s.lstrip(line) for line in s]
-    # s = s.join('\n')
-    return s
-
-
 def output_handler(overall_dict, health_result, flags):
     # TODO - Create a text string object, and append everything to it
     symbol = overall_dict["symbol"]
@@ -466,23 +453,25 @@ def output_handler(overall_dict, health_result, flags):
         # Color green or red depending on if it's above/below fair value
         if overall_dict["graham_num"] >= overall_dict["price"]:
             gp_ratio_color = "green"
-    print(
-        "Graham Num/Price: "
-        + str(overall_dict["graham_num"])
-        + "/"
-        + str(overall_dict["price"])
-        + " (["
-        + gp_ratio_color
-        + "]"
-        + str(round(gp_ratio, 2))
-        + "[/"
-        + gp_ratio_color
-        + "])"
+    bp_ratio = 0.0
+    bp_ratio_color = "red"
+    if overall_dict["bvps"] != None and overall_dict["price"] != None:
+        bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
+        if overall_dict["bvps"] >= overall_dict["price"]:
+            bp_ratio_color = "green"
+    print(f'Graham Num/Price: '
+        + f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
+        + f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])'
+    )
+    print(f'Bvps/Price: '
+        + f'{overall_dict["bvps"]}/{overall_dict["price"]} '
+        + f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])'
     )
     print("Dividend Yield: " + str(overall_dict["div_yield"]))
     print("Score: " + str(overall_dict["score"]) + "/7")
-    print(health_result)
-    # print(reindent(health_result, 4))
+    print("Analysis: ")
+    for item in health_result:
+        print("    " + str(item))
 
     # Debug flag
     if "d" in flags:
