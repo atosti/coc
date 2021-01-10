@@ -308,46 +308,6 @@ def scrape_finviz():
     # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
     return
 
-
-def score_summation(
-    good_assets,
-    good_curr_ratio,
-    good_dividend,
-    good_eps,
-    good_eps_growth,
-    good_pe_ratio,
-    good_sales,
-):
-    score = 0
-    if good_assets:
-        score += 1
-    if good_curr_ratio:
-        score += 1
-    if good_dividend:
-        score += 1
-    if good_eps:
-        score += 1
-    if good_eps_growth:
-        score += 1
-    if good_pe_ratio:
-        score += 1
-    if good_sales:
-        score += 1
-    return score
-
-
-def total_score(overall_dict):
-    return score_summation(
-        overall_dict["good_assets"],
-        overall_dict["good_curr_ratio"],
-        overall_dict["good_dividend"],
-        overall_dict["good_eps"],
-        overall_dict["good_eps_growth"],
-        overall_dict["good_pe_ratio"],
-        overall_dict["good_sales"],
-    )
-
-
 def check(symbol, flags):
     scraped_data = {
         "symbol": symbol,
@@ -367,29 +327,22 @@ def internal_check(symbol, overall_dict, flags):
     # Notes: a. Lists of annual values are ordered from 2015 -> 2019
     #        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
 
-    overall_dict.update(
-        graham_num=alg.graham_num(overall_dict["eps"], overall_dict["bvps"]),
-        good_assets=alg.good_assets(
+    score_assessments = [
+        alg.good_assets(
             overall_dict["mkt_cap"], overall_dict["assets"], overall_dict["liabilities"]
         ),
-        good_curr_ratio=alg.good_curr_ratio(overall_dict["curr_ratio"]),
-        good_dividend=alg.good_dividend(
+        alg.good_curr_ratio(overall_dict["curr_ratio"]),
+        alg.good_dividend(
             overall_dict["dividend"], overall_dict["dividend_list"]
         ),
-        good_eps=alg.good_eps(overall_dict["eps_list"]),
-        good_eps_growth=alg.good_eps_growth(overall_dict["eps_list"], 5),
-        good_pe_ratio=alg.good_pe_ratio(overall_dict["pe_ratio"]),
-        good_sales=alg.good_sales(overall_dict["sales"]),
-    )
-    score = score_summation(
-        overall_dict["good_assets"],
-        overall_dict["good_curr_ratio"],
-        overall_dict["good_dividend"],
-        overall_dict["good_eps"],
-        overall_dict["good_eps_growth"],
-        overall_dict["good_pe_ratio"],
-        overall_dict["good_sales"],
-    )
+        alg.good_eps(overall_dict["eps_list"]),
+        alg.good_eps_growth(overall_dict["eps_list"], 5),
+        alg.good_pe_ratio(overall_dict["pe_ratio"]),
+        alg.good_sales(overall_dict["sales"]),
+    ]
+    overall_dict['score'] = len([x for x in score_assessments if x])
+    overall_dict['graham_num'] = alg.graham_num(overall_dict["eps"], overall_dict["bvps"])
+
     health_result = alg.health_check(
         overall_dict["mkt_cap"],
         overall_dict["sales"],
@@ -402,9 +355,6 @@ def internal_check(symbol, overall_dict, flags):
         overall_dict["liabilities"],
         overall_dict["div_yield"],
     )
-
-    score = total_score(overall_dict)
-    overall_dict.update(score=score)
     return overall_dict, health_result, flags
 
 
