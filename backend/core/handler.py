@@ -393,9 +393,10 @@ def gradient_color(strength):
 
 
 def output_handler(overall_dict, health_result, flags):
-    # TODO - Create a text string object, and append everything to it
+    outputs = []
     symbol = overall_dict["symbol"]
-    print("Sector: " + str(overall_dict["sector"]))
+    outputs.append("Sector: " + str(overall_dict["sector"]))
+
     gp_ratio = 0.0
     gp_ratio_color = "red"
     if overall_dict["graham_num"] != None and overall_dict["price"] != None:
@@ -409,23 +410,26 @@ def output_handler(overall_dict, health_result, flags):
         bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
         if overall_dict["bvps"] >= overall_dict["price"]:
             bp_ratio_color = "green"
-    print(f'Graham Num/Price: '
+
+    outputs.append(
+        f"Graham Num/Price: "
         + f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
-        + f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])'
+        + f"([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])"
     )
-    print(f'Bvps/Price: '
+    outputs.append(
+        f"Bvps/Price: "
         + f'{overall_dict["bvps"]}/{overall_dict["price"]} '
-        + f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])'
+        + f"([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])"
     )
-    print("Dividend Yield: " + str(overall_dict["div_yield"]))
-    print("Score: " + str(overall_dict["score"]) + "/7")
-    print("Analysis: ")
+    outputs.append("Dividend Yield: " + str(overall_dict["div_yield"]))
+    outputs.append("Score: " + str(overall_dict["score"]) + "/7")
+    outputs.append("Analysis: ")
     for item in health_result:
-        print(" " * 4 + str(item))
+        outputs.append(" " * 4 + str(item))
 
     # Debug flag
     if "d" in flags:
-        print("Debug: " + str(overall_dict))
+        outputs.append("Debug: " + str(overall_dict))
     # Excel update flag
     if "x" in flags:
         excel.update(symbol, overall_dict)
@@ -433,7 +437,9 @@ def output_handler(overall_dict, health_result, flags):
     if "f" in flags:
         # TODO - Finish implementing a way to fetch this. Auth is needed.
         scrape_finviz()
-    return
+
+    output_str = "\n".join(outputs)
+    print(output_str)
 
 
 # Assembles a list of flags passed as arguments
