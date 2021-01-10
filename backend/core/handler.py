@@ -301,12 +301,13 @@ def scrape_finviz():
         user = lines[0]
         password = lines[1]
     f.close()
-    print(user) # FIXME - Remove later
-    print(password) # FIXME - Remove later
+    print(user)  # FIXME - Remove later
+    print(password)  # FIXME - Remove later
     soup = get_soup(url, user, password)
-    print(soup) #FIXME - Remove later
+    print(soup)  # FIXME - Remove later
     # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
     return
+
 
 def check(symbol, flags):
     scraped_data = {
@@ -332,16 +333,16 @@ def internal_check(symbol, overall_dict, flags):
             overall_dict["mkt_cap"], overall_dict["assets"], overall_dict["liabilities"]
         ),
         alg.good_curr_ratio(overall_dict["curr_ratio"]),
-        alg.good_dividend(
-            overall_dict["dividend"], overall_dict["dividend_list"]
-        ),
+        alg.good_dividend(overall_dict["dividend"], overall_dict["dividend_list"]),
         alg.good_eps(overall_dict["eps_list"]),
         alg.good_eps_growth(overall_dict["eps_list"], 5),
         alg.good_pe_ratio(overall_dict["pe_ratio"]),
         alg.good_sales(overall_dict["sales"]),
     ]
-    overall_dict['score'] = len([x for x in score_assessments if x])
-    overall_dict['graham_num'] = alg.graham_num(overall_dict["eps"], overall_dict["bvps"])
+    overall_dict["score"] = len([x for x in score_assessments if x])
+    overall_dict["graham_num"] = alg.graham_num(
+        overall_dict["eps"], overall_dict["bvps"]
+    )
 
     health_result = alg.health_check(
         overall_dict["mkt_cap"],
@@ -457,4 +458,3 @@ def commands(phrase):
     symbol = str(args[0])
     flags = flag_handler(args)
     check(symbol, flags)
-    return
