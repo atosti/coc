@@ -445,6 +445,7 @@ def gradient_color(strength):
 def output_handler(overall_dict, health_result, flags):
     # TODO - Create a text string object, and append everything to it
     symbol = overall_dict["symbol"]
+    print("Symbol: " + str(overall_dict["symbol"].upper()))
     print("Sector: " + str(overall_dict["sector"]))
     gp_ratio = 0.0
     gp_ratio_color = "red"
@@ -498,7 +499,14 @@ def flag_handler(args):
 
 def commands(phrase):
     args = phrase.split(" ")
-    symbol = str(args[0])
     flags = flag_handler(args)
-    check(symbol, flags)
+    symbols = []
+    for arg in args:
+        if arg[0] != "-":
+            symbols.append(arg)
+    for symbol in symbols:
+        check(symbol, flags)
+    # symbol = str(args[0])
+    # flags = flag_handler(args)
+    # check(symbol, flags)
     return

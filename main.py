@@ -5,7 +5,7 @@ def _run():
     print("Enter a stock symbol (type 'quit' to exit): ")
     while True:
         phrase = input("$").lower()
-        if phrase and phrase == "quit":
+        if phrase and phrase == "quit" or phrase == "exit":
             return
         if phrase:
             handler.commands(phrase)
