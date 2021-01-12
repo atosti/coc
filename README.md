@@ -21,7 +21,7 @@ As with all investing tools, use it at your own risk. ;)
 
 ### Running the formatter
 
-This project uses Black. Simply run `black .` from the base directory.
+This project uses Black. Simply run `black`. from the base directory.
 
 ## Usable Flags
 
@@ -96,3 +96,10 @@ It analyzes symbols based on the following criteria, where a value of **True** i
    * Build in a decoupled way, so any data stream can be swapped in/out.
 12. Create a way to fetch large batches of data, but then update a dict with only singular values at a time.
    * And do this cleanly/concisely.
+13. Handle lists of multiple symbols
+   * Output to a JSON list
+14. Add output to a local DB with creation dates for symbols. Update them periodically (as new annual reports emerge).
+   * As part of the logs/JSON, include the creation date for the data fetch.
+15. Hook up to a screener to get a list of desireable stocks of the day to check.
+16. Add the ability to fetch quarterly data, and use rolling data for the last 5 years worth of quarters of data (as opposed to annual data).
+   * This would allow for less gaps between 2019 data and 2020 at the begining of 2021, for example.
