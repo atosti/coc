@@ -63,16 +63,16 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 
 ### Additional Criteria
 
-1. Weaknesses
-   * A list of which criteria a symbol is weak in, and a brief description of why. Meant to better inform users of a company's risks.
-2. Graham Number
+1. Analysis
+   * A breakdown of which criteria pass/fail and by how much. Meant to better inform users of a company's risks.
+1. Graham Number
    * The [Graham number](https://en.wikipedia.org/wiki/Graham_number) is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
    * It is calculated as the sqrt(22.5 * EPS * BVPS).
      * Sometimes CoC returns a negative value for the Graham number. This means that either the EPS, the BVPS, or both are negative.
        * This is considered a Weakness in the symbol, and indicates a need for manually examining these two values further.
-3. Dividend Yield
+2. Dividend Yield
    * Relative to the currently traded price, what percentage of profits are payed out annually by the company.
-4. Sector
+3. Sector
    * A descriptor of which industry the company does business in.
 
 ## To Do List
