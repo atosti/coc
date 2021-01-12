@@ -359,7 +359,7 @@ def check(symbol, flags):
         **scrape_yahoo_key_stats(symbol),
     }
     overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
-    output_handler(overall_dict, health_result, flags)
+    return output_handler(overall_dict, health_result, flags)
 
 
 def internal_check(symbol, overall_dict, flags):
@@ -443,37 +443,40 @@ def gradient_color(strength):
 
 
 def output_handler(overall_dict, health_result, flags):
-    # TODO - Create a text string object, and append everything to it
-    symbol = overall_dict["symbol"]
-    print("Symbol: " + str(overall_dict["symbol"].upper()))
-    print("Sector: " + str(overall_dict["sector"]))
-    gp_ratio = 0.0
-    gp_ratio_color = "red"
-    if overall_dict["graham_num"] != None and overall_dict["price"] != None:
-        gp_ratio = float(overall_dict["graham_num"] / overall_dict["price"])
-        # Color green or red depending on if it's above/below fair value
-        if overall_dict["graham_num"] >= overall_dict["price"]:
-            gp_ratio_color = "green"
-    bp_ratio = 0.0
-    bp_ratio_color = "red"
-    if overall_dict["bvps"] != None and overall_dict["price"] != None:
-        bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
-        if overall_dict["bvps"] >= overall_dict["price"]:
-            bp_ratio_color = "green"
-    print(f'Graham Num/Price: '
-        + f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
-        + f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])'
-    )
-    print(f'Bvps/Price: '
-        + f'{overall_dict["bvps"]}/{overall_dict["price"]} '
-        + f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])'
-    )
-    print("Dividend Yield: " + str(overall_dict["div_yield"]))
-    print("Score: " + str(overall_dict["score"]) + "/7")
-    print("Analysis: ")
-    for item in health_result:
-        print(" " * 4 + str(item))
-
+    json_data = None
+    # Silent flag, hides console output
+    if "s" not in flags:
+        text = ""
+        text += f'Symbol: {overall_dict["symbol"].upper()}\n'
+        text += f'Sector: {overall_dict["sector"]}\n'
+        gp_ratio = 0.0
+        gp_ratio_color = "red"
+        if overall_dict["graham_num"] != None and overall_dict["price"] != None:
+            gp_ratio = float(overall_dict["graham_num"] / overall_dict["price"])
+            # Color green or red depending on if it's above/below fair value
+            if overall_dict["graham_num"] >= overall_dict["price"]:
+                gp_ratio_color = "green"
+        bp_ratio = 0.0
+        bp_ratio_color = "red"
+        if overall_dict["bvps"] != None and overall_dict["price"] != None:
+            bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
+            if overall_dict["bvps"] >= overall_dict["price"]:
+                bp_ratio_color = "green"
+        text += f'Graham Num/Price: '
+        text += f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
+        text += f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])\n'
+        text += f'Bvps/Price: '
+        text += f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
+        text += f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])\n'
+        text += f'Dividend Yield: {overall_dict["div_yield"]}\n'
+        text += f'Score: {overall_dict["score"]}/7\n'
+        text += f'Analysis: \n'
+        for item in health_result:
+            text += f'{" " * 4}{item}\n'
+        print(text)
+    # JSON output/generation flag
+    if "j" in flags:
+        json_data = {overall_dict["symbol"]: overall_dict}
     # Debug flag
     if "d" in flags:
         print("Debug: " + str(overall_dict))
@@ -484,7 +487,7 @@ def output_handler(overall_dict, health_result, flags):
     if "f" in flags:
         # TODO - Finish implementing a way to fetch this. Auth is needed.
         scrape_finviz()
-    return
+    return json_data
 
 
 # Assembles a list of flags passed as arguments
@@ -504,9 +507,11 @@ def commands(phrase):
     for arg in args:
         if arg[0] != "-":
             symbols.append(arg)
+    json_str = {}
     for symbol in symbols:
-        check(symbol, flags)
-    # symbol = str(args[0])
-    # flags = flag_handler(args)
-    # check(symbol, flags)
+        symbol_json = check(symbol, flags)
+        if symbol_json is not None:
+            json_str.update(symbol_json)
+    if "j" in flags:
+        print(json_str)
     return

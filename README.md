@@ -9,9 +9,9 @@ As with all investing tools, use it at your own risk. ;)
 0. Have Python 3+ installed on your system.
 1. Clone the repository
 2. Run the `main.py` file.
-3. Enter a NYSE stock symbol you wish to analyze and any accompany flags.
-4. Wait for it to scrape the data (this can take a few seconds).
-5. View the score (out of 7) output into the
+3. Enter a NYSE stock symbol (or series of symbols) you wish to analyze as well as any accompanying flags.
+4. Wait for it to scrape the data (this can take a few seconds per symbol).
+5. View the score (out of 7) and output in the console.
 6. Repeat the above as necessary.
 7. Type 'exit' or 'quit' to quit
 
@@ -29,7 +29,11 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
 
 1. "-d" **Debug Mode**
    * Debug mode, prints all available fetched data for a symbol.
-2. "-x" **Excel Update/Creation**
+2. "-j" **JSON Output**
+   * Generates and prints a JSON string for all the symbols given.
+3. "-s" **Silent Mode**
+   * Silent mode, hides all console output for each symbol. Best when used in combination with JSON generation.
+4. "-x" **Excel Update/Creation**
    * Appends the symbol to a generated excel file, `coc.xlsx`. If the symbol already exists in file, then its row is overwritten with fresh data.
 
 ## Understanding The 7 Criteria
@@ -101,5 +105,3 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 15. Hook up to a screener to get a list of desireable stocks of the day to check.
 16. Add the ability to fetch quarterly data, and use rolling data for the last 5 years worth of quarters of data (as opposed to annual data).
    * This would allow for less gaps between 2019 data and 2020 at the begining of 2021, for example.
-17. Add flag to output multiple symbols as JSON.
-18. Also consider adding a flag to hide console output.
