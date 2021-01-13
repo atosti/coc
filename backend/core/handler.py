@@ -482,7 +482,7 @@ def output_handler(overall_dict, health_result, flags):
         print("Debug: " + str(overall_dict))
     # Excel update flag
     if "x" in flags:
-        excel.update(symbol, overall_dict)
+        excel.update(overall_dict["symbol"], overall_dict)
     # Finviz check flag
     if "f" in flags:
         # TODO - Finish implementing a way to fetch this. Auth is needed.
