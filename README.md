@@ -74,34 +74,3 @@ It analyzes symbols based on the following criteria, where a value of **True** i
    * Relative to the currently traded price, what percentage of profits are payed out annually by the company.
 3. Sector
    * A descriptor of which industry the company does business in.
-
-## To Do List
-
-1. Fetch more years of data for Dividends and EPS.
-   * Dividends req. 20 years of data.
-   * EPS req. 10 years of data, as does EPS growth.
-   * FinViz has this information, see what other sites might as well.
-2. Check additional criteria:
-   * Annual and YoY growth of a company's revenue.
-3. Fetch a subset of Stock symbols to check for the day.
-   * E.g. scraping a FinViz search and checking the symbols that are returned.
-4. Some symbols on Yahoo (e.g. YYY) fetch a different format page.
-   * Adjust methods to handle either version of the page
-   * https://finance.yahoo.com/quote/YYY vs https://finance.yahoo.com/quote/BGS demonstrates the difference.
-   * This is because YYY is an ETF and not a company. Funds have different data about them entirely, figure a way to analyze these.
-5. Implement a way to print out which years dividends were missed/reduced in a symbols weaknesses.
-6. Add the dividend Payout Ratio to the console logs.
-7.  Add a helper function to adjust urls to either use `.` or `-`as required by a website for scraping.
-8.  Setup test coverage tools on the repo.
-9.  Design around handling non-US companies and fetched values. Test with ASUSTeK, which is 2357 on TW(Taiwanese exchange)
-10. Use Log scale for color gradient. Could use percentage deviations as well. Could also weight based on where the weakness is (how many years ago).
-11. Create a method for checking completeness of data. If something's missing, attempt to find from other sources.
-   * Start with Marketwatch -> Yahoo Finance for data present on both, such as price. I think Curr Ratio exists as well.
-   * Build in a decoupled way, so any data stream can be swapped in/out.
-12. Create a way to fetch large batches of data, but then update a dict with only singular values at a time.
-   * And do this cleanly/concisely.
-13. Add output to a local DB with creation dates for symbols. Update them periodically (as new annual reports emerge).
-   * As part of the logs/JSON, include the creation date for the data fetch.
-15. Hook up to a screener to get a list of desireable stocks of the day to check.
-16. Add the ability to fetch quarterly data, and use rolling data for the last 5 years worth of quarters of data (as opposed to annual data).
-   * This would allow for less gaps between 2019 data and 2020 at the begining of 2021, for example.
