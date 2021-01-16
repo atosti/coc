@@ -56,7 +56,7 @@ def scrape_yahoo_key_stats(symbol):
         elem = fetch[3]
         value = elem.get_text(strip=True)
         if value != "N/A":
-            return {"bvps": float(value)}
+            return {"bvps": float(locale.atof(value))}
     return {"bvps": None}
 
 
