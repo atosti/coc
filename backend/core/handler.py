@@ -5,6 +5,7 @@ from rich import print
 from pprint import pprint
 import re
 from backend.core import alg, excel
+from backend.core.mw_scraper import MWScraper
 
 
 locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
@@ -68,17 +69,6 @@ def yf_quote_search(soup, text):
     if any(x in ["%", "(", ")"] for x in item):
         return item
     return alg.str_to_num(item)
-
-
-def _mw_combine_table_dicts(table_dicts):
-    combined_dict = {}
-    for table_dict in table_dicts:
-        for year, values in table_dict.items():
-            if year not in combined_dict:
-                combined_dict[year] = {}
-            for title, value in values.items():
-                combined_dict[year][title] = value
-    return combined_dict
 
 
 def mw_raw_tables_to_dict(soup):
@@ -155,127 +145,6 @@ def mw_chart_financials_to_dict(soup):
     return table_dicts
 
 
-def mw_financials_search(soup, text):
-    # setup for table based parsing
-    # tables = mw_chart_financials_to_dict(soup)
-    #  financials = _mw_combine_table_dicts(tables)
-    #  years = list(financials.keys())
-    #  years.sort()
-    #
-    #  item = None
-    #  items = []
-    #
-    #  for year in years:
-    #      value = financials.get(year, {}).get(text)
-    #      items.append(value)
-    #      item = value
-    #  return {"item" : item, "item_list" : items}
-
-    item_dict = {"item": None, "item_list": None}
-    found = soup.find(text=text)
-
-    if found:
-        item = None  # Most recent year's value
-        item_list = None  # List of 5 previous years' values
-        fetch = found.parent.parent.parent.findChildren()
-        for elem in fetch:
-            elemFound = elem.find("div", {"class": "chart--financials"})
-            if elemFound:
-                item_list = elemFound.get("data-chart-data").split(",")
-                item_list = [float(i) for i in item_list if i != ""]
-                if len(item_list) > 0 and item_list[-1] != None:
-                    item = float(item_list[-1])
-                item_dict.update(item_list=item_list, item=item)
-                break
-    return item_dict
-
-
-def mw_profile_search(soup, text):
-    item = None
-    found = soup.find(text=text)
-    if text == "Sector" and found:
-        fetch = found.parent.parent.find("span", {"class": "primary"})
-        item = fetch.get_text(strip=True)
-    elif found:
-        fetch = found.parent.parent.find("td", {"class": "w25"})
-        if fetch:
-            value = fetch.get_text(strip=True)
-            if value != "N/A":
-                item = float(locale.atof(value))
-    return item
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials'
-def scrape_mw_financials(symbol):
-    url = f"https://www.marketwatch.com/investing/stock/{symbol.replace('-', '.').lower()}/financials"
-    soup = get_soup(url)
-    eps_dict = mw_financials_search(soup, "EPS (Basic)")
-    sales_dict = mw_financials_search(soup, "Sales/Revenue")
-    return {
-        "eps": eps_dict.get("item"),
-        "eps_list": eps_dict["item_list"],
-        "sales": sales_dict["item"],
-        "sales_list": sales_dict["item_list"],
-    }
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/cash-flow'
-def scrape_mw_cash_flow(symbol):
-    cash_flow_dict = {"dividend": None, "dividend_list": None}
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/"
-        + symbol.lower()
-        + "/financials/cash-flow"
-    )
-    soup = get_soup(url)
-    item_dict = mw_financials_search(soup, "Cash Dividends Paid - Total")
-    # Marketwatch seems to list all dividends as negative, so adjust values
-    if item_dict["item"] != None:
-        item_dict["item"] = abs(item_dict["item"])
-    if item_dict["item_list"] != None:
-        item_dict["item_list"] = [abs(i) for i in item_dict["item_list"]]
-    cash_flow_dict.update(dividend=item_dict["item"])
-    cash_flow_dict.update(dividend_list=item_dict["item_list"])
-    return cash_flow_dict
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/balance-sheet'
-def scrape_mw_balance_sheet(symbol):
-    soup = get_soup(
-        f'https://www.marketwatch.com/investing/stock/{symbol.lower().replace("-", ".")}/financials/balance-sheet'
-    )
-
-    # Fetch the price from the top of the page
-    price = None
-    intraday_price = soup.find("h3", {"class": "intraday__price"})
-    if intraday_price:
-        price = intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
-        if price is not None and price != "":
-            price = float(locale.atof(price))
-
-    total_assets_dict = mw_financials_search(soup, "Total Assets")
-    total_liabilities_dict = mw_financials_search(soup, "Total Liabilities")
-    return {
-        "price": price,
-        "assets": total_assets_dict["item"],
-        "liabilities": total_liabilities_dict["item"],
-    }
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/company-profile'
-def scrape_mw_profile(symbol):
-    soup = get_soup(
-        f'https://www.marketwatch.com/investing/stock/{symbol.lower().replace("-", ".")}/company-profile'
-    )
-    return {
-        "curr_ratio": mw_profile_search(soup, "Current Ratio"),
-        "pe_ratio": mw_profile_search(soup, "P/E Current"),
-        "pb_ratio": mw_profile_search(soup, "Price to Book Ratio"),
-        "sector": mw_profile_search(soup, "Sector"),
-    }
-
-
 # Finviz scraper for 'https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4':
 def scrape_finviz():
     url = "https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4"
@@ -295,15 +164,10 @@ def scrape_finviz():
 
 
 def check(symbol, flags):
-    scraped_data = {
-        "symbol": symbol,
-        **scrape_mw_financials(symbol),
-        **scrape_mw_balance_sheet(symbol),
-        **scrape_mw_profile(symbol),
-        **scrape_mw_cash_flow(symbol),
-        **scrape_yahoo_quote(symbol),
-        **scrape_yahoo_key_stats(symbol),
-    }
+    mw_scrape = MWScraper(symbol).scrape()
+    yahoo_scrape = {**scrape_yahoo_quote(symbol), **scrape_yahoo_key_stats(symbol)}
+    scraped_data = {**mw_scrape, **yahoo_scrape}
+
     overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
     return output_handler(overall_dict, health_result, flags)
 
