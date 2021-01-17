@@ -268,27 +268,15 @@ def scrape_mw_balance_sheet(symbol):
 
 # MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/company-profile'
 def scrape_mw_profile(symbol):
-    profile_dict = {
-        "curr_ratio": None,
-        "pe_ratio": None,
-        "pb_ratio": None,
-        "sector": None,
-    }
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/"
-        + symbol.lower()
-        + "/company-profile"
+    soup = get_soup(
+        f'https://www.marketwatch.com/investing/stock/{symbol.lower().replace("-", ".")}/company-profile'
     )
-    soup = get_soup(url)
-    profile_dict.update(curr_ratio=mw_profile_search(soup, "Current Ratio"))
-    # Only overwrites PE ratio if it has a non nonetype value
-    pe_ratio = mw_profile_search(soup, "P/E Current")
-    if pe_ratio != None:
-        profile_dict.update(pe_ratio=pe_ratio)
-    profile_dict.update(pbRatio=mw_profile_search(soup, "Price to Book Ratio"))
-    profile_dict.update(sector=mw_profile_search(soup, "Sector"))
-    return profile_dict
+    return {
+        "curr_ratio": mw_profile_search(soup, "Current Ratio"),
+        "pe_ratio": mw_profile_search(soup, "P/E Current"),
+        "pb_ratio": mw_profile_search(soup, "Price to Book Ratio"),
+        "sector": mw_profile_search(soup, "Sector"),
+    }
 
 
 # Finviz scraper for 'https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4':
@@ -301,12 +289,13 @@ def scrape_finviz():
         user = lines[0]
         password = lines[1]
     f.close()
-    print(user) # FIXME - Remove later
-    print(password) # FIXME - Remove later
+    print(user)  # FIXME - Remove later
+    print(password)  # FIXME - Remove later
     soup = get_soup(url, user, password)
-    print(soup) #FIXME - Remove later
+    print(soup)  # FIXME - Remove later
     # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
     return
+
 
 def check(symbol, flags):
     scraped_data = {
@@ -332,16 +321,16 @@ def internal_check(symbol, overall_dict, flags):
             overall_dict["mkt_cap"], overall_dict["assets"], overall_dict["liabilities"]
         ),
         alg.good_curr_ratio(overall_dict["curr_ratio"]),
-        alg.good_dividend(
-            overall_dict["dividend"], overall_dict["dividend_list"]
-        ),
+        alg.good_dividend(overall_dict["dividend"], overall_dict["dividend_list"]),
         alg.good_eps(overall_dict["eps_list"]),
         alg.good_eps_growth(overall_dict["eps_list"], 5),
         alg.good_pe_ratio(overall_dict["pe_ratio"]),
         alg.good_sales(overall_dict["sales"]),
     ]
-    overall_dict['score'] = len([x for x in score_assessments if x])
-    overall_dict['graham_num'] = alg.graham_num(overall_dict["eps"], overall_dict["bvps"])
+    overall_dict["score"] = len([x for x in score_assessments if x])
+    overall_dict["graham_num"] = alg.graham_num(
+        overall_dict["eps"], overall_dict["bvps"]
+    )
 
     health_result = alg.health_check(
         overall_dict["mkt_cap"],
@@ -391,41 +380,27 @@ def gradient_color(strength):
         color = gradients[0]
     return color
 
+
 def build_colored_ratio(a, b):
     ratio = 0.0
     ratio_color = "red"
     if a is not None and b is not None:
-         ratio = float(a / b)
-         if a >= b:
-             ratio_color = "green"
-    
-    return f'([{ratio_color}]{round(ratio, 2)}[/{ratio_color}])'
+        ratio = float(a / b)
+        if a >= b:
+            ratio_color = "green"
+
+    return f"([{ratio_color}]{round(ratio, 2)}[/{ratio_color}])"
+
 
 def output_handler(overall_dict, health_result, flags):
     json_data = None
     # Silent flag, hides console output
-    # output_text = ""
     if "s" not in flags:
-        # gp_ratio = 0.0
-        # gp_ratio_color = "red"
-        # if overall_dict["graham_num"] is not None and overall_dict["price"] is not None:
-        #     gp_ratio = float(overall_dict["graham_num"] / overall_dict["price"])
-        #     # Color green or red depending on if it's above/below fair value
-        #     if overall_dict["graham_num"] >= overall_dict["price"]:
-        #         gp_ratio_color = "green"
-                
-        gp_ratio_str = build_colored_ratio(overall_dict["graham_num"], overall_dict["price"])
-                
-        # bp_ratio = 0.0
-        # bp_ratio_color = "red"
-        # if overall_dict["bvps"] is not None and overall_dict["price"] is not None:
-        #     bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
-        #     if overall_dict["bvps"] >= overall_dict["price"]:
-        #         bp_ratio_color = "green"
-                
+        gp_ratio_str = build_colored_ratio(
+            overall_dict["graham_num"], overall_dict["price"]
+        )
         bp_ratio_str = build_colored_ratio(overall_dict["bvps"], overall_dict["price"])
-        
-        
+
         outputs = [
             f'Symbol: {overall_dict["symbol"].upper()}',
             f'Sector: {overall_dict["sector"]}',
@@ -433,25 +408,12 @@ def output_handler(overall_dict, health_result, flags):
             f'Bvps/Price: {overall_dict["bvps"]}/{overall_dict["price"]} {bp_ratio_str}',
             f'Dividend Yield: {overall_dict["div_yield"]}',
             f'Score: {overall_dict["score"]}/7',
-            f'Analysis:',
+            f"Analysis:",
         ]
         for x in health_result:
             outputs.append(f'{" " * 4}{x}')
-        
         print("\n".join(outputs))
-        
-        # text += f'Graham Num/Price: '
-        # text += f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
-        # text += f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])\n'
-        # text += f'Bvps/Price: '
-        # text += f'{overall_dict["bvps"]}/{overall_dict["price"]} '
-        # text += f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])\n'
-        # text += f'Dividend Yield: {overall_dict["div_yield"]}\n'
-        # text += f'Score: {overall_dict["score"]}/7\n'
-        # text += f'Analysis: \n'
-        # for item in health_result:
-        #     text += f'{" " * 4}{item}\n'
-        # print(text)
+
     # JSON output/generation flag
     if "j" in flags:
         json_data = {overall_dict["symbol"]: overall_dict}
