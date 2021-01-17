@@ -242,28 +242,25 @@ def scrape_mw_cash_flow(symbol):
 
 # MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/balance-sheet'
 def scrape_mw_balance_sheet(symbol):
-    balance_sheet_dict = {"price": None, "assets": None, "liabilities": None}
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/"
-        + symbol.lower()
-        + "/financials/balance-sheet"
+    soup = get_soup(
+        f'https://www.marketwatch.com/investing/stock/{symbol.lower().replace("-", ".")}/financials/balance-sheet'
     )
-    soup = get_soup(url)
-    item_dict = mw_financials_search(soup, "Total Assets")
-    balance_sheet_dict.update(assets=item_dict["item"])
-    item_dict = mw_financials_search(soup, "Total Liabilities")
-    balance_sheet_dict.update(liabilities=item_dict["item"])
+
     # Fetch the price from the top of the page
     price = None
     intraday_price = soup.find("h3", {"class": "intraday__price"})
     if intraday_price:
         price = intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
-        if price != None and price != "":
-            price = price.replace(",", "")
-            price = round(float(price), 2)
-    balance_sheet_dict.update(price=price)
-    return balance_sheet_dict
+        if price is not None and price != "":
+            price = float(locale.atof(price))
+
+    total_assets_dict = mw_financials_search(soup, "Total Assets")
+    total_liabilities_dict = mw_financials_search(soup, "Total Liabilities")
+    return {
+        "price": price,
+        "assets": total_assets_dict["item"],
+        "liabilities": total_liabilities_dict["item"],
+    }
 
 
 # MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/company-profile'
