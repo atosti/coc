@@ -391,39 +391,67 @@ def gradient_color(strength):
         color = gradients[0]
     return color
 
+def build_colored_ratio(a, b):
+    ratio = 0.0
+    ratio_color = "red"
+    if a is not None and b is not None:
+         ratio = float(a / b)
+         if a >= b:
+             ratio_color = "green"
+    
+    return f'([{ratio_color}]{round(ratio, 2)}[/{ratio_color}])'
 
 def output_handler(overall_dict, health_result, flags):
     json_data = None
     # Silent flag, hides console output
+    # output_text = ""
     if "s" not in flags:
-        text = ""
-        text += f'Symbol: {overall_dict["symbol"].upper()}\n'
-        text += f'Sector: {overall_dict["sector"]}\n'
-        gp_ratio = 0.0
-        gp_ratio_color = "red"
-        if overall_dict["graham_num"] != None and overall_dict["price"] != None:
-            gp_ratio = float(overall_dict["graham_num"] / overall_dict["price"])
-            # Color green or red depending on if it's above/below fair value
-            if overall_dict["graham_num"] >= overall_dict["price"]:
-                gp_ratio_color = "green"
-        bp_ratio = 0.0
-        bp_ratio_color = "red"
-        if overall_dict["bvps"] != None and overall_dict["price"] != None:
-            bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
-            if overall_dict["bvps"] >= overall_dict["price"]:
-                bp_ratio_color = "green"
-        text += f'Graham Num/Price: '
-        text += f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
-        text += f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])\n'
-        text += f'Bvps/Price: '
-        text += f'{overall_dict["bvps"]}/{overall_dict["price"]} '
-        text += f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])\n'
-        text += f'Dividend Yield: {overall_dict["div_yield"]}\n'
-        text += f'Score: {overall_dict["score"]}/7\n'
-        text += f'Analysis: \n'
-        for item in health_result:
-            text += f'{" " * 4}{item}\n'
-        print(text)
+        # gp_ratio = 0.0
+        # gp_ratio_color = "red"
+        # if overall_dict["graham_num"] is not None and overall_dict["price"] is not None:
+        #     gp_ratio = float(overall_dict["graham_num"] / overall_dict["price"])
+        #     # Color green or red depending on if it's above/below fair value
+        #     if overall_dict["graham_num"] >= overall_dict["price"]:
+        #         gp_ratio_color = "green"
+                
+        gp_ratio_str = build_colored_ratio(overall_dict["graham_num"], overall_dict["price"])
+                
+        # bp_ratio = 0.0
+        # bp_ratio_color = "red"
+        # if overall_dict["bvps"] is not None and overall_dict["price"] is not None:
+        #     bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
+        #     if overall_dict["bvps"] >= overall_dict["price"]:
+        #         bp_ratio_color = "green"
+                
+        bp_ratio_str = build_colored_ratio(overall_dict["bvps"], overall_dict["price"])
+        
+        
+        outputs = [
+            f'Symbol: {overall_dict["symbol"].upper()}',
+            f'Sector: {overall_dict["sector"]}',
+            f'Graham Num/Price: {overall_dict["graham_num"]}/{overall_dict["price"]} {gp_ratio_str}',
+            f'Bvps/Price: {overall_dict["bvps"]}/{overall_dict["price"]} {bp_ratio_str}',
+            f'Dividend Yield: {overall_dict["div_yield"]}',
+            f'Score: {overall_dict["score"]}/7',
+            f'Analysis:',
+        ]
+        for x in health_result:
+            outputs.append(f'{" " * 4}{x}')
+        
+        print("\n".join(outputs))
+        
+        # text += f'Graham Num/Price: '
+        # text += f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
+        # text += f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])\n'
+        # text += f'Bvps/Price: '
+        # text += f'{overall_dict["bvps"]}/{overall_dict["price"]} '
+        # text += f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])\n'
+        # text += f'Dividend Yield: {overall_dict["div_yield"]}\n'
+        # text += f'Score: {overall_dict["score"]}/7\n'
+        # text += f'Analysis: \n'
+        # for item in health_result:
+        #     text += f'{" " * 4}{item}\n'
+        # print(text)
     # JSON output/generation flag
     if "j" in flags:
         json_data = {overall_dict["symbol"]: overall_dict}
