@@ -5,6 +5,7 @@ from rich import print
 from pprint import pprint
 import re
 from backend.core import alg, excel
+from backend.core.mw_scraper import MWScraper
 
 
 locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
@@ -56,7 +57,7 @@ def scrape_yahoo_key_stats(symbol):
         elem = fetch[3]
         value = elem.get_text(strip=True)
         if value != "N/A":
-            return {"bvps": float(value)}
+            return {"bvps": float(locale.atof(value))}
     return {"bvps": None}
 
 
@@ -68,17 +69,6 @@ def yf_quote_search(soup, text):
     if any(x in ["%", "(", ")"] for x in item):
         return item
     return alg.str_to_num(item)
-
-
-def _mw_combine_table_dicts(table_dicts):
-    combined_dict = {}
-    for table_dict in table_dicts:
-        for year, values in table_dict.items():
-            if year not in combined_dict:
-                combined_dict[year] = {}
-            for title, value in values.items():
-                combined_dict[year][title] = value
-    return combined_dict
 
 
 def mw_raw_tables_to_dict(soup):
@@ -155,142 +145,6 @@ def mw_chart_financials_to_dict(soup):
     return table_dicts
 
 
-def mw_financials_search(soup, text):
-    # setup for table based parsing
-    # tables = mw_chart_financials_to_dict(soup)
-    #  financials = _mw_combine_table_dicts(tables)
-    #  years = list(financials.keys())
-    #  years.sort()
-    #
-    #  item = None
-    #  items = []
-    #
-    #  for year in years:
-    #      value = financials.get(year, {}).get(text)
-    #      items.append(value)
-    #      item = value
-    #  return {"item" : item, "item_list" : items}
-
-    item_dict = {"item": None, "item_list": None}
-    found = soup.find(text=text)
-
-    if found:
-        item = None  # Most recent year's value
-        item_list = None  # List of 5 previous years' values
-        fetch = found.parent.parent.parent.findChildren()
-        for elem in fetch:
-            elemFound = elem.find("div", {"class": "chart--financials"})
-            if elemFound:
-                item_list = elemFound.get("data-chart-data").split(",")
-                item_list = [float(i) for i in item_list if i != ""]
-                if len(item_list) > 0 and item_list[-1] != None:
-                    item = float(item_list[-1])
-                item_dict.update(item_list=item_list, item=item)
-                break
-    return item_dict
-
-
-def mw_profile_search(soup, text):
-    item = None
-    found = soup.find(text=text)
-    if text == "Sector" and found:
-        fetch = found.parent.parent.find("span", {"class": "primary"})
-        item = fetch.get_text(strip=True)
-    elif found:
-        fetch = found.parent.parent.find("td", {"class": "w25"})
-        if fetch:
-            value = fetch.get_text(strip=True)
-            if value != "N/A":
-                item = float(locale.atof(value))
-    return item
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials'
-def scrape_mw_financials(symbol):
-    url = f"https://www.marketwatch.com/investing/stock/{symbol.replace('-', '.').lower()}/financials"
-    soup = get_soup(url)
-    eps_dict = mw_financials_search(soup, "EPS (Basic)")
-    sales_dict = mw_financials_search(soup, "Sales/Revenue")
-    return {
-        "eps": eps_dict.get("item"),
-        "eps_list": eps_dict["item_list"],
-        "sales": sales_dict["item"],
-        "sales_list": sales_dict["item_list"],
-    }
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/cash-flow'
-def scrape_mw_cash_flow(symbol):
-    cash_flow_dict = {"dividend": None, "dividend_list": None}
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/"
-        + symbol.lower()
-        + "/financials/cash-flow"
-    )
-    soup = get_soup(url)
-    item_dict = mw_financials_search(soup, "Cash Dividends Paid - Total")
-    # Marketwatch seems to list all dividends as negative, so adjust values
-    if item_dict["item"] != None:
-        item_dict["item"] = abs(item_dict["item"])
-    if item_dict["item_list"] != None:
-        item_dict["item_list"] = [abs(i) for i in item_dict["item_list"]]
-    cash_flow_dict.update(dividend=item_dict["item"])
-    cash_flow_dict.update(dividend_list=item_dict["item_list"])
-    return cash_flow_dict
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/financials/balance-sheet'
-def scrape_mw_balance_sheet(symbol):
-    balance_sheet_dict = {"price": None, "assets": None, "liabilities": None}
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/"
-        + symbol.lower()
-        + "/financials/balance-sheet"
-    )
-    soup = get_soup(url)
-    item_dict = mw_financials_search(soup, "Total Assets")
-    balance_sheet_dict.update(assets=item_dict["item"])
-    item_dict = mw_financials_search(soup, "Total Liabilities")
-    balance_sheet_dict.update(liabilities=item_dict["item"])
-    # Fetch the price from the top of the page
-    price = None
-    intraday_price = soup.find("h3", {"class": "intraday__price"})
-    if intraday_price:
-        price = intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
-        if price != None and price != "":
-            price = price.replace(",", "")
-            price = round(float(price), 2)
-    balance_sheet_dict.update(price=price)
-    return balance_sheet_dict
-
-
-# MarketWatch scraper for: 'https://marketwatch.com/investing/stock/symbol/company-profile'
-def scrape_mw_profile(symbol):
-    profile_dict = {
-        "curr_ratio": None,
-        "pe_ratio": None,
-        "pb_ratio": None,
-        "sector": None,
-    }
-    symbol = symbol.replace("-", ".")  # Convert for URL
-    url = (
-        "https://www.marketwatch.com/investing/stock/"
-        + symbol.lower()
-        + "/company-profile"
-    )
-    soup = get_soup(url)
-    profile_dict.update(curr_ratio=mw_profile_search(soup, "Current Ratio"))
-    # Only overwrites PE ratio if it has a non nonetype value
-    pe_ratio = mw_profile_search(soup, "P/E Current")
-    if pe_ratio != None:
-        profile_dict.update(pe_ratio=pe_ratio)
-    profile_dict.update(pbRatio=mw_profile_search(soup, "Price to Book Ratio"))
-    profile_dict.update(sector=mw_profile_search(soup, "Sector"))
-    return profile_dict
-
-
 # Finviz scraper for 'https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4':
 def scrape_finviz():
     url = "https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4"
@@ -301,23 +155,19 @@ def scrape_finviz():
         user = lines[0]
         password = lines[1]
     f.close()
-    print(user) # FIXME - Remove later
-    print(password) # FIXME - Remove later
+    print(user)  # FIXME - Remove later
+    print(password)  # FIXME - Remove later
     soup = get_soup(url, user, password)
-    print(soup) #FIXME - Remove later
+    print(soup)  # FIXME - Remove later
     # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
     return
 
+
 def check(symbol, flags):
-    scraped_data = {
-        "symbol": symbol,
-        **scrape_mw_financials(symbol),
-        **scrape_mw_balance_sheet(symbol),
-        **scrape_mw_profile(symbol),
-        **scrape_mw_cash_flow(symbol),
-        **scrape_yahoo_quote(symbol),
-        **scrape_yahoo_key_stats(symbol),
-    }
+    mw_scrape = MWScraper(symbol).scrape()
+    yahoo_scrape = {**scrape_yahoo_quote(symbol), **scrape_yahoo_key_stats(symbol)}
+    scraped_data = {**mw_scrape, **yahoo_scrape}
+
     overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
     return output_handler(overall_dict, health_result, flags)
 
@@ -332,16 +182,16 @@ def internal_check(symbol, overall_dict, flags):
             overall_dict["mkt_cap"], overall_dict["assets"], overall_dict["liabilities"]
         ),
         alg.good_curr_ratio(overall_dict["curr_ratio"]),
-        alg.good_dividend(
-            overall_dict["dividend"], overall_dict["dividend_list"]
-        ),
+        alg.good_dividend(overall_dict["dividend"], overall_dict["dividend_list"]),
         alg.good_eps(overall_dict["eps_list"]),
         alg.good_eps_growth(overall_dict["eps_list"], 5),
         alg.good_pe_ratio(overall_dict["pe_ratio"]),
         alg.good_sales(overall_dict["sales"]),
     ]
-    overall_dict['score'] = len([x for x in score_assessments if x])
-    overall_dict['graham_num'] = alg.graham_num(overall_dict["eps"], overall_dict["bvps"])
+    overall_dict["score"] = len([x for x in score_assessments if x])
+    overall_dict["graham_num"] = alg.graham_num(
+        overall_dict["eps"], overall_dict["bvps"]
+    )
 
     health_result = alg.health_check(
         overall_dict["mkt_cap"],
@@ -392,38 +242,39 @@ def gradient_color(strength):
     return color
 
 
+def build_colored_ratio(a, b):
+    ratio = 0.0
+    ratio_color = "red"
+    if a is not None and b is not None:
+        ratio = float(a / b)
+        if a >= b:
+            ratio_color = "green"
+
+    return f"([{ratio_color}]{round(ratio, 2)}[/{ratio_color}])"
+
+
 def output_handler(overall_dict, health_result, flags):
     json_data = None
     # Silent flag, hides console output
     if "s" not in flags:
-        text = ""
-        text += f'Symbol: {overall_dict["symbol"].upper()}\n'
-        text += f'Sector: {overall_dict["sector"]}\n'
-        gp_ratio = 0.0
-        gp_ratio_color = "red"
-        if overall_dict["graham_num"] != None and overall_dict["price"] != None:
-            gp_ratio = float(overall_dict["graham_num"] / overall_dict["price"])
-            # Color green or red depending on if it's above/below fair value
-            if overall_dict["graham_num"] >= overall_dict["price"]:
-                gp_ratio_color = "green"
-        bp_ratio = 0.0
-        bp_ratio_color = "red"
-        if overall_dict["bvps"] != None and overall_dict["price"] != None:
-            bp_ratio = float(overall_dict["bvps"] / overall_dict["price"])
-            if overall_dict["bvps"] >= overall_dict["price"]:
-                bp_ratio_color = "green"
-        text += f'Graham Num/Price: '
-        text += f'{overall_dict["graham_num"]}/{overall_dict["price"]} '
-        text += f'([{gp_ratio_color}]{round(gp_ratio, 2)}[/{gp_ratio_color}])\n'
-        text += f'Bvps/Price: '
-        text += f'{overall_dict["bvps"]}/{overall_dict["price"]} '
-        text += f'([{bp_ratio_color}]{round(bp_ratio, 2)}[/{bp_ratio_color}])\n'
-        text += f'Dividend Yield: {overall_dict["div_yield"]}\n'
-        text += f'Score: {overall_dict["score"]}/7\n'
-        text += f'Analysis: \n'
-        for item in health_result:
-            text += f'{" " * 4}{item}\n'
-        print(text)
+        gp_ratio_str = build_colored_ratio(
+            overall_dict["graham_num"], overall_dict["price"]
+        )
+        bp_ratio_str = build_colored_ratio(overall_dict["bvps"], overall_dict["price"])
+
+        outputs = [
+            f'Symbol: {overall_dict["symbol"].upper()}',
+            f'Sector: {overall_dict["sector"]}',
+            f'Graham Num/Price: {overall_dict["graham_num"]}/{overall_dict["price"]} {gp_ratio_str}',
+            f'Bvps/Price: {overall_dict["bvps"]}/{overall_dict["price"]} {bp_ratio_str}',
+            f'Dividend Yield: {overall_dict["div_yield"]}',
+            f'Score: {overall_dict["score"]}/7',
+            f"Analysis:",
+        ]
+        for x in health_result:
+            outputs.append(f'{" " * 4}{x}')
+        print("\n".join(outputs))
+
     # JSON output/generation flag
     if "j" in flags:
         json_data = {overall_dict["symbol"]: overall_dict}
