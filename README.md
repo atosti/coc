@@ -54,7 +54,8 @@ It analyzes symbols based on the following criteria, where a value of **True** i
    * This equates to approx. 15% total growth over 5 yrs.
 6. Does it have cheap assets?
    * This is calculated as the following:
-     * Is Market Capitalization < (Assets - Liabilities) * 1.5?
+     * Is Market Capitalization < Net Asset Value * 1.5?
+       * Net Asset Value = (Assets - Liabilities)
    * Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
 7. Does it have cheap earnings?
    * This is calculated as the following:

@@ -156,11 +156,10 @@ def health_check(
     if assets and liabilities and mkt_cap:
         value = (assets - liabilities) * 1.5
         value_str = num_to_str(value)
-        # ca_msg = f"C6: Expensive assets " + str(mkt_cap_str) + " !< " + str(value_str)
     ca_success = good_assets(mkt_cap, assets, liabilities)
-    ca_msg = f"C6: Expensive assets " + mkt_cap_str + " !< " + value_str
+    ca_msg = f"C6: Expensive assets " + mkt_cap_str + " !< " + value_str + ". (Mkt Cap vs NAV * 1.5)"
     if ca_success:
-        ca_msg = f"C6: Cheap assets " + mkt_cap_str + " < " + value_str
+        ca_msg = f"C6: Cheap assets " + mkt_cap_str + " < " + value_str + ". (Mkt Cap vs NAV * 1.5)"
     results["assets"] = {
         "success": ca_success,
         "message": ca_msg,
