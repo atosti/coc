@@ -1,6 +1,7 @@
 import pandas as pd
 import openpyxl
 import os.path
+from backend.core import alg
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Color, PatternFill
 
@@ -91,13 +92,13 @@ def update(symbol, data_dict):
         data_dict["graham_num"],
         data_dict["price"],
         data_dict["div_yield"],
-        data_dict["good_sales"],
-        data_dict["good_curr_ratio"],
-        data_dict["good_dividend"],
-        data_dict["good_eps"],
-        data_dict["good_eps_growth"],
-        data_dict["good_assets"],
-        data_dict["good_pe_ratio"],
+        alg.good_sales(data_dict["sales"]),
+        alg.good_curr_ratio(data_dict["curr_ratio"]),
+        alg.good_dividend(data_dict["dividend"], data_dict["dividend_list"]),
+        alg.good_eps(data_dict["eps_list"]),
+        alg.good_eps_growth(data_dict["eps_list"], 5),
+        alg.good_assets(data_dict["mkt_cap"], data_dict["assets"], data_dict["liabilities"]),
+        alg.good_pe_ratio(data_dict["pe_ratio"]),
     ]
     # Either overwrites the row for the symbol or adds a new row for it
     if overwrite_row != None:
