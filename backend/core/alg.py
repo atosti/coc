@@ -104,11 +104,11 @@ def health_check(
         "success": cr_success,
         "message": cr_msg,
     }
-    # Criteria 3: If it pays a dividend, no missed/reduced payments in last 5 yrs
+    # Criteria 3: If it pays a div, no missed/reduced payments in last 5 yrs
     d_success = good_dividend(dividend, dividends)
-    d_msg = f"C3: Dividend missed/decreased in last 5yrs"
+    d_msg = f"C3: Dividend missed/decr. last 5yrs"
     if d_success and div_yield and div_yield != "N/A":
-        d_msg = f"C3: Dividend steady/increasing over last 5yrs"
+        d_msg = f"C3: Dividend steady/incr. last 5yrs"
     elif d_success:
         d_msg = f"C3: Dividend not paid"
     results["dividend"] = {
@@ -124,7 +124,7 @@ def health_check(
     ed_success = good_eps(eps_list)
     ed_msg = f"C4: EPS Deficit in {str(deficit_yrs)}"
     if ed_success:
-        ed_msg = f"C4: No EPS Deficit over last 5 yrs"
+        ed_msg = f"C4: No EPS Deficit in last 5 yrs"
     results["eps"] = {
         "success": ed_success,
         "message": ed_msg,
@@ -153,13 +153,15 @@ def health_check(
     #   Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
     mkt_cap_str = num_to_str(mkt_cap)
     value_str = "None"
+    c6_ratio = "None"
     if assets and liabilities and mkt_cap:
-        value = (assets - liabilities) * 1.5
+        value = (assets - liabilities) * 1.5 # NAV * 1.5
         value_str = num_to_str(value)
+        c6_ratio = str(round(value/mkt_cap, 2))
     ca_success = good_assets(mkt_cap, assets, liabilities)
-    ca_msg = f"C6: Expensive assets " + mkt_cap_str + " !< " + value_str + ". (Mkt Cap vs NAV * 1.5)"
+    ca_msg = f"C6: Expensive Assets | " + value_str + " < " + mkt_cap_str + " (" + c6_ratio + ")"
     if ca_success:
-        ca_msg = f"C6: Cheap assets " + mkt_cap_str + " < " + value_str + ". (Mkt Cap vs NAV * 1.5)"
+        ca_msg = f"C6: Cheap Assets | " + value_str + " > " + mkt_cap_str + " (" + c6_ratio + ")"
     results["assets"] = {
         "success": ca_success,
         "message": ca_msg,

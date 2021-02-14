@@ -25,20 +25,21 @@ def get_next_symbol():
     return symbol
 
 
-# Color codes columns G through M with green/red for true/false
-def color_code_row(row_num, ws):
-    # Fills True/False cells Green/Red in new row for readability
+# Color codes criteria columns with green/red for if they pass/fail
+def color_code_row(row_num, ws, criterion):
     green_fill = PatternFill(
         fill_type="solid", start_color="3CB371", end_color="3CB371"
     )
     red_fill = PatternFill(fill_type="solid", start_color="CD5C5C", end_color="CD5C5C")
-    for alpha in range(ord("G"), ord("M") + 1):
+    # Only color the cells relative to the Criteria (hard-coded for G thru M)
+    idx = 0
+    for alpha in range(ord("H"), ord("N") + 1):
         curr_cell = ws[chr(alpha) + str(row_num)]
-        if curr_cell.value:
+        if criterion[idx]:
             curr_cell.fill = green_fill
         else:
             curr_cell.fill = red_fill
-
+        idx += 1
 
 # Adds a new row for this symbol to the end of the excel file
 def update(symbol, data_dict):
@@ -62,16 +63,17 @@ def update(symbol, data_dict):
                 "",
                 "Score",
                 "Sector",
-                "Graham Num.",
                 "Price",
+                "Graham Num (vs. price)",
+                "BVPS (vs. price)",
                 "Div. Yield",
-                "Sales > $700M",
-                "Curr. Ratio >= 2",
-                "No Missed Dividend(5yrs)",
-                "No Earnings Deficit(5yrs)",
-                "EPS avg > 33%(5yrs)",
-                "Cheap Assets",
-                "P/E < 15",
+                "Criteria 1 (Strength of Sales)",
+                "Criteria 2 (Current Ratio)",
+                "Criteria 3 (Dividend Reliability)",
+                "Criteria 4 (Earnings Deficits)",
+                "Criteria 5 (Annual EPS Growth)",
+                "Criteria 6 (Market Cap vs. Net Asset Value)",
+                "Criteria 7 (Cheapness of Earnings)",
             ]
         )
         # Resize column widths to show full column titles. Skips (empty) Col A.
@@ -84,29 +86,53 @@ def update(symbol, data_dict):
                 ws.column_dimensions[curr_char].width = 12
         # Freezes the top row of the excel file
         wb["Analysis"].freeze_panes = "A2"
+    health_result = alg.health_check(
+        data_dict["mkt_cap"],
+        data_dict["sales"],
+        data_dict["pe_ratio"],
+        data_dict["curr_ratio"],
+        data_dict["eps_list"],
+        data_dict["dividend"],
+        data_dict["dividend_list"],
+        data_dict["assets"],
+        data_dict["liabilities"],
+        data_dict["div_yield"],
+    )
+    # Create array of color-codes for Criteria columns
+    criterion = []
+    for criteria in health_result:
+        if "green" in criteria:
+            criterion.append(True)
+        else:
+            criterion.append(False)
+    for i in range(0, len(health_result)):
+        health_result[i] = health_result[i].replace("[green]", "").replace("[/green]", "").replace("[red]", "").replace("[/red]", "")
+        health_result[i] = health_result[i][3:] # Removes the "CX: " prefix
     # Stores the row being added
     new_row = [
         data_dict["symbol"].upper(),
-        data_dict["score"],
+        str(data_dict["score"]),
         data_dict["sector"],
-        data_dict["graham_num"],
-        data_dict["price"],
+        str(data_dict["price"]),
+        str(data_dict["graham_num"]) + " (" + str(round(data_dict["graham_num"]/data_dict["price"], 2)) + ")",
+        str(data_dict["bvps"]) + " (" + str(round(data_dict["bvps"]/data_dict["price"], 2)) + ")",
         data_dict["div_yield"],
-        alg.good_sales(data_dict["sales"]),
-        alg.good_curr_ratio(data_dict["curr_ratio"]),
-        alg.good_dividend(data_dict["dividend"], data_dict["dividend_list"]),
-        alg.good_eps(data_dict["eps_list"]),
-        alg.good_eps_growth(data_dict["eps_list"], 5),
-        alg.good_assets(data_dict["mkt_cap"], data_dict["assets"], data_dict["liabilities"]),
-        alg.good_pe_ratio(data_dict["pe_ratio"]),
+        health_result[0],
+        health_result[1],
+        health_result[2],
+        health_result[3],
+        health_result[4],
+        health_result[5],
+        health_result[6],
     ]
     # Either overwrites the row for the symbol or adds a new row for it
+    idx = 0
     if overwrite_row != None:
         for col, val in enumerate(new_row, start=1):
             ws.cell(row=overwrite_row, column=col).value = val
-            color_code_row(overwrite_row, ws)
+            color_code_row(overwrite_row, ws, criterion)
     else:
         ws.append(new_row)
-        color_code_row(ws.max_row, ws)
+        color_code_row(ws.max_row, ws, criterion)
     wb.save(filename=dest_filename)
     return
