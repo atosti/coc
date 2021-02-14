@@ -99,7 +99,7 @@ def health_check(
     cr_success = good_curr_ratio(curr_ratio)
     cr_msg = f"C2: Curr. Ratio of {str(curr_ratio)} < 2.0"
     if cr_success:
-        cr_msg = f"C2: Curr. Ratio of {str(curr_ratio)} >= 2.0"
+        cr_msg = f"C2: Curr. Ratio of {str(curr_ratio)} ≥ 2.0"
     results["curr_ratio"] = {
         "success": cr_success,
         "message": cr_msg,
@@ -144,7 +144,7 @@ def health_check(
     eg_success = good_eps_growth(eps_list, 5)
     eg_msg = f"C5: Low EPS Growth of {str(eps_growth)}% < 15%"
     if eg_success:
-        eg_msg = f"C5: EPS Growth of {str(eps_growth)}% >= 15%"
+        eg_msg = f"C5: EPS Growth of {str(eps_growth)}% ≥ 15%"
     results["eps_growth"] = {
         "success": eg_success,
         "message": eg_msg,
@@ -161,7 +161,7 @@ def health_check(
     ca_success = good_assets(mkt_cap, assets, liabilities)
     ca_msg = f"C6: Expensive Assets | " + value_str + " < " + mkt_cap_str + " (" + c6_ratio + ")"
     if ca_success:
-        ca_msg = f"C6: Cheap Assets | " + value_str + " > " + mkt_cap_str + " (" + c6_ratio + ")"
+        ca_msg = f"C6: Cheap Assets | " + value_str + " ≥ " + mkt_cap_str + " (" + c6_ratio + ")"
     results["assets"] = {
         "success": ca_success,
         "message": ca_msg,
@@ -170,7 +170,7 @@ def health_check(
     per_success = good_pe_ratio(pe_ratio)
     per_msg = f"C7: P/E Ratio of {str(pe_ratio)} > 15.0"
     if per_success:
-        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} <= 15.0"    
+        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} ≤ 15.0"    
     results["pe_ratio"] = {
         "success": per_success,
         "message": per_msg,
