@@ -26,20 +26,44 @@ def get_next_symbol():
 
 
 # Color codes criteria columns with green/red for if they pass/fail
-def color_code_row(row_num, ws, criterion):
-    green_fill = PatternFill(
-        fill_type="solid", start_color="3CB371", end_color="3CB371"
-    )
-    red_fill = PatternFill(fill_type="solid", start_color="CD5C5C", end_color="CD5C5C")
-    # Only color the cells relative to the Criteria (hard-coded for G thru M)
+def color_code_row(row_num, ws, colors):
+    green = PatternFill(fill_type="solid", start_color="3CB371", end_color="3CB371")
+    red = PatternFill(fill_type="solid", start_color="CD5C5C", end_color="CD5C5C")
+    white = PatternFill(fill_type="solid", start_color="FFFFFF", end_color="FFFFFF")
     idx = 0
-    for alpha in range(ord("H"), ord("N") + 1):
+    for alpha in range(ord("A"), ord("N") + 1):
         curr_cell = ws[chr(alpha) + str(row_num)]
-        if criterion[idx]:
-            curr_cell.fill = green_fill
+        if "green" in colors[idx]:
+            curr_cell.fill = green
+        elif "red" in colors[idx]:
+            curr_cell.fill = red
+        elif "white" in colors[idx]:
+            curr_cell.fill = white
         else:
-            curr_cell.fill = red_fill
+            curr_cell.fill = white
         idx += 1
+
+
+# Creates an array of the colors for the columns of a row
+def generate_cell_colors(graham_ratio, bvps_ratio, health_result):
+    colors = ["white", "white", "white", "white"] # symbol, score, sector, price
+    if graham_ratio >= 1:
+        colors.append("green")
+    else:
+        colors.append("red")
+    if bvps_ratio >= 1:
+        colors.append("green")
+    else:
+        colors.append("red")
+    colors.append("white") # dividend yield
+    for criteria in health_result:
+        if "green" in criteria:
+            colors.append("green")
+        elif "red" in criteria:
+            colors.append("red")
+        else:
+            colors.append("white")
+    return colors
 
 # Adds a new row for this symbol to the end of the excel file
 def update(symbol, data_dict):
@@ -98,13 +122,10 @@ def update(symbol, data_dict):
         data_dict["liabilities"],
         data_dict["div_yield"],
     )
-    # Create array of color-codes for Criteria columns
-    criterion = []
-    for criteria in health_result:
-        if "green" in criteria:
-            criterion.append(True)
-        else:
-            criterion.append(False)
+    # Ratios relative to price
+    graham_ratio = round(data_dict["graham_num"]/data_dict["price"], 2)
+    bvps_ratio = round(data_dict["bvps"]/data_dict["price"], 2)
+    colors = generate_cell_colors(graham_ratio, bvps_ratio, health_result)
     for i in range(0, len(health_result)):
         health_result[i] = health_result[i].replace("[green]", "").replace("[/green]", "").replace("[red]", "").replace("[/red]", "")
         health_result[i] = health_result[i][3:] # Removes the "CX: " prefix
@@ -114,8 +135,8 @@ def update(symbol, data_dict):
         str(data_dict["score"]),
         data_dict["sector"],
         str(data_dict["price"]),
-        str(data_dict["graham_num"]) + " (" + str(round(data_dict["graham_num"]/data_dict["price"], 2)) + ")",
-        str(data_dict["bvps"]) + " (" + str(round(data_dict["bvps"]/data_dict["price"], 2)) + ")",
+        str(data_dict["graham_num"]) + " (" + str(graham_ratio) + ")",
+        str(data_dict["bvps"]) + " (" + str(bvps_ratio) + ")",
         data_dict["div_yield"],
         health_result[0],
         health_result[1],
@@ -130,9 +151,9 @@ def update(symbol, data_dict):
     if overwrite_row != None:
         for col, val in enumerate(new_row, start=1):
             ws.cell(row=overwrite_row, column=col).value = val
-            color_code_row(overwrite_row, ws, criterion)
+            color_code_row(overwrite_row, ws, colors)
     else:
         ws.append(new_row)
-        color_code_row(ws.max_row, ws, criterion)
+        color_code_row(ws.max_row, ws, colors)
     wb.save(filename=dest_filename)
     return
