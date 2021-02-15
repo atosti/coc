@@ -90,7 +90,7 @@ def update(symbol, data_dict):
                 "Price",
                 "Graham Num (vs. price)",
                 "BVPS (vs. price)",
-                "Div. Yield",
+                "Div. Yield (Payout Ratio)",
                 "Criteria 1 (Strength of Sales)",
                 "Criteria 2 (Current Ratio)",
                 "Criteria 3 (Dividend Reliability)",
@@ -129,7 +129,6 @@ def update(symbol, data_dict):
     for i in range(0, len(health_result)):
         health_result[i] = health_result[i].replace("[green]", "").replace("[/green]", "").replace("[red]", "").replace("[/red]", "")
         health_result[i] = health_result[i][3:] # Removes the "CX: " prefix
-    # Stores the row being added
     new_row = [
         data_dict["symbol"].upper(),
         str(data_dict["score"]),
@@ -137,7 +136,7 @@ def update(symbol, data_dict):
         str(data_dict["price"]),
         str(data_dict["graham_num"]) + " (" + str(graham_ratio) + ")",
         str(data_dict["bvps"]) + " (" + str(bvps_ratio) + ")",
-        data_dict["div_yield"],
+        str(data_dict["div_yield"]) + " (" + str(data_dict["payout_ratio"]) + ")",
         health_result[0],
         health_result[1],
         health_result[2],

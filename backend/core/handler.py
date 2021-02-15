@@ -47,6 +47,7 @@ def scrape_yahoo_quote(symbol):
 
 # Yahoo Finance scrape for: 'https://finance.yahoo.com/quote/symbol/key-statistics'
 def scrape_yahoo_key_stats(symbol):
+    output_dict = {"bvps": None, "payout_ratio": None}
     soup = get_soup(
         f"https://finance.yahoo.com/quote/{symbol.replace('.', '-').lower()}/key-statistics"
     )
@@ -57,8 +58,16 @@ def scrape_yahoo_key_stats(symbol):
         elem = fetch[3]
         value = elem.get_text(strip=True)
         if value != "N/A":
-            return {"bvps": float(locale.atof(value))}
-    return {"bvps": None}
+            output_dict["bvps"] = float(locale.atof(value))
+    find_payout_ratio = soup.find(text="Payout Ratio")
+    if find_payout_ratio:
+        fetch = find_payout_ratio.parent.parent.parent.findChildren()
+        # TODO - Currently just grabs the 4th element. Find a better way to nav.
+        elem = fetch[3]
+        value = elem.get_text(strip=True)
+        if value != "N/A":
+            output_dict["payout_ratio"] = value
+    return output_dict
 
 
 def yf_quote_search(soup, text):
@@ -208,40 +217,6 @@ def internal_check(symbol, overall_dict, flags):
     return overall_dict, health_result, flags
 
 
-# TODO - Unused at the moment. Refine it, or trash it.
-# Gets a red to green color of 13 possibilities based on strength
-def gradient_color(strength):
-    # Gradient from red (0.0) to green (1.0)
-    gradients = [
-        "cd5c5c",
-        "c1635e",
-        "b56b5f",
-        "a97261",
-        "9d7963",
-        "918065",
-        "848767",
-        "788f68",
-        "6c966a",
-        "609d6c",
-        "54a46e",
-        "48ac6f",
-        "3cb371",
-    ]
-    color = "000000"
-    offset = 1 / 13  # Offset for each gradient value from 0 to 1
-    total = 0.0
-    for i in range(0, 12):
-        if strength >= total and strength <= (total + offset):
-            color = gradients[i]
-            return color
-        total += offset
-    if strength >= 1:
-        color = gradients[12]
-    elif strength <= 0:
-        color = gradients[0]
-    return color
-
-
 def build_colored_ratio(a, b):
     ratio = 0.0
     ratio_color = "red"
@@ -267,7 +242,7 @@ def output_handler(overall_dict, health_result, flags):
             f'Sector: {overall_dict["sector"]}',
             f'Graham Num/Price: {overall_dict["graham_num"]}/{overall_dict["price"]} {gp_ratio_str}',
             f'Bvps/Price: {overall_dict["bvps"]}/{overall_dict["price"]} {bp_ratio_str}',
-            f'Dividend Yield: {overall_dict["div_yield"]}',
+            f'Dividend Yield/Payout Ratio: {overall_dict["div_yield"]}({overall_dict["payout_ratio"]})',
             f'Score: {overall_dict["score"]}/7',
             f"Analysis:",
         ]
