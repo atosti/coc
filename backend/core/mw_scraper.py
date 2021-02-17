@@ -148,7 +148,7 @@ class MWScraper:
 
         dividend_list = None
         if dividend_dict["item_list"] is not None:
-            dividend_list = [abs(i) for i in dividend_dict["item_list"]]
+            dividend_list = [abs(i) if i is not None else i for i in dividend_dict["item_list"]]
 
         return {"dividend": dividend, "dividend_list": dividend_list}
 
