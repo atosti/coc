@@ -242,7 +242,7 @@ def output_handler(overall_dict, health_result, flags):
             f'Sector: {overall_dict["sector"]}',
             f'Graham Num/Price: {overall_dict["graham_num"]}/{overall_dict["price"]} {gp_ratio_str}',
             f'Bvps/Price: {overall_dict["bvps"]}/{overall_dict["price"]} {bp_ratio_str}',
-            f'Dividend Yield/Payout Ratio: {overall_dict["div_yield"]}({overall_dict["payout_ratio"]})',
+            f'Dividend Yield/Payout Ratio: {overall_dict["div_yield"]} ({overall_dict["payout_ratio"]})',
             f'Score: {overall_dict["score"]}/7',
             f"Analysis:",
         ]
