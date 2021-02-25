@@ -15,42 +15,44 @@ class MWScraper:
 
     @staticmethod
     def chart_financials_to_dict(soup):
-        tables = soup.find("div", {"class": "region--primary"}).findAll("table")
         table_dicts = []
-        for table in tables:
-            ths = table.find("thead").find("tr").findAll("th")
-            column_headers = [x.find("div").get_text(strip=True) for x in ths]
-            trs = table.find("tbody").findAll("tr")
-            rows = []
-            for tr in trs:
-                row_header = tr.find("td").find("div").get_text(strip=True)
-                parsed_values = [row_header]
+        tables_found = soup.find("div", {"class": "region--primary"})
+        if tables_found is not None:
+            tables = soup.find("div", {"class": "region--primary"}).findAll("table")
+            for table in tables:
+                ths = table.find("thead").find("tr").findAll("th")
+                column_headers = [x.find("div").get_text(strip=True) for x in ths]
+                trs = table.find("tbody").findAll("tr")
+                rows = []
+                for tr in trs:
+                    row_header = tr.find("td").find("div").get_text(strip=True)
+                    parsed_values = [row_header]
 
-                values = (
-                    tr.find("div", {"class": "chart--financials"})
-                    .get("data-chart-data")
-                    .split(",")
-                )
-                for value in values:
-                    if value:
-                        parsed_values.append(float(value))
-                    else:
-                        parsed_values.append(0)
-                rows.append(parsed_values)
+                    values = (
+                        tr.find("div", {"class": "chart--financials"})
+                        .get("data-chart-data")
+                        .split(",")
+                    )
+                    for value in values:
+                        if value:
+                            parsed_values.append(float(value))
+                        else:
+                            parsed_values.append(0)
+                    rows.append(parsed_values)
 
-            out_dict = {}
-            column_headers = [
-                x for x in column_headers if re.match(r"\d{4}", x)
-            ]  # Only take columns which are years
-            for i in range(len(column_headers)):
-                header = column_headers[i]
-                out_dict[header] = {}
-                for row in rows:
-                    row_header = row[0]
-                    value = row[i + 1]
-                    out_dict[header][row_header] = value
+                out_dict = {}
+                column_headers = [
+                    x for x in column_headers if re.match(r"\d{4}", x)
+                ]  # Only take columns which are years
+                for i in range(len(column_headers)):
+                    header = column_headers[i]
+                    out_dict[header] = {}
+                    for row in rows:
+                        row_header = row[0]
+                        value = row[i + 1]
+                        out_dict[header][row_header] = value
 
-            table_dicts.append(out_dict)
+                table_dicts.append(out_dict)
         return table_dicts
 
     @staticmethod
