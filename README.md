@@ -10,6 +10,7 @@ As with all investing tools, use it at your own risk. ;)
 1. Clone the repository
 2. Run the `main.py` file.
 3. Enter a NYSE stock symbol (or series of symbols) you wish to analyze as well as any accompanying flags.
+   * For example: `bgs -d`
 4. Wait for it to scrape the data (this can take a few seconds per symbol).
 5. View the score (out of 7) and output in the console.
 6. Repeat the above as necessary.
@@ -66,12 +67,12 @@ It analyzes symbols based on the following criteria, where a value of **True** i
 
 1. Analysis
    * A breakdown of which criteria pass/fail and by how much. Meant to better inform users of a company's risks.
-1. Graham Number
+2. Graham Number
    * The [Graham number](https://en.wikipedia.org/wiki/Graham_number) is a calculation to determine a fair value for a company's shares. Purchasing at or below this value is seen as ideal.
    * It is calculated as the sqrt(22.5 * EPS * BVPS).
      * Sometimes CoC returns a negative value for the Graham number. This means that either the EPS, the BVPS, or both are negative.
        * This is considered a Weakness in the symbol, and indicates a need for manually examining these two values further.
-2. Dividend Yield
+3. Dividend Yield
    * Relative to the currently traded price, what percentage of profits are payed out annually by the company.
-3. Sector
+4. Sector
    * A descriptor of which industry the company does business in.
