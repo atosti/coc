@@ -60,13 +60,13 @@ def num_to_str(num):
     denominator = 1
     abbrev = ""
     if num != None:
-        if num >= 1000000000000:
+        if abs(num) >= 1000000000000:
             denominator *= 1000000000000
             abbrev = "T"
-        elif num >= 1000000000:
+        elif abs(num) >= 1000000000:
             denominator *= 1000000000
             abbrev = "B"
-        elif num >= 1000000:
+        elif abs(num) >= 1000000:
             denominator *= 1000000
             abbrev = "M"
         num_str = str(round((num / denominator), 2)) + abbrev
