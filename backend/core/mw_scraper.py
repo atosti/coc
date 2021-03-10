@@ -49,7 +49,9 @@ class MWScraper:
                     out_dict[header] = {}
                     for row in rows:
                         row_header = row[0]
-                        value = row[i + 1]
+                        value = None # Init to none incase no value exists
+                        if len(row) > i + 1:
+                            value = row[i + 1]
                         out_dict[header][row_header] = value
 
                 table_dicts.append(out_dict)
