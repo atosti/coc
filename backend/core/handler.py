@@ -279,15 +279,29 @@ def flag_handler(args):
 def commands(phrase):
     args = phrase.split(" ")
     flags = flag_handler(args)
-    symbols = []
-    for arg in args:
-        if arg[0] != "-":
-            symbols.append(arg)
+    symbols = [x for x in args if x[0] != "-"]
+
     json_str = {}
+    error_symbols = []
     for symbol in symbols:
-        symbol_json = check(symbol, flags)
-        if symbol_json is not None:
+        symbol_json = {}
+        try:
+            symbol_json = check(symbol, flags)
+        except:
+            error_symbols.append(symbol)
+            
+        if symbol_json:
             json_str.update(symbol_json)
+    
     if "j" in flags:
         print(json_str)
+    
+    if error_symbols:
+        print()
+        print(f'Unable to process the following symbols:')
+        
+        for symbol in error_symbols:    
+            print(f'${symbol.upper()}')
+        print()
+        
     return
