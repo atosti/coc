@@ -1,4 +1,3 @@
-import pandas as pd
 import openpyxl
 import os.path
 from backend.core import alg
