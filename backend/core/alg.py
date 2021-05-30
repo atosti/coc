@@ -24,34 +24,40 @@ def graham_num(eps, bvps):
     return normalized_value
 
 
-def get_digits(num_str):
+# Extracts the numerical digits from an abbreviated number string
+def extract_digits(abbreviated_num_str):
     negative = False
-    if num_str[0] == "-":
+    digits = abbreviated_num_str
+    if digits[0] == '-':
         negative = True
-    for c in num_str:
-        if not c.isdigit() and c != "." or c == "²" or c == "³" or c == "¹":
-            num_str = num_str.replace(c, "")
+    for c in abbreviated_num_str:
+        # Remove non-digits, and any excess, invalid chars
+        if not c.isdigit() and c != '.' or c == '+' or c == '¹' or c == '²' or c == '³':
+            digits = digits.replace(c, '')
     if negative:
-        num_str = "-" + num_str
-    return num_str
+        digits = '-' + digits
+    return digits
 
 
-# Removes T/B/M for Trillion/Billion/Million numerical abbreviations
-def str_to_num(num_str):
-    num = None
-    digits = get_digits(num_str)
+# Takes an abbreviated number string, such as '82.1M' and expands it into its int form of 82100000
+def expand_num(abbreviated_num_str):
+    suffixes = ['M', 'B', 'T']
     multiplier = 1
-    if num_str[0] == "-":
-        multiplier *= -1
-    if "T" in num_str.upper():
-        multiplier *= 1000000000000
-    elif "B" in num_str.upper():
-        multiplier *= 1000000000
-    elif "M" in num_str.upper():
-        multiplier *= 1000000
-    if num_str != "N/A" and digits.count(".") <= 1:
-        num = float(locale.atof(digits)) * multiplier
-    return num
+    multiply = False
+    digits = extract_digits(abbreviated_num_str)
+    for letter in suffixes:
+        if letter == 'M':
+            multiplier = 1000
+        multiplier *= 1000
+        if letter in abbreviated_num_str:
+            multiply = True
+            break
+    if not multiply:
+        multiplier = 1
+    result = float(locale.atof(digits)) * multiplier
+    if abbreviated_num_str == 'N/A':
+        result = None
+    return result
 
 
 # Adds T/B/M for Trillion/Billion/Million numerical abbreviations

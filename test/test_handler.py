@@ -1,21 +1,19 @@
-import os
-import datetime
+import os, datetime, pytest, math, sys
+sys.path.insert(0, '../')
 from backend.core.handler import *
-import pytest
 from hypothesis import given, settings
 import hypothesis.strategies as st
 from uuid import uuid4
 from pprint import pprint
-import math
 
 
 div_yield_regex = "[0-9]*[.]?[0-9]*[%]?"
 def generate_financials_dictionary():
     return st.fixed_dictionaries(
         {
-            "eps": st.floats(),  # 2.32
+            "eps": st.floats(),  # e.g. 2.32
             "eps_list": st.lists(st.floats(), max_size=20),
-            "bvps": st.floats(),  # 134.80
+            "bvps": st.floats(),  # e.g. 134.80
             "mkt_cap": st.floats(min_value=1000000),
             "assets": st.floats(min_value=10000000),
             "liabilities": st.floats(min_value=10000000),

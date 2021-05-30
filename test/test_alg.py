@@ -1,7 +1,6 @@
-import os
-import datetime
+import os, datetime, pytest, sys
+sys.path.insert(0, '../')
 from backend.core.alg import *
-import pytest
 from hypothesis import given
 import hypothesis.strategies as st
 from uuid import uuid4
@@ -67,12 +66,12 @@ def test_good_eps(eps_list):
     assert expected == result
 
 
-num_str_regex = r"[+-]?[\d]+(?:[,]?[\d{3}])*(?:[.]?[\d]+)?[BbMmTt]?$" # 12.34M
+abbreviated_num_str_regex = r"[+-]?[\d]+(?:[,]?[\d{3}])*(?:[.]?[\d]+)?[BbMmTt]?$" # 12.34M
 
 
-@given(num_str=st.from_regex(num_str_regex))
-def test_get_digits(num_str):
-    result = get_digits(num_str)
+@given(num_str=st.from_regex(abbreviated_num_str_regex))
+def test_extract_digits(num_str):
+    result = extract_digits(num_str)
     negative = False
     if num_str[0] == "-":
         negative = True
@@ -92,22 +91,25 @@ def test_get_digits(num_str):
     assert expected == result
 
 
-@given(num_str=st.from_regex(num_str_regex))
-def test_str_to_num(num_str):
-    result = str_to_num(num_str)
-    digits = get_digits(num_str)
+@given(abbreviated_num_str=st.from_regex(abbreviated_num_str_regex))
+def test_expand_num(abbreviated_num_str):
+    suffixes = ['M', 'B', 'T']
     multiplier = 1
-    if num_str[0] == "-":
-        multiplier *= -1
-    if "T" in num_str.upper():
-        multiplier *= 1000000000000
-    elif "B" in num_str.upper():
-        multiplier *= 1000000000
-    elif "M" in num_str.upper():
-        multiplier *= 1000000
-    if num_str != "N/A" and digits.count(".") <= 1:
-        num = float(locale.atof(digits)) * multiplier
-    expected = num
+    multiply = False
+    digits = extract_digits(abbreviated_num_str)
+    for letter in suffixes:
+        if letter == 'M':
+            multiplier = 1000
+        multiplier *= 1000
+        if letter in abbreviated_num_str:
+            multiply = True
+            break
+    if not multiply:
+        multiplier = 1
+    expected = float(locale.atof(digits)) * multiplier
+    if abbreviated_num_str == 'N/A':
+        expected = None
+    result = expand_num(abbreviated_num_str)
     assert expected == result
 
 

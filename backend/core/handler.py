@@ -77,7 +77,7 @@ def yf_quote_search(soup, text):
     item = found.get_text(strip=True)
     if any(x in ["%", "(", ")"] for x in item):
         return item
-    return alg.str_to_num(item)
+    return alg.expand_num(item)
 
 
 def mw_raw_tables_to_dict(soup):
@@ -99,7 +99,7 @@ def mw_raw_tables_to_dict(soup):
             for row in rows:
                 row_header = row[0]
                 try:
-                    value = alg.str_to_num(row[i])
+                    value = alg.expand_num(row[i])
                 except:
                     value = row[i]
 
