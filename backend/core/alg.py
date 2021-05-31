@@ -42,21 +42,21 @@ def extract_digits(abbreviated_num_str):
 # Takes an abbreviated number string, such as '82.1M' and expands it into its int form of 82100000
 def expand_num(abbreviated_num_str):
     suffixes = ['M', 'B', 'T']
-    multiplier = 1
     multiply = False
     digits = extract_digits(abbreviated_num_str)
     for letter in suffixes:
         if letter == 'M':
             multiplier = 1000
         multiplier *= 1000
-        if letter in abbreviated_num_str:
+        if letter in abbreviated_num_str.upper():
             multiply = True
             break
     if not multiply:
         multiplier = 1
-    result = float(locale.atof(digits)) * multiplier
-    if abbreviated_num_str == 'N/A':
+    if abbreviated_num_str == 'N/A' or digits.count(".") > 1:
         result = None
+    else:
+        result = float(locale.atof(digits)) * multiplier
     return result
 
 
