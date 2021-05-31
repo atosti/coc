@@ -93,10 +93,10 @@ def test_extract_digits(num_str):
 
 @given(abbreviated_num_str=st.from_regex(abbreviated_num_str_regex))
 def test_expand_num(abbreviated_num_str):
-    suffixes = ['M', 'B', 'T']
+    abbreviations = ['M', 'B', 'T']
     multiply = False
     digits = extract_digits(abbreviated_num_str)
-    for letter in suffixes:
+    for letter in abbreviations:
         if letter == 'M':
             multiplier = 1000
         multiplier *= 1000

@@ -26,25 +26,22 @@ def graham_num(eps, bvps):
 
 # Extracts the numerical digits from an abbreviated number string
 def extract_digits(abbreviated_num_str):
-    negative = False
     digits = abbreviated_num_str
-    if digits[0] == '-':
-        negative = True
     for c in abbreviated_num_str:
-        # Remove non-digits, and any excess, invalid chars
+        # Remove non-digits and any excess, invalid chars
         if not c.isdigit() and c != '.' or c == '+' or c == '¹' or c == '²' or c == '³':
             digits = digits.replace(c, '')
-    if negative:
+    if abbreviated_num_str[0] == '-':
         digits = '-' + digits
     return digits
 
 
-# Takes an abbreviated number string, such as '82.1M' and expands it into its int form of 82100000
+# Expands an abbreviated number string (e.g. '82.1M' becomes '82100000')
 def expand_num(abbreviated_num_str):
-    suffixes = ['M', 'B', 'T']
+    abbreviations = ['M', 'B', 'T']
     multiply = False
     digits = extract_digits(abbreviated_num_str)
-    for letter in suffixes:
+    for letter in abbreviations:
         if letter == 'M':
             multiplier = 1000
         multiplier *= 1000
