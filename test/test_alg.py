@@ -114,6 +114,26 @@ def test_expand_num(abbreviated_num_str):
 
 
 @given(num=st.floats())
-def num_to_str_floats(num):
-    result = num_to_str(num)
+def test_abbreviate_num_floats(num):
+    result = abbreviate_num(num)
     assert type(result) is str
+
+@given(num=st.integers())
+def test_abbreviate_num_ints(num):
+    result = abbreviate_num(num)
+
+    large_nums = {'T': trillion, 'B': billion, 'M': million}
+    abbreviation = ''
+    denominator = 1
+    if num != None:
+        for i in large_nums:
+            if abs(num) >= large_nums[i]:
+                denominator *= large_nums[i]
+                abbreviation = i
+                break
+        expected = str(round((num / denominator), 2)) + abbreviation
+    if abbreviation == '':
+        expected = 'None'
+    assert type(result) is str
+    assert expected == result
+    

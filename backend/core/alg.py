@@ -1,5 +1,10 @@
 import math, locale
 
+# Globals
+trillion = 1000000000000
+billion = 1000000000
+million = 1000000
+
 # Inputs: Outstanding num. of shares and share price in USD
 def mkt_cap(shares, price):
     return shares * price
@@ -57,23 +62,21 @@ def expand_num(abbreviated_num_str):
     return result
 
 
-# Adds T/B/M for Trillion/Billion/Million numerical abbreviations
-def num_to_str(num):
-    num_str = "None"
+# Creates an abbreviated num str from a number (e.g. 64150000 becomes '64.15M')
+def abbreviate_num(num):
+    large_nums = {'T': trillion, 'B': billion, 'M': million}
+    abbreviation = ''
     denominator = 1
-    abbrev = ""
     if num != None:
-        if abs(num) >= 1000000000000:
-            denominator *= 1000000000000
-            abbrev = "T"
-        elif abs(num) >= 1000000000:
-            denominator *= 1000000000
-            abbrev = "B"
-        elif abs(num) >= 1000000:
-            denominator *= 1000000
-            abbrev = "M"
-        num_str = str(round((num / denominator), 2)) + abbrev
-    return num_str
+        for i in large_nums:
+            if abs(num) >= large_nums[i]:
+                denominator *= large_nums[i]
+                abbreviation = i
+                break
+        result = str(round((num / denominator), 2)) + abbreviation
+    if abbreviation == '':
+        result = 'None'
+    return result
 
 
 # Currently scores out of 7 to determine health of a stock.
@@ -93,7 +96,7 @@ def health_check(
     # Criteria 1: Sales >= $700M
     if not sales:
         sales = 0
-    sales_str = num_to_str(sales)
+    sales_str = abbreviate_num(sales)
     results["sales"] = {
         "success": good_sales(sales),
         "message": f"C1: ${sales_str} of $700M sales",
@@ -154,12 +157,12 @@ def health_check(
     }
     # Criteria 6: It has cheap assets where [Mkt cap < (Assets - Liabilities) * 1.5]
     #   Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
-    mkt_cap_str = num_to_str(mkt_cap)
+    mkt_cap_str = abbreviate_num(mkt_cap)
     value_str = "None"
     c6_ratio = "None"
     if assets and liabilities and mkt_cap:
         value = (assets - liabilities) * 1.5 # NAV * 1.5
-        value_str = num_to_str(value)
+        value_str = abbreviate_num(value)
         c6_ratio = str(round(value/mkt_cap, 2))
     ca_success = good_assets(mkt_cap, assets, liabilities)
     ca_msg = f"C6: Expensive Assets | " + value_str + " < " + mkt_cap_str + " (" + c6_ratio + ")"
