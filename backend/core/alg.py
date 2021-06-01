@@ -1,6 +1,6 @@
 import math, locale
 
-# Globals
+# Globals for large numbers
 trillion = 1000000000000
 billion = 1000000000
 million = 1000000
@@ -29,43 +29,10 @@ def graham_num(eps, bvps):
     return normalized_value
 
 
-# Extracts the numerical digits from an abbreviated number string
-def extract_digits(abbreviated_num_str):
-    digits = abbreviated_num_str
-    for c in abbreviated_num_str:
-        # Remove non-digits and any excess, invalid chars
-        if not c.isdigit() and c != '.' or c == '+' or c == '¹' or c == '²' or c == '³':
-            digits = digits.replace(c, '')
-    if abbreviated_num_str[0] == '-':
-        digits = '-' + digits
-    return digits
-
-
-# Expands an abbreviated number string (e.g. '82.1M' becomes '82100000')
-def expand_num(abbreviated_num_str):
-    abbreviations = ['M', 'B', 'T']
-    multiply = False
-    digits = extract_digits(abbreviated_num_str)
-    for letter in abbreviations:
-        if letter == 'M':
-            multiplier = 1000
-        multiplier *= 1000
-        if letter in abbreviated_num_str.upper():
-            multiply = True
-            break
-    if not multiply:
-        multiplier = 1
-    if abbreviated_num_str == 'N/A' or digits.count(".") > 1:
-        result = None
-    else:
-        result = float(locale.atof(digits)) * multiplier
-    return result
-
-
 # Creates an abbreviated num str from a number (e.g. 64150000 becomes '64.15M')
 def abbreviate_num(num):
-    large_nums = {'T': trillion, 'B': billion, 'M': million}
-    abbreviation = ''
+    large_nums = {"T": trillion, "B": billion, "M": million}
+    abbreviation = ""
     denominator = 1
     if num != None:
         for i in large_nums:
@@ -74,8 +41,8 @@ def abbreviate_num(num):
                 abbreviation = i
                 break
         result = str(round((num / denominator), 2)) + abbreviation
-    if abbreviation == '':
-        result = 'None'
+    if abbreviation == "":
+        result = "None"
     return result
 
 
@@ -90,7 +57,7 @@ def health_check(
     dividends,
     assets,
     liabilities,
-    div_yield
+    div_yield,
 ):
     results = {}
     # Criteria 1: Sales >= $700M
@@ -142,7 +109,7 @@ def health_check(
         # Truncates list to only contain last 5 yrs of data
         if len(eps_list) >= 5:
             eps_list_5yrs = eps_list
-            for i in range (0, len(eps_list) - 5):
+            for i in range(0, len(eps_list) - 5):
                 eps_list_5yrs.pop(0)
             if eps_list_5yrs[0] != 0:
                 eps_growth = float(eps_list_5yrs[-1] / eps_list_5yrs[0]) - 1
@@ -161,13 +128,29 @@ def health_check(
     value_str = "None"
     c6_ratio = "None"
     if assets and liabilities and mkt_cap:
-        value = (assets - liabilities) * 1.5 # NAV * 1.5
+        value = (assets - liabilities) * 1.5  # NAV * 1.5
         value_str = abbreviate_num(value)
-        c6_ratio = str(round(value/mkt_cap, 2))
+        c6_ratio = str(round(value / mkt_cap, 2))
     ca_success = good_assets(mkt_cap, assets, liabilities)
-    ca_msg = f"C6: Expensive Assets | " + value_str + " < " + mkt_cap_str + " (" + c6_ratio + ")"
+    ca_msg = (
+        f"C6: Expensive Assets | "
+        + value_str
+        + " < "
+        + mkt_cap_str
+        + " ("
+        + c6_ratio
+        + ")"
+    )
     if ca_success:
-        ca_msg = f"C6: Cheap Assets | " + value_str + " ≥ " + mkt_cap_str + " (" + c6_ratio + ")"
+        ca_msg = (
+            f"C6: Cheap Assets | "
+            + value_str
+            + " ≥ "
+            + mkt_cap_str
+            + " ("
+            + c6_ratio
+            + ")"
+        )
     results["assets"] = {
         "success": ca_success,
         "message": ca_msg,
@@ -176,7 +159,7 @@ def health_check(
     per_success = good_pe_ratio(pe_ratio)
     per_msg = f"C7: P/E Ratio of {str(pe_ratio)} > 15.0"
     if per_success:
-        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} ≤ 15.0"    
+        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} ≤ 15.0"
     results["pe_ratio"] = {
         "success": per_success,
         "message": per_msg,

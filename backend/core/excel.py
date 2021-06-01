@@ -45,7 +45,7 @@ def color_code_row(row_num, ws, colors):
 
 # Creates an array of the colors for the columns of a row
 def generate_cell_colors(graham_ratio, bvps_ratio, health_result):
-    colors = ["white", "white", "white", "white"] # symbol, score, sector, price
+    colors = ["white", "white", "white", "white"]  # symbol, score, sector, price
     if graham_ratio >= 1:
         colors.append("green")
     else:
@@ -54,7 +54,7 @@ def generate_cell_colors(graham_ratio, bvps_ratio, health_result):
         colors.append("green")
     else:
         colors.append("red")
-    colors.append("white") # dividend yield
+    colors.append("white")  # dividend yield
     for criteria in health_result:
         if "green" in criteria:
             colors.append("green")
@@ -63,6 +63,7 @@ def generate_cell_colors(graham_ratio, bvps_ratio, health_result):
         else:
             colors.append("white")
     return colors
+
 
 # Adds a new row for this symbol to the end of the excel file
 def update(symbol, data_dict):
@@ -124,13 +125,19 @@ def update(symbol, data_dict):
     # Ratios relative to price
     graham_ratio = bvps_ratio = 0.00
     if data_dict["graham_num"] is not None and data_dict["price"] is not None:
-        graham_ratio = round(data_dict["graham_num"]/data_dict["price"], 2)
+        graham_ratio = round(data_dict["graham_num"] / data_dict["price"], 2)
     if data_dict["bvps"] is not None and data_dict["price"] is not None:
-        bvps_ratio = round(data_dict["bvps"]/data_dict["price"], 2)
+        bvps_ratio = round(data_dict["bvps"] / data_dict["price"], 2)
     colors = generate_cell_colors(graham_ratio, bvps_ratio, health_result)
     for i in range(0, len(health_result)):
-        health_result[i] = health_result[i].replace("[green]", "").replace("[/green]", "").replace("[red]", "").replace("[/red]", "")
-        health_result[i] = health_result[i][3:] # Removes the "CX: " prefix
+        health_result[i] = (
+            health_result[i]
+            .replace("[green]", "")
+            .replace("[/green]", "")
+            .replace("[red]", "")
+            .replace("[/red]", "")
+        )
+        health_result[i] = health_result[i][3:]  # Removes the "CX: " prefix
     new_row = [
         data_dict["symbol"].upper(),
         str(data_dict["score"]),

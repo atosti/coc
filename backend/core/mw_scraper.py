@@ -7,30 +7,30 @@ locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 class MWScraper:
     def __init__(self, symbol):
         self.symbol = symbol
-        self.base_url = "https://www.marketwatch.com/investing/stock"
+        self.base_url = 'https://www.marketwatch.com/investing/stock'
 
     @property
     def url_symbol(self):
-        return self.symbol.lower().replace("-", ".")
+        return self.symbol.lower().replace('-', '.')
 
     @staticmethod
     def chart_financials_to_dict(soup):
         table_dicts = []
-        tables_found = soup.find("div", {"class": "region--primary"})
+        tables_found = soup.find('div', {'class': 'region--primary'})
         if tables_found is not None:
-            tables = soup.find("div", {"class": "region--primary"}).findAll("table")
+            tables = soup.find('div', {'class': 'region--primary'}).findAll('table')
             for table in tables:
-                ths = table.find("thead").find("tr").findAll("th")
-                column_headers = [x.find("div").get_text(strip=True) for x in ths]
-                trs = table.find("tbody").findAll("tr")
+                ths = table.find('thead').find('tr').findAll('th')
+                column_headers = [x.find('div').get_text(strip=True) for x in ths]
+                trs = table.find('tbody').findAll('tr')
                 rows = []
                 for tr in trs:
-                    row_header = tr.find("td").find("div").get_text(strip=True)
+                    row_header = tr.find('td').find('div').get_text(strip=True)
                     parsed_values = [row_header]
 
                     values = (
-                        tr.find("div", {"class": "chart--financials"})
-                        .get("data-chart-data")
+                        tr.find('div', {'class': 'chart--financials'})
+                        .get('data-chart-data')
                         .split(",")
                     )
                     for value in values:
@@ -42,14 +42,14 @@ class MWScraper:
 
                 out_dict = {}
                 column_headers = [
-                    x for x in column_headers if re.match(r"\d{4}", x)
+                    x for x in column_headers if re.match(r'\d{4}', x)
                 ]  # Only take columns which are years
                 for i in range(len(column_headers)):
                     header = column_headers[i]
                     out_dict[header] = {}
                     for row in rows:
                         row_header = row[0]
-                        value = None # Init to none incase no value exists
+                        value = None  # Init to none incase no value exists
                         if len(row) > i + 1:
                             value = row[i + 1]
                         out_dict[header][row_header] = value
@@ -83,83 +83,84 @@ class MWScraper:
             value = financials.get(year, {}).get(text)
             items.append(value)
             item = value
-        return {"item": item, "item_list": items}
+        return {'item': item, 'item_list': items}
 
     @staticmethod
     def profile_search(soup, text):
         item = None
         found = soup.find(text=text)
-        if text == "Sector" and found:
-            fetch = found.parent.parent.find("span", {"class": "primary"})
+        if text == 'Sector' and found:
+            fetch = found.parent.parent.find('span', {'class': 'primary'})
             item = fetch.get_text(strip=True)
         elif found:
-            fetch = found.parent.parent.find("td", {"class": "w25"})
+            fetch = found.parent.parent.find('td', {'class': 'w25'})
             if fetch:
                 value = fetch.get_text(strip=True)
-                if value != "N/A":
+                if value != 'N/A':
                     item = float(locale.atof(value))
         return item
 
     def scrape_financials(self):
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}/financials")
-        eps_dict = MWScraper.financials_search(soup, "EPS (Basic)")
-        sales_dict = MWScraper.financials_search(soup, "Sales/Revenue")
+        soup = get_soup(f'{self.base_url}/{self.url_symbol}/financials')
+        eps_dict = MWScraper.financials_search(soup, 'EPS (Basic)')
+        sales_dict = MWScraper.financials_search(soup, 'Sales/Revenue')
         return {
-            "eps": eps_dict.get("item"),
-            "eps_list": eps_dict["item_list"],
-            "sales": sales_dict["item"],
-            "sales_list": sales_dict["item_list"],
+            'eps': eps_dict.get('item'),
+            'eps_list': eps_dict['item_list'],
+            'sales': sales_dict['item'],
+            'sales_list': sales_dict['item_list'],
         }
 
     def scrape_profile(self):
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}/company-profile")
+        soup = get_soup(f'{self.base_url}/{self.url_symbol}/company-profile')
         return {
-            "curr_ratio": MWScraper.profile_search(soup, "Current Ratio"),
-            "pe_ratio": MWScraper.profile_search(soup, "P/E Current"),
-            "pb_ratio": MWScraper.profile_search(soup, "Price to Book Ratio"),
-            "sector": MWScraper.profile_search(soup, "Sector"),
+            'curr_ratio': MWScraper.profile_search(soup, 'Current Ratio'),
+            'pe_ratio': MWScraper.profile_search(soup, 'P/E Current'),
+            'pb_ratio': MWScraper.profile_search(soup, 'Price to Book Ratio'),
+            'sector': MWScraper.profile_search(soup, 'Sector'),
         }
 
     def scrape_balance_sheet(self):
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}/financials/balance-sheet")
-
+        soup = get_soup(f'{self.base_url}/{self.url_symbol}/financials/balance-sheet')
         # Fetch the price from the top of the page
         price = None
-        intraday_price = soup.find("h3", {"class": "intraday__price"})
+        intraday_price = soup.find('h3', {'class': 'intraday__price'})
         if intraday_price:
             price = (
-                intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
+                intraday_price.get_text(strip=True).replace('$', '').replace('€', '')
             )
             if price is not None and price != "":
                 price = float(locale.atof(price))
 
-        total_assets_dict = MWScraper.financials_search(soup, "Total Assets")
-        total_liabilities_dict = MWScraper.financials_search(soup, "Total Liabilities")
+        total_assets_dict = MWScraper.financials_search(soup, 'Total Assets')
+        total_liabilities_dict = MWScraper.financials_search(soup, 'Total Liabilities')
         return {
-            "price": price,
-            "assets": total_assets_dict["item"],
-            "liabilities": total_liabilities_dict["item"],
+            'price': price,
+            'assets': total_assets_dict['item'],
+            'liabilities': total_liabilities_dict['item'],
         }
 
     def scrape_cash_flow(self):
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}/financials/cash-flow")
-        dividend_dict = MWScraper.financials_search(soup, "Cash Dividends Paid - Total")
+        soup = get_soup(f'{self.base_url}/{self.url_symbol}/financials/cash-flow')
+        dividend_dict = MWScraper.financials_search(soup, 'Cash Dividends Paid - Total')
 
         # Marketwatch seems to list all dividends as negative, so adjust values
         dividend = None
-        if dividend_dict["item"] is not None:
-            dividend = abs(dividend_dict["item"])
+        if dividend_dict['item'] is not None:
+            dividend = abs(dividend_dict['item'])
 
         dividend_list = None
-        if dividend_dict["item_list"] is not None:
-            dividend_list = [abs(i) if i is not None else i for i in dividend_dict["item_list"]]
+        if dividend_dict['item_list'] is not None:
+            dividend_list = [
+                abs(i) if i is not None else i for i in dividend_dict['item_list']
+            ]
 
-        return {"dividend": dividend, "dividend_list": dividend_list}
+        return {'dividend': dividend, 'dividend_list': dividend_list}
 
     def scrape(self):
         return {
-            "scraper": "MWScraper",
-            "symbol": self.symbol,
+            'scraper': 'MWScraper',
+            'symbol': self.symbol,
             **self.scrape_financials(),
             **self.scrape_profile(),
             **self.scrape_balance_sheet(),

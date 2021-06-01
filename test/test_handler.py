@@ -1,5 +1,6 @@
 import os, datetime, pytest, math, sys
-sys.path.insert(0, '../')
+
+sys.path.insert(0, "../")
 from backend.core.handler import *
 from hypothesis import given, settings
 import hypothesis.strategies as st
@@ -8,6 +9,8 @@ from pprint import pprint
 
 
 div_yield_regex = "[0-9]*[.]?[0-9]*[%]?"
+
+
 def generate_financials_dictionary():
     return st.fixed_dictionaries(
         {

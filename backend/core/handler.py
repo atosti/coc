@@ -1,25 +1,17 @@
-import requests, json, webbrowser, locale
-from bs4 import BeautifulSoup
+import requests, json, webbrowser, locale, re
 from requests.auth import HTTPBasicAuth
 from rich import print
 from pprint import pprint
-import re
 from backend.core import alg, excel
 from backend.core.mw_scraper import MWScraper
+from backend.core.yf_scraper import YFScraper
+from backend.core.scraper_utils import get_soup
 
 
 locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 
 
-def get_soup(url, user="", password=""):
-    if user != "" and password != "":
-        page = requests.get(url, auth=(user, password))
-    else:
-        page = requests.get(url)
-    soup = BeautifulSoup(page.content, "html.parser")
-    return soup
-
-
+# FIXME - REMOVE THIS
 # Dividend yield HTML has 2 locations for div_yield on Yahoo Finance
 def yf_quote_fetch_div_yield(soup):
     div_yield = yf_quote_search(soup, "TD_YIELD-value")
@@ -32,6 +24,7 @@ def yf_quote_fetch_div_yield(soup):
     return div_yield
 
 
+# FIXME - REMOVE THIS
 # Yahoo Finance scrape for: 'https://finance.yahoo.com/quote/symbol'
 def scrape_yahoo_quote(symbol):
     soup = get_soup(
@@ -80,112 +73,39 @@ def yf_quote_search(soup, text):
     return alg.expand_num(item)
 
 
-def mw_raw_tables_to_dict(soup):
-    tables = soup.find("div", {"class": "region--primary"}).findAll("table")
-    table_dicts = []
-    for table in tables:
-        ths = table.find("thead").find("tr").findAll("th")
-        column_headers = [x.find("div").get_text(strip=True) for x in ths]
-        trs = table.find("tbody").findAll("tr")
-        rows = []
-        for tr in trs:
-            tds = tr.findAll("td")
-            rows.append([x.find("div").get_text(strip=True) for x in tds])
-
-        out_dict = {}
-        for i in range(len(column_headers)):
-            header = column_headers[i]
-            out_dict[header] = {}
-            for row in rows:
-                row_header = row[0]
-                try:
-                    value = alg.expand_num(row[i])
-                except:
-                    value = row[i]
-
-                out_dict[header][row_header] = value
-
-        clean_dict = {}
-        for k, v in out_dict.items():
-            if re.match(r"\d{4}", k):  # Only take columns which are years
-                clean_dict[k] = v
-
-        table_dicts.append(clean_dict)
-    return table_dicts
-
-
-def mw_chart_financials_to_dict(soup):
-    tables = soup.find("div", {"class": "region--primary"}).findAll("table")
-    table_dicts = []
-    for table in tables:
-        ths = table.find("thead").find("tr").findAll("th")
-        column_headers = [x.find("div").get_text(strip=True) for x in ths]
-        trs = table.find("tbody").findAll("tr")
-        rows = []
-        for tr in trs:
-            row_header = tr.find("td").find("div").get_text(strip=True)
-            parsed_values = [row_header]
-
-            values = (
-                tr.find("div", {"class": "chart--financials"})
-                .get("data-chart-data")
-                .split(",")
-            )
-            for value in values:
-                if value:
-                    parsed_values.append(float(value))
-                else:
-                    parsed_values.append(0)
-            rows.append(parsed_values)
-
-        out_dict = {}
-        column_headers = [
-            x for x in column_headers if re.match(r"\d{4}", x)
-        ]  # Only take columns which are years
-        for i in range(len(column_headers)):
-            header = column_headers[i]
-            out_dict[header] = {}
-            for row in rows:
-                row_header = row[0]
-                value = row[i + 1]
-                out_dict[header][row_header] = value
-
-        table_dicts.append(out_dict)
-    return table_dicts
-
-
 # Finviz scraper for 'https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4':
-def scrape_finviz():
-    url = "https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4"
-    user = password = ""
-    f = open("backend/finviz-creds.txt", "r")
-    lines = f.read().splitlines()
-    if len(lines) > 1:
-        user = lines[0]
-        password = lines[1]
-    f.close()
-    print(user)  # FIXME - Remove later
-    print(password)  # FIXME - Remove later
-    soup = get_soup(url, user, password)
-    print(soup)  # FIXME - Remove later
-    # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
-    return
+# def scrape_finviz():
+#     url = "https://finviz.com/screener.ashx?v=111&f=fa_curratio_o2,fa_eps5years_pos,fa_epsyoy_pos,fa_pe_low&ft=4"
+#     user = password = ""
+#     f = open("backend/finviz-creds.txt", "r")
+#     lines = f.read().splitlines()
+#     if len(lines) > 1:
+#         user = lines[0]
+#         password = lines[1]
+#     f.close()
+#     print(user)  # FIXME - Remove later
+#     print(password)  # FIXME - Remove later
+#     soup = get_soup(url, user, password)
+#     print(soup)  # FIXME - Remove later
+#     # TODO - Finish pulling today's matching companies out of this site. Authentication is still not working even with my user/pass.
+#     return
 
 
 def check(symbol, flags):
     mw_scrape = MWScraper(symbol).scrape()
-    yahoo_scrape = {**scrape_yahoo_quote(symbol), **scrape_yahoo_key_stats(symbol)}
+    yahoo_scrape = YFScraper(symbol).scrape()
+    print(yahoo_scrape)  # FIXME - Remove later
+    print("========")  # FIXME - Remove later
     scraped_data = {**mw_scrape, **yahoo_scrape}
 
     overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
     return output_handler(overall_dict, health_result, flags)
 
 
+# Website scraping into a single dict
+# Notes: a. Lists of annual values are ordered from 2015 -> 2019
+#        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
 def internal_check(symbol, overall_dict, flags):
-    # Website scraping into a single dict
-    # Notes: a. Lists of annual values are ordered from 2015 -> 2019
-    #        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
-
     score_assessments = [
         alg.good_assets(
             overall_dict["mkt_cap"], overall_dict["assets"], overall_dict["liabilities"]
@@ -224,7 +144,6 @@ def build_colored_ratio(a, b):
         ratio = float(a / b)
         if a >= b:
             ratio_color = "green"
-
     return f"([{ratio_color}]{round(ratio, 2)}[/{ratio_color}])"
 
 
@@ -260,9 +179,9 @@ def output_handler(overall_dict, health_result, flags):
     if "x" in flags:
         excel.update(overall_dict["symbol"], overall_dict)
     # Finviz check flag
-    if "f" in flags:
-        # TODO - Finish implementing a way to fetch this. Auth is needed.
-        scrape_finviz()
+    # if "f" in flags:
+    #     # TODO - Finish implementing a way to fetch this. Auth is needed.
+    #     scrape_finviz()
     return json_data
 
 
@@ -280,7 +199,6 @@ def commands(phrase):
     args = phrase.split(" ")
     flags = flag_handler(args)
     symbols = [x for x in args if x[0] != "-"]
-
     json_str = {}
     error_symbols = []
     for symbol in symbols:
@@ -289,19 +207,17 @@ def commands(phrase):
             symbol_json = check(symbol, flags)
         except:
             error_symbols.append(symbol)
-            
+
         if symbol_json:
             json_str.update(symbol_json)
-    
+
     if "j" in flags:
         print(json_str)
-    
+
     if error_symbols:
         print()
-        print(f'Unable to process the following symbols:')
-        
-        for symbol in error_symbols:    
-            print(f'${symbol.upper()}')
+        print(f"Unable to process the following symbols:")
+        for symbol in error_symbols:
+            print(f"${symbol.upper()}")
         print()
-        
     return
