@@ -57,22 +57,23 @@ Together, these help illustrate where potential weaknesses in a company may lie.
 
 Internally, CoC analyzes companies based on the following criteria. An answer of **True** is associated with relative strength, whereas **False** is associated with relative weakness.
 
-1. Does the company have over $700M (USD) in annual sales?
-2. Does it have a Current Ratio of at least 2.0?
-   * Are the company's underlying assets worth at least twice its short-term debts (those owed in one year)?
-3. If it pays a dividend, has it not missed or reduced its dividend payments in the last 5 years?
-4. Has it not had an earnings deficit in the last 5 years?
-   * Were there any years where it lost money?
-5. Does it have earnings growth of at least 2.9% annually for the last 5 years?
-   * This equates to approximately 15% total growth over 5 yrs.
-6. Does it have cheap assets?
+1. Does it have cheap assets?
    * Is Market Capitalization < Net Asset Value * 1.5?
-
-     * **Note:** Net Asset Value = (Assets - Liabilities)
-     * Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
-7. Does it have cheap earnings?
+   * **Note:** Net Asset Value = (Assets - Liabilities)
+   * Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
+2. Does it have earnings growth of at least 2.9% annually for the last 5 years?
+   * This equates to approximately 15% total growth over 5 yrs.
+3. Has it not had an earnings deficit in the last 5 years?
+   * Were there any years where it lost money?
+4. Does it have a Current Ratio of at least 2.0?
+   * Are the company's underlying assets worth at least twice its short-term debts (those owed in one year)?
+5. Does it have cheap earnings?
    * Is its Price-to-Earnings Ratio <= 15?
-     * Essentially, is it priced no greater than 15x its annual earnings.
+      * Essentially, is it priced no greater than 15x its annual earnings.
+6. Does the company have over $700M (USD) in annual sales?
+   * This ensures that the company is large and consistently does real business.
+7. Has it not missed or reduced its dividend payments in the last 5 years?
+   * This only applies if the company has previously paid a dividend.
 
 ### Additional Criteria
 
