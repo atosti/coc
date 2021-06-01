@@ -1,6 +1,4 @@
-## Circle of Competence
-
----
+# Circle of Competence
 
 Circle of Competence (CoC) is a web-scraping tool designed to analyze stock market symbols according to criteria discussed in Benjamin Graham's __The Intelligent Investor__.
 
