@@ -114,6 +114,8 @@ def health_check(
             if eps_list_5yrs[0] != 0:
                 eps_growth = float(eps_list_5yrs[-1] / eps_list_5yrs[0]) - 1
                 eps_growth = round(eps_growth * 100, 2)
+                if eps_list_5yrs[0] < 0 and eps_list_5yrs[-1] > 0:
+                    eps_growth *= -1
     eg_success = good_eps_growth(eps_list, 5)
     eg_msg = f'C5: Low EPS Growth of {str(eps_growth)}% < 15%'
     if eg_success:
