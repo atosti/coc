@@ -91,13 +91,13 @@ def update(symbol, data_dict):
                 "Graham Num (vs. price)",
                 "BVPS (vs. price)",
                 "Div. Yield (Payout Ratio)",
-                "Criteria 1 (Strength of Sales)",
-                "Criteria 2 (Current Ratio)",
-                "Criteria 3 (Dividend Reliability)",
-                "Criteria 4 (Earnings Deficits)",
-                "Criteria 5 (Annual EPS Growth)",
-                "Criteria 6 (Market Cap vs. Net Asset Value)",
-                "Criteria 7 (Cheapness of Earnings)",
+                "Criteria 1 (Market Cap vs. Net Asset Value)",
+                "Criteria 2 (Annual EPS Growth)",
+                "Criteria 3 (Earnings Deficits)",
+                "Criteria 4 (Current Ratio)",
+                "Criteria 5 (Cheapness of Earnings)",
+                "Criteria 6 (Strength of Sales)",
+                "Criteria 7 (Dividend Reliability)",
             ]
         )
         # Resize column widths to show full column titles. Skips (empty) Col A.
