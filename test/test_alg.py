@@ -1,6 +1,6 @@
 import os, datetime, pytest, sys
 
-sys.path.insert(0, '../')
+sys.path.insert(0, "../")
 from backend.core.alg import *
 from hypothesis import given
 import hypothesis.strategies as st
@@ -74,8 +74,8 @@ def test_abbreviate_num_floats(num):
 @given(num=st.integers())
 def test_abbreviate_num_ints(num):
     result = abbreviate_num(num)
-    large_nums = {'T': trillion, 'B': billion, 'M': million}
-    abbreviation = ''
+    large_nums = {"T": trillion, "B": billion, "M": million}
+    abbreviation = ""
     denominator = 1
     if num != None:
         for i in large_nums:
@@ -84,7 +84,7 @@ def test_abbreviate_num_ints(num):
                 abbreviation = i
                 break
         expected = str(round((num / denominator), 2)) + abbreviation
-    if abbreviation == '':
-        expected = 'None'
+    if abbreviation == "":
+        expected = "None"
     assert type(result) is str
     assert expected == result

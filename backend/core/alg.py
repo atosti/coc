@@ -31,8 +31,8 @@ def graham_num(eps, bvps):
 
 # Creates an abbreviated num str from a number (e.g. 64150000 becomes '64.15M')
 def abbreviate_num(num):
-    large_nums = {'T': trillion, 'B': billion, 'M': million}
-    abbreviation = ''
+    large_nums = {"T": trillion, "B": billion, "M": million}
+    abbreviation = ""
     denominator = 1
     if num != None:
         for i in large_nums:
@@ -41,9 +41,19 @@ def abbreviate_num(num):
                 abbreviation = i
                 break
         result = str(round((num / denominator), 2)) + abbreviation
-    if abbreviation == '':
-        result = 'None'
+    if abbreviation == "":
+        result = "None"
     return result
+
+
+# Assembles a criteria message into a dict
+def criteria_message_dict(criteria_message, strength, key):
+    results = {}
+    results[key] = {
+        "success": strength,
+        "message": criteria_message,
+    }
+    return results
 
 
 # Currently scores out of 7 to determine health of a stock.
@@ -59,122 +69,108 @@ def health_check(
     liabilities,
     div_yield,
 ):
-    results = {}
-    # Criteria 1: Sales >= $700M
-    if not sales:
-        sales = 0
-    sales_str = abbreviate_num(sales)
-    results['sales'] = {
-        'success': good_sales(sales),
-        'message': f'C1: ${sales_str} of $700M sales',
-    }
-    # Criteria 2: Curr ratio >= 2.0
-    cr_success = good_curr_ratio(curr_ratio)
-    cr_msg = f'C2: Curr. Ratio of {str(curr_ratio)} < 2.0'
-    if cr_success:
-        cr_msg = f'C2: Curr. Ratio of {str(curr_ratio)} ≥ 2.0'
-    results['curr_ratio'] = {
-        'success': cr_success,
-        'message': cr_msg,
-    }
-    # Criteria 3: If it pays a div, no missed/reduced payments in last 5 yrs
-    d_success = good_dividend(dividend, dividends)
-    d_msg = f'C3: Dividend missed/decr. last 5yrs'
-    if d_success and div_yield and div_yield != 'N/A':
-        d_msg = f'C3: Dividend steady/incr. last 5yrs'
-    elif d_success:
-        d_msg = f'C3: Dividend not paid'
-    results['dividend'] = {
-        'success': d_success,
-        'message': d_msg,
-    }
-    # Criteria 4: No earnings deficit in last 5 yrs
+    # Criteria 1: Cheap assets are when Mkt cap < (Assets - Liabilities) * 1.5
+    nav_str = "None"
+    cheap_assets_ratio = "None"
+    if assets and liabilities and mkt_cap:
+        nav = (assets - liabilities) * 1.5  # Technically: NetAssetValue * 1.5
+        nav_str = abbreviate_num(nav)
+        cheap_assets_ratio = str(round(nav / mkt_cap, 2))
+    success = good_assets(mkt_cap, assets, liabilities)
+    message = (
+        f"C1: Expensive Assets. "
+        + nav_str
+        + " !≥ "
+        + abbreviate_num(mkt_cap)
+        + " (≈ "
+        + cheap_assets_ratio
+        + ": 1)"
+    )
+    if success:
+        message = (
+            f"C1: Cheap Assets. "
+            + nav_str
+            + " ≥ "
+            + abbreviate_num(mkt_cap)
+            + " (≈ "
+            + cheap_assets_ratio
+            + ": 1)"
+        )
+    c1 = criteria_message_dict(message, success, "assets")
+
+    # Criteria 2: Is earnings growth averaging +2.9% year over year?
+    eps_growth = 0
+    years = 5  # Currently hard-coded to analyze last 5 years of data
+    if eps_list is not None and len(eps_list) >= years:
+        truncated_eps = eps_list  # Truncated eps list of last 'years' many years
+        for i in range(0, len(eps_list) - years):
+            truncated_eps.pop(0)
+        if truncated_eps[0] != 0:
+            growth_difference = float(truncated_eps[-1] / truncated_eps[0]) - 1
+            eps_growth = round(growth_difference * 100, 2)
+            # Applies negative sign when EPS has changed from negative to positive
+            if truncated_eps[0] < 0 and truncated_eps[-1] > 0:
+                eps_growth *= -1
+    success = good_eps_growth(eps_list, years)
+    message = f"C2: Low EPS Growth of {str(eps_growth)}% < 15%"
+    if success:
+        message = f"C2: EPS Growth of {str(eps_growth)}% ≥ 15%"
+    c2 = criteria_message_dict(message, success, "eps_growth")
+
+    # Criteria 3: No earnings deficit in last 5 yrs
     deficit_yrs = []
     if eps_list is not None:
         for idx, eps in enumerate(eps_list):
             if eps is None or eps < 0:
                 deficit_yrs.append(2015 + idx)
-    ed_success = good_eps(eps_list)
-    ed_msg = f'C4: EPS Deficit in {str(deficit_yrs)}'
-    if ed_success:
-        ed_msg = f'C4: No EPS Deficit in last 5 yrs'
-    results['eps'] = {
-        'success': ed_success,
-        'message': ed_msg,
-    }
-    # Note: Currently hard-coding num_yrs to 5 years.
-    # Criteria 5: Earnings growth >= 15% compared to 5 yrs ago
-    eps_growth = 0
-    if eps_list is not None and len(eps_list) >= 5:
-        # Truncates list to only contain last 5 yrs of data
-        if len(eps_list) >= 5:
-            eps_list_5yrs = eps_list
-            for i in range(0, len(eps_list) - 5):
-                eps_list_5yrs.pop(0)
-            if eps_list_5yrs[0] != 0:
-                eps_growth = float(eps_list_5yrs[-1] / eps_list_5yrs[0]) - 1
-                eps_growth = round(eps_growth * 100, 2)
-                if eps_list_5yrs[0] < 0 and eps_list_5yrs[-1] > 0:
-                    eps_growth *= -1
-    eg_success = good_eps_growth(eps_list, 5)
-    eg_msg = f'C5: Low EPS Growth of {str(eps_growth)}% < 15%'
-    if eg_success:
-        eg_msg = f'C5: EPS Growth of {str(eps_growth)}% ≥ 15%'
-    results['eps_growth'] = {
-        'success': eg_success,
-        'message': eg_msg,
-    }
-    # Criteria 6: It has cheap assets where [Mkt cap < (Assets - Liabilities) * 1.5]
-    #   Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
-    mkt_cap_str = abbreviate_num(mkt_cap)
-    value_str = 'None'
-    c6_ratio = 'None'
-    if assets and liabilities and mkt_cap:
-        value = (assets - liabilities) * 1.5  # NAV * 1.5
-        value_str = abbreviate_num(value)
-        c6_ratio = str(round(value / mkt_cap, 2))
-    ca_success = good_assets(mkt_cap, assets, liabilities)
-    ca_msg = (
-        f'C6: Expensive Assets | '
-        + value_str
-        + ' < '
-        + mkt_cap_str
-        + ' ('
-        + c6_ratio
-        + ')'
-    )
-    if ca_success:
-        ca_msg = (
-            f'C6: Cheap Assets | '
-            + value_str
-            + ' ≥ '
-            + mkt_cap_str
-            + ' ('
-            + c6_ratio
-            + ')'
-        )
-    results['assets'] = {
-        'success': ca_success,
-        'message': ca_msg,
-    }
-    # Criteria 7: P/E Ratio <= 15?
-    per_success = good_pe_ratio(pe_ratio)
-    per_msg = f'C7: P/E Ratio of {str(pe_ratio)} > 15.0'
-    if per_success:
-        per_msg = f'C7: P/E Ratio of {str(pe_ratio)} ≤ 15.0'
-    results['pe_ratio'] = {
-        'success': per_success,
-        'message': per_msg,
-    }
+    success = good_eps(eps_list)
+    message = f"C3: EPS Deficit in {str(deficit_yrs)}"
+    if success:
+        message = f"C3: No EPS Deficit in last 5 years"
+    c3 = criteria_message_dict(message, success, "eps")
 
-    score = 0
+    # Criteria 4: Is its Current Ratio >= 2.0?
+    message = f"C4: Current Ratio of {str(curr_ratio)} !≥ 2.0"
+    success = good_curr_ratio(curr_ratio)
+    if success:
+        message = f"C4: Current Ratio of {str(curr_ratio)} ≥ 2.0"
+    c4 = criteria_message_dict(message, success, "curr_ratio")
+
+    # Criteria 5: Is its P/E (Price to earnings) Ratio <= 15?
+    success = good_pe_ratio(pe_ratio)
+    message = f"C5: P/E Ratio of {str(pe_ratio)} !≤ 15.0"
+    if success:
+        message = f"C5: P/E Ratio of {str(pe_ratio)} ≤ 15.0"
+    c5 = criteria_message_dict(message, success, "pe_ratio")
+
+    # Criteria 6: Are its annual sales >= $700M USD?
+    if not sales:
+        sales = 0
+    sales_str = abbreviate_num(sales)
+    sales_ratio = str(round(sales / (700 * million), 2))
+    message = f"C6: ${sales_str} of $700M sales (≈ {sales_ratio}: 1)"
+    c6 = criteria_message_dict(message, good_sales(sales), "sales")
+
+    # Criteria 7: If it pays a div, no missed/reduced payments in last 5 yrs
+    success = good_dividend(dividend, dividends)
+    message = f"C7: Dividend missed/decr. last 5 years"
+    if success and div_yield and div_yield != "N/A":
+        message = f"C7: Dividend steady/incr. last 5 years"
+    elif success:
+        message = f"C7: Dividend not paid"
+    c7 = criteria_message_dict(message, success, "dividend")
+
+    criteria_messages = {**c1, **c2, **c3, **c4, **c5, **c6, **c7}
+    # Colors the criteria output
     criterion = []
-    for k, v in results.items():
-        if v['success']:
-            score += 1
-            criterion.append('[green]' + v['message'] + '[/green]')
+    for k, v in criteria_messages.items():
+        if v["success"]:
+            if "Dividend not paid" in v["message"]:
+                criterion.append("[yellow]" + v["message"] + "[/yellow]")
+            else:
+                criterion.append("[green]" + v["message"] + "[/green]")
         else:
-            criterion.append('[red]' + v['message'] + '[/red]')
+            criterion.append("[red]" + v["message"] + "[/red]")
     result = criterion
     return result
 
@@ -211,21 +207,24 @@ def good_dividend(curr_dividend, dividends):
 
 # Requires 2.9% annual growth YoY, with a minimum of 5 years of data
 # Growth is as follows: 100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
-def good_eps_growth(eps_list, num_yrs):
-    if eps_list is None or not eps_list or len(eps_list) < num_yrs:
+def good_eps_growth(eps_list, years):
+    if eps_list is None or not eps_list or len(eps_list) < years:
         return False
     elif eps_list[0] is None or eps_list[-1] is None or eps_list[0] == 0:
         return False
     expected_growth = 1
     actual_growth = 0
-    # Checks data only in last 'num_yrs' many years
-    for i in range(0, len(eps_list) - num_yrs):
+    # Truncate eps_list to the last 'years' many years
+    for i in range(0, len(eps_list) - years):
         eps_list.pop(0)
-    for i in range(0, len(eps_list)):
+    for i in range(0, years):
         expected_growth += 0.029 * expected_growth
     expected_growth -= 1
     if eps_list[0] != 0:
         actual_growth = float(eps_list[-1] / eps_list[0]) - 1.0
+        # Applies negative sign when EPS has changed from negative to positive
+        if eps_list[0] < 0 and eps_list[-1] > 0:
+            actual_growth *= -1
     return actual_growth >= expected_growth
 
 
