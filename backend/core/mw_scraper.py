@@ -1,7 +1,7 @@
 import re, locale
 from backend.core.scraper_utils import get_soup
 
-locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
 
 class MWScraper:
@@ -31,7 +31,7 @@ class MWScraper:
                     values = (
                         tr.find('div', {'class': 'chart--financials'})
                         .get('data-chart-data')
-                        .split(",")
+                        .split(',')
                     )
                     for value in values:
                         if value:
@@ -129,7 +129,7 @@ class MWScraper:
             price = (
                 intraday_price.get_text(strip=True).replace('$', '').replace('€', '')
             )
-            if price is not None and price != "":
+            if price is not None and price != '':
                 price = float(locale.atof(price))
 
         total_assets_dict = MWScraper.financials_search(soup, 'Total Assets')

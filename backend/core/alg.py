@@ -31,8 +31,8 @@ def graham_num(eps, bvps):
 
 # Creates an abbreviated num str from a number (e.g. 64150000 becomes '64.15M')
 def abbreviate_num(num):
-    large_nums = {"T": trillion, "B": billion, "M": million}
-    abbreviation = ""
+    large_nums = {'T': trillion, 'B': billion, 'M': million}
+    abbreviation = ''
     denominator = 1
     if num != None:
         for i in large_nums:
@@ -41,8 +41,8 @@ def abbreviate_num(num):
                 abbreviation = i
                 break
         result = str(round((num / denominator), 2)) + abbreviation
-    if abbreviation == "":
-        result = "None"
+    if abbreviation == '':
+        result = 'None'
     return result
 
 
@@ -64,29 +64,29 @@ def health_check(
     if not sales:
         sales = 0
     sales_str = abbreviate_num(sales)
-    results["sales"] = {
-        "success": good_sales(sales),
-        "message": f"C1: ${sales_str} of $700M sales",
+    results['sales'] = {
+        'success': good_sales(sales),
+        'message': f'C1: ${sales_str} of $700M sales',
     }
     # Criteria 2: Curr ratio >= 2.0
     cr_success = good_curr_ratio(curr_ratio)
-    cr_msg = f"C2: Curr. Ratio of {str(curr_ratio)} < 2.0"
+    cr_msg = f'C2: Curr. Ratio of {str(curr_ratio)} < 2.0'
     if cr_success:
-        cr_msg = f"C2: Curr. Ratio of {str(curr_ratio)} ≥ 2.0"
-    results["curr_ratio"] = {
-        "success": cr_success,
-        "message": cr_msg,
+        cr_msg = f'C2: Curr. Ratio of {str(curr_ratio)} ≥ 2.0'
+    results['curr_ratio'] = {
+        'success': cr_success,
+        'message': cr_msg,
     }
     # Criteria 3: If it pays a div, no missed/reduced payments in last 5 yrs
     d_success = good_dividend(dividend, dividends)
-    d_msg = f"C3: Dividend missed/decr. last 5yrs"
-    if d_success and div_yield and div_yield != "N/A":
-        d_msg = f"C3: Dividend steady/incr. last 5yrs"
+    d_msg = f'C3: Dividend missed/decr. last 5yrs'
+    if d_success and div_yield and div_yield != 'N/A':
+        d_msg = f'C3: Dividend steady/incr. last 5yrs'
     elif d_success:
-        d_msg = f"C3: Dividend not paid"
-    results["dividend"] = {
-        "success": d_success,
-        "message": d_msg,
+        d_msg = f'C3: Dividend not paid'
+    results['dividend'] = {
+        'success': d_success,
+        'message': d_msg,
     }
     # Criteria 4: No earnings deficit in last 5 yrs
     deficit_yrs = []
@@ -95,12 +95,12 @@ def health_check(
             if eps is None or eps < 0:
                 deficit_yrs.append(2015 + idx)
     ed_success = good_eps(eps_list)
-    ed_msg = f"C4: EPS Deficit in {str(deficit_yrs)}"
+    ed_msg = f'C4: EPS Deficit in {str(deficit_yrs)}'
     if ed_success:
-        ed_msg = f"C4: No EPS Deficit in last 5 yrs"
-    results["eps"] = {
-        "success": ed_success,
-        "message": ed_msg,
+        ed_msg = f'C4: No EPS Deficit in last 5 yrs'
+    results['eps'] = {
+        'success': ed_success,
+        'message': ed_msg,
     }
     # Note: Currently hard-coding num_yrs to 5 years.
     # Criteria 5: Earnings growth >= 15% compared to 5 yrs ago
@@ -115,64 +115,64 @@ def health_check(
                 eps_growth = float(eps_list_5yrs[-1] / eps_list_5yrs[0]) - 1
                 eps_growth = round(eps_growth * 100, 2)
     eg_success = good_eps_growth(eps_list, 5)
-    eg_msg = f"C5: Low EPS Growth of {str(eps_growth)}% < 15%"
+    eg_msg = f'C5: Low EPS Growth of {str(eps_growth)}% < 15%'
     if eg_success:
-        eg_msg = f"C5: EPS Growth of {str(eps_growth)}% ≥ 15%"
-    results["eps_growth"] = {
-        "success": eg_success,
-        "message": eg_msg,
+        eg_msg = f'C5: EPS Growth of {str(eps_growth)}% ≥ 15%'
+    results['eps_growth'] = {
+        'success': eg_success,
+        'message': eg_msg,
     }
     # Criteria 6: It has cheap assets where [Mkt cap < (Assets - Liabilities) * 1.5]
     #   Essentially, is the value of all its outstanding shares less than 1.5x the assets leftover after paying all its debts.
     mkt_cap_str = abbreviate_num(mkt_cap)
-    value_str = "None"
-    c6_ratio = "None"
+    value_str = 'None'
+    c6_ratio = 'None'
     if assets and liabilities and mkt_cap:
         value = (assets - liabilities) * 1.5  # NAV * 1.5
         value_str = abbreviate_num(value)
         c6_ratio = str(round(value / mkt_cap, 2))
     ca_success = good_assets(mkt_cap, assets, liabilities)
     ca_msg = (
-        f"C6: Expensive Assets | "
+        f'C6: Expensive Assets | '
         + value_str
-        + " < "
+        + ' < '
         + mkt_cap_str
-        + " ("
+        + ' ('
         + c6_ratio
-        + ")"
+        + ')'
     )
     if ca_success:
         ca_msg = (
-            f"C6: Cheap Assets | "
+            f'C6: Cheap Assets | '
             + value_str
-            + " ≥ "
+            + ' ≥ '
             + mkt_cap_str
-            + " ("
+            + ' ('
             + c6_ratio
-            + ")"
+            + ')'
         )
-    results["assets"] = {
-        "success": ca_success,
-        "message": ca_msg,
+    results['assets'] = {
+        'success': ca_success,
+        'message': ca_msg,
     }
     # Criteria 7: P/E Ratio <= 15?
     per_success = good_pe_ratio(pe_ratio)
-    per_msg = f"C7: P/E Ratio of {str(pe_ratio)} > 15.0"
+    per_msg = f'C7: P/E Ratio of {str(pe_ratio)} > 15.0'
     if per_success:
-        per_msg = f"C7: P/E Ratio of {str(pe_ratio)} ≤ 15.0"
-    results["pe_ratio"] = {
-        "success": per_success,
-        "message": per_msg,
+        per_msg = f'C7: P/E Ratio of {str(pe_ratio)} ≤ 15.0'
+    results['pe_ratio'] = {
+        'success': per_success,
+        'message': per_msg,
     }
 
     score = 0
     criterion = []
     for k, v in results.items():
-        if v["success"]:
+        if v['success']:
             score += 1
-            criterion.append("[green]" + v["message"] + "[/green]")
+            criterion.append('[green]' + v['message'] + '[/green]')
         else:
-            criterion.append("[red]" + v["message"] + "[/red]")
+            criterion.append('[red]' + v['message'] + '[/red]')
     result = criterion
     return result
 
