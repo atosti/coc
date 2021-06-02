@@ -24,25 +24,24 @@ class YFScraper:
 
     def scrape_key_stats(self):
         output_dict = {}
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}/key-statistics") 
-        output_dict["bvps"] = float(locale.atof(
-            YFScraper.key_stats_search(soup, "Book Value Per Share")
-        ))
-        output_dict["payout_ratio"] = YFScraper.key_stats_search(soup, "Payout Ratio")
-        output_dict["curr_ratio"] = float(locale.atof(
-            YFScraper.key_stats_search(soup, "Current Ratio")
-        ))
+        soup = get_soup(f"{self.base_url}/{self.url_symbol}/key-statistics")
+        output_dict["bvps"] = YFScraper.key_stats_search(soup, "Book Value Per Share", True)
+        output_dict["curr_ratio"] = YFScraper.key_stats_search(soup, "Current Ratio", True)
+        output_dict["payout_ratio"] = YFScraper.key_stats_search(soup, "Payout Ratio", False)
         return output_dict
 
     @staticmethod
-    def key_stats_search(soup, text):
+    def key_stats_search(soup, text, is_num):
         result = None
         found = soup.find(text=text)
         if found:
             # TODO - Currently just grabs the 4th element. Find a better way to nav.
             value = found.parent.parent.parent.findChildren()[3].get_text(strip=True)
             if value != "N/A":
-                result = value
+                if is_num:
+                    result = float(locale.atof(value))
+                else:
+                    result = value
         return result
 
     # Dividend yield HTML has 2 locations for div_yield on Yahoo Finance
