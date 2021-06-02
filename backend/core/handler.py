@@ -29,10 +29,23 @@ locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 #     return
 
 
+# Combines a series of dicts without re-introducing Null values
+def combine_scrapes(scraped_dicts_list):
+    combined_dict = {}
+    if len(scraped_dicts_list) > 0:
+        combined_dict = scraped_dicts_list[0] # Initialize to one of the dicts
+        for scraped_dict in scraped_dicts_list:
+            for key in scraped_dict:
+                if scraped_dict[key] != None or not combined_dict.get(key):
+                    combined_dict[key] = scraped_dict[key]
+    return combined_dict
+
+
 def check(symbol, flags):
     mw_scrape = MWScraper(symbol).scrape()
     yahoo_scrape = YFScraper(symbol).scrape()
-    scraped_data = {**mw_scrape, **yahoo_scrape}
+    scraped_dicts = [mw_scrape, yahoo_scrape]
+    scraped_data = combine_scrapes(scraped_dicts)
     overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
     return output_handler(overall_dict, health_result, flags)
 
