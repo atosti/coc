@@ -13,48 +13,50 @@ class YFScraper:
     def url_symbol(self):
         return self.symbol.lower().replace(".", "-")
 
+    def scrape_quote(self):
+        soup = get_soup(f"{self.base_url}/{self.url_symbol}")
+        return {
+            "div_yield": YFScraper.search_div_yield(soup),
+            "eps": YFScraper.quote_search(soup, "EPS_RATIO-value"),
+            "mkt_cap": YFScraper.quote_search(soup, "MARKET_CAP-value"),
+            "pe_ratio": YFScraper.quote_search(soup, "PE_RATIO-value"),
+        }
+
+    def scrape_key_stats(self):
+        output_dict = {}
+        soup = get_soup(f"{self.base_url}/{self.url_symbol}/key-statistics") 
+        output_dict["bvps"] = float(locale.atof(
+            YFScraper.key_stats_search(soup, "Book Value Per Share")
+        ))
+        output_dict["payout_ratio"] = YFScraper.key_stats_search(soup, "Payout Ratio")
+        output_dict["curr_ratio"] = float(locale.atof(
+            YFScraper.key_stats_search(soup, "Current Ratio")
+        ))
+        return output_dict
+
+    @staticmethod
+    def key_stats_search(soup, text):
+        result = None
+        found = soup.find(text=text)
+        if found:
+            # TODO - Currently just grabs the 4th element. Find a better way to nav.
+            value = found.parent.parent.parent.findChildren()[3].get_text(strip=True)
+            if value != "N/A":
+                result = value
+        return result
+
     # Dividend yield HTML has 2 locations for div_yield on Yahoo Finance
     def search_div_yield(soup):
-        div_yield = YFScraper.search_quote(soup, "TD_YIELD-value")
+        div_yield = YFScraper.quote_search(soup, "TD_YIELD-value")
         if div_yield == None:
-            items = YFScraper.search_quote(soup, "DIVIDEND_AND_YIELD-value")
+            items = YFScraper.quote_search(soup, "DIVIDEND_AND_YIELD-value")
             if items != None:
                 # Separates forward dividend from dividend yield
                 items = items.split(" ")
                 div_yield = items[1].replace("(", "").replace(")", "")
         return div_yield
 
-    def scrape_quote(self):
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}")
-        return {
-            "div_yield": YFScraper.search_div_yield(soup),
-            "eps": YFScraper.search_quote(soup, "EPS_RATIO-value"),
-            "mkt_cap": YFScraper.search_quote(soup, "MARKET_CAP-value"),
-            "pe_ratio": YFScraper.search_quote(soup, "PE_RATIO-value"),
-        }
-
-    def scrape_key_stats(self):
-        output_dict = {"bvps": None, "payout_ratio": None}
-        soup = get_soup(f"{self.base_url}/{self.url_symbol}/key-statistics")
-        find_bvps = soup.find(text="Book Value Per Share")
-        if find_bvps:
-            fetch = find_bvps.parent.parent.parent.findChildren()
-            # TODO - Currently just grabs the 4th element. Find a better way to nav.
-            elem = fetch[3]
-            value = elem.get_text(strip=True)
-            if value != "N/A":
-                output_dict["bvps"] = float(locale.atof(value))
-        find_payout_ratio = soup.find(text="Payout Ratio")
-        if find_payout_ratio:
-            fetch = find_payout_ratio.parent.parent.parent.findChildren()
-            # TODO - Currently just grabs the 4th element. Find a better way to nav.
-            elem = fetch[3]
-            value = elem.get_text(strip=True)
-            if value != "N/A":
-                output_dict["payout_ratio"] = value
-        return output_dict
-
-    def search_quote(soup, text):
+    def quote_search(soup, text):
         found = soup.find("td", {"data-test": text})
         if not found:
             return
