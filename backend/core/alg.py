@@ -135,10 +135,10 @@ def health_check(
         avg_growth = round(avg_growth, 2)
     success = good_eps_growth(eps_list, years)
     message = f"C2: Low EPS Growth of {str(eps_growth)}% < 15%"
-    message += f"\n\tAvg EPS growth vs. 5 years ago: {str(avg_growth)}%"
+    message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
     if success:
         message = f"C2: EPS Growth of {str(eps_growth)}% ≥ 15%"
-        message += f"\n\tAvg EPS growth vs. 5 years ago: {str(avg_growth)}%"
+        message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
     c2 = criteria_message_dict(message, success, "eps_growth")
 
     # Criteria 3: No earnings deficit in last 5 yrs
