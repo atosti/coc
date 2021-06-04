@@ -33,7 +33,7 @@ locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
 def combine_scrapes(scraped_dicts_list):
     combined_dict = {}
     if len(scraped_dicts_list) > 0:
-        combined_dict = scraped_dicts_list[0] # Initialize to one of the dicts
+        combined_dict = scraped_dicts_list[0]  # Initialize to one of the dicts
         for scraped_dict in scraped_dicts_list:
             for key in scraped_dict:
                 if scraped_dict[key] != None or not combined_dict.get(key):
@@ -46,14 +46,14 @@ def check(symbol, flags):
     yahoo_scrape = YFScraper(symbol).scrape()
     scraped_dicts = [mw_scrape, yahoo_scrape]
     scraped_data = combine_scrapes(scraped_dicts)
-    overall_dict, health_result, flags = internal_check(symbol, scraped_data, flags)
+    overall_dict, health_result, flags = internal_check(scraped_data, flags)
     return output_handler(overall_dict, health_result, flags)
 
 
 # Website scraping into a single dict
 # Notes: a. Lists of annual values are ordered from 2015 -> 2019
 #        b. EPS and PE ratio are overwritten by Yahoo nums if also in MW
-def internal_check(symbol, overall_dict, flags):
+def internal_check(overall_dict, flags):
     score_assessments = [
         alg.good_assets(
             overall_dict["mkt_cap"], overall_dict["assets"], overall_dict["liabilities"]

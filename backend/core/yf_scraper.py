@@ -25,9 +25,15 @@ class YFScraper:
     def scrape_key_stats(self):
         output_dict = {}
         soup = get_soup(f"{self.base_url}/{self.url_symbol}/key-statistics")
-        output_dict["bvps"] = YFScraper.key_stats_search(soup, "Book Value Per Share", True)
-        output_dict["curr_ratio"] = YFScraper.key_stats_search(soup, "Current Ratio", True)
-        output_dict["payout_ratio"] = YFScraper.key_stats_search(soup, "Payout Ratio", False)
+        output_dict["bvps"] = YFScraper.key_stats_search(
+            soup, "Book Value Per Share", True
+        )
+        output_dict["curr_ratio"] = YFScraper.key_stats_search(
+            soup, "Current Ratio", True
+        )
+        output_dict["payout_ratio"] = YFScraper.key_stats_search(
+            soup, "Payout Ratio", False
+        )
         return output_dict
 
     @staticmethod

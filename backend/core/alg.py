@@ -46,6 +46,24 @@ def abbreviate_num(num):
     return result
 
 
+# Returns avg. EPS vs initial EPS of the period (in years) as a percentage
+def avg_eps_growth(eps_list, period):
+    avg_percent = None
+    truncated_eps = eps_list  # Truncated eps list of only years in the period
+    for i in range(0, len(eps_list) - period):
+        truncated_eps.pop(0)
+    if len(truncated_eps) > 0 and truncated_eps[0] != 0:
+        avg_growth = sum(truncated_eps) / len(truncated_eps)
+        # Must handle double negatives differently to preserve accuracy
+        if avg_growth < 0 and truncated_eps[0] < 0:
+            growth_difference = float(avg_growth / truncated_eps[0]) * -1
+            growth_difference += 1
+        else:
+            growth_difference = float(avg_growth / truncated_eps[0]) - 1
+        avg_percent = growth_difference * 100
+    return avg_percent
+
+
 # Assembles a criteria message into a dict
 def criteria_message_dict(criteria_message, strength, key):
     results = {}
@@ -111,10 +129,15 @@ def health_check(
             # Applies negative sign when EPS has changed from negative to positive
             if truncated_eps[0] < 0 and truncated_eps[-1] > 0:
                 eps_growth *= -1
+    avg_growth = avg_eps_growth(eps_list, 5)
+    if avg_growth != None:
+        avg_growth = round(avg_growth, 2)
     success = good_eps_growth(eps_list, years)
     message = f"C2: Low EPS Growth of {str(eps_growth)}% < 15%"
+    message += f"\n\tAvg EPS growth vs. 5 years ago: {str(avg_growth)}%"
     if success:
         message = f"C2: EPS Growth of {str(eps_growth)}% ≥ 15%"
+        message += f"\n\tAvg EPS growth vs. 5 years ago: {str(avg_growth)}%"
     c2 = criteria_message_dict(message, success, "eps_growth")
 
     # Criteria 3: No earnings deficit in last 5 yrs
@@ -122,7 +145,9 @@ def health_check(
     if eps_list is not None:
         for idx, eps in enumerate(eps_list):
             if eps is None or eps < 0:
-                deficit_yrs.append(2015 + idx)
+                deficit_yrs.append(
+                    2015 + idx
+                )  # FIXME - This is hardcoded, it actually outputs the incorrect year. Get proper year via a fetch
     success = good_eps(eps_list)
     message = f"C3: EPS Deficit in {str(deficit_yrs)}"
     if success:

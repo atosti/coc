@@ -35,10 +35,9 @@ def generate_financials_dictionary():
 @given(financials=generate_financials_dictionary())
 @settings(max_examples=10000, deadline=None)
 def test_scoring_logic(financials):
-    overall_dict, health_result, flags = internal_check("CMC", financials, [])
+    overall_dict, health_result, flags = internal_check(financials, [])
     score = 7
 
-    # print('----------')
     # C1: Sales
     if not financials["sales"] or financials["sales"] < 700000000:
         print("Failed C1")
