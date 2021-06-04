@@ -116,6 +116,7 @@ def update(symbol, data_dict):
         data_dict["pe_ratio"],
         data_dict["curr_ratio"],
         data_dict["eps_list"],
+        data_dict["mw_data_range"],
         data_dict["dividend"],
         data_dict["dividend_list"],
         data_dict["assets"],

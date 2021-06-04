@@ -83,7 +83,11 @@ class MWScraper:
             value = financials.get(year, {}).get(text)
             items.append(value)
             item = value
-        return {"item": item, "item_list": items}
+        return {
+            "item": item,
+            "item_list": items,
+            "year_list": [int(yr) for yr in years],
+        }
 
     @staticmethod
     def profile_search(soup, text):
@@ -109,6 +113,7 @@ class MWScraper:
             "eps_list": eps_dict["item_list"],
             "sales": sales_dict["item"],
             "sales_list": sales_dict["item_list"],
+            "mw_data_range": eps_dict["year_list"],
         }
 
     def scrape_profile(self):

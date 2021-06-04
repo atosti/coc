@@ -76,6 +76,7 @@ def internal_check(overall_dict, flags):
         overall_dict["pe_ratio"],
         overall_dict["curr_ratio"],
         overall_dict["eps_list"],
+        overall_dict["mw_data_range"],
         overall_dict["dividend"],
         overall_dict["dividend_list"],
         overall_dict["assets"],
@@ -105,13 +106,13 @@ def output_handler(overall_dict, health_result, flags):
         bp_ratio_str = build_colored_ratio(overall_dict["bvps"], overall_dict["price"])
 
         outputs = [
-            f'Symbol: {overall_dict["symbol"].upper()}',
+            # f'Symbol: {overall_dict["symbol"].upper()}', # Felt redundant
             f'Sector: {overall_dict["sector"]}',
             f'Graham Num/Price: {overall_dict["graham_num"]}/{overall_dict["price"]} {gp_ratio_str}',
             f'Bvps/Price: {overall_dict["bvps"]}/{overall_dict["price"]} {bp_ratio_str}',
             f'Dividend Yield/Payout Ratio: {overall_dict["div_yield"]} ({overall_dict["payout_ratio"]})',
             f'Score: {overall_dict["score"]}/7',
-            f"Analysis:",
+            f'Analysis (for {overall_dict["mw_data_range"][-1]} data):',
         ]
         for x in health_result:
             outputs.append(f'{" " * 4}{x}')

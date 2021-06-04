@@ -81,6 +81,7 @@ def health_check(
     pe_ratio,
     curr_ratio,
     eps_list,
+    mw_data_range,
     dividend,
     dividends,
     assets,
@@ -143,11 +144,11 @@ def health_check(
     # Criteria 3: No earnings deficit in last 5 yrs
     deficit_yrs = []
     if eps_list is not None:
-        for idx, eps in enumerate(eps_list):
-            if eps is None or eps < 0:
-                deficit_yrs.append(
-                    2015 + idx
-                )  # FIXME - This is hardcoded, it actually outputs the incorrect year. Get proper year via a fetch
+        deficit_yrs = [
+            mw_data_range[i]
+            for i in range(0, len(eps_list))
+            if eps_list[i] is None or eps_list[i] < 0
+        ]
     success = good_eps(eps_list)
     message = f"C3: EPS Deficit in {str(deficit_yrs)}"
     if success:
