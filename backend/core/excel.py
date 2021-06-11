@@ -29,11 +29,14 @@ def color_code_row(row_num, ws, colors):
     green = PatternFill(fill_type="solid", start_color="3CB371", end_color="3CB371")
     red = PatternFill(fill_type="solid", start_color="CD5C5C", end_color="CD5C5C")
     white = PatternFill(fill_type="solid", start_color="FFFFFF", end_color="FFFFFF")
+    yellow = PatternFill(fill_type="solid", start_color="FFFF00", end_color="FFFF00") 
     idx = 0
     for alpha in range(ord("A"), ord("N") + 1):
         curr_cell = ws[chr(alpha) + str(row_num)]
         if "green" in colors[idx]:
             curr_cell.fill = green
+        elif "yellow" in colors[idx]:
+            curr_cell.fill = yellow
         elif "red" in colors[idx]:
             curr_cell.fill = red
         elif "white" in colors[idx]:
@@ -58,6 +61,8 @@ def generate_cell_colors(graham_ratio, bvps_ratio, health_result):
     for criteria in health_result:
         if "green" in criteria:
             colors.append("green")
+        elif "yellow" in criteria:
+            colors.append("yellow")
         elif "red" in criteria:
             colors.append("red")
         else:
@@ -137,6 +142,8 @@ def update(symbol, data_dict):
             .replace("[/green]", "")
             .replace("[red]", "")
             .replace("[/red]", "")
+            .replace("[yellow]", "")
+            .replace("[/yellow]", "")
         )
         health_result[i] = health_result[i][3:]  # Removes the 'CX: ' prefix
     new_row = [
