@@ -20,9 +20,20 @@ First, have **Python 3+** installed on your system so you can run python files.
 5. Enter more symbols as desired.
 6. Type 'exit' or 'quit' to close the program.
 
+
+### Running in batch mode
+
+You can also pass a sequence of symbols via the standard in to main program by using the `-m batch` flag at program start.
+This will execute a parallelized fetch of the symbol information and writes the results to the `coc.xlsx` file.
+
+Example:
+`echo "BRK.B" | python3 main.py -m batch`
+
 ## Usable Flags
 
 ---
+
+### Interactive Mode Flags
 
 Note that flags can be combined into strings prepended with a dash, so "-dx" would run both "-d" and "-x".
 
@@ -34,6 +45,7 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
    * Silent mode, hides all console output for each symbol. Best when used in combination with JSON generation.
 4. "-x" **Excel Update/Creation**
    * Appends the symbol to a generated excel file, `coc.xlsx`. If the symbol already exists in file, then its row is overwritten with fresh data.
+   
 
 ## The Financial Calculations
 
