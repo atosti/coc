@@ -32,6 +32,7 @@ def generate_financials_dictionary():
     )
 
 
+# FIXME - Need to totally rewrite this to match new Company objects
 @given(financials=generate_financials_dictionary())
 @settings(max_examples=10000, deadline=None)
 def test_scoring_logic(financials):

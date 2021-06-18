@@ -1,6 +1,7 @@
 import openpyxl
 import os.path
 from backend.core import alg
+from backend.core.company import Company
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Color, PatternFill
 
@@ -71,7 +72,7 @@ def generate_cell_colors(graham_ratio, bvps_ratio, health_result):
 
 
 # Adds a new row for this symbol to the end of the excel file
-def update(symbol, data_dict):
+def update(symbol, company):
     dest_filename = "coc.xlsx"
     overwrite_row = None
     if os.path.isfile(dest_filename):
@@ -115,25 +116,13 @@ def update(symbol, data_dict):
                 ws.column_dimensions[curr_char].width = 12
         # Freezes the top row of the excel file
         wb["Analysis"].freeze_panes = "A2"
-    health_result = alg.health_check(
-        data_dict["mkt_cap"],
-        data_dict["sales"],
-        data_dict["pe_ratio"],
-        data_dict["curr_ratio"],
-        data_dict["eps_list"],
-        data_dict["mw_data_range"],
-        data_dict["dividend"],
-        data_dict["dividend_list"],
-        data_dict["assets"],
-        data_dict["liabilities"],
-        data_dict["div_yield"],
-    )
+    health_result = company.health_check()
     # Ratios relative to price
     graham_ratio = bvps_ratio = 0.00
-    if data_dict["graham_num"] is not None and data_dict["price"] is not None:
-        graham_ratio = round(data_dict["graham_num"] / data_dict["price"], 2)
-    if data_dict["bvps"] is not None and data_dict["price"] is not None:
-        bvps_ratio = round(data_dict["bvps"] / data_dict["price"], 2)
+    if company.graham_num is not None and company.price is not None:
+        graham_ratio = round(company.graham_num / company.price, 2)
+    if company.bvps is not None and company.price is not None:
+        bvps_ratio = round(company.bvps / company.price, 2)
     colors = generate_cell_colors(graham_ratio, bvps_ratio, health_result)
     for i in range(0, len(health_result)):
         health_result[i] = (
@@ -147,13 +136,13 @@ def update(symbol, data_dict):
         )
         health_result[i] = health_result[i][3:]  # Removes the 'CX: ' prefix
     new_row = [
-        data_dict["symbol"].upper(),
-        str(data_dict["score"]),
-        data_dict["sector"],
-        str(data_dict["price"]),
-        str(data_dict["graham_num"]) + " (" + str(graham_ratio) + ")",
-        str(data_dict["bvps"]) + " (" + str(bvps_ratio) + ")",
-        str(data_dict["div_yield"]) + " (" + str(data_dict["payout_ratio"]) + ")",
+        company.symbol.upper(),
+        str(company.score),
+        company.sector,
+        str(company.price),
+        str(company.graham_num) + " (" + str(graham_ratio) + ")",
+        str(company.bvps) + " (" + str(bvps_ratio) + ")",
+        str(company.div_yield) + " (" + str(company.payout_ratio) + ")",
         health_result[0],
         health_result[1],
         health_result[2],

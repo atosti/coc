@@ -26,10 +26,10 @@ def _run(args):
 
         error_symbols = []
         for r in result:
-            for symbol, overall_dict in r.items():
-                # TODO: This doesn't currently capture any error symbols b/c -j flag always returns an overall_dict
-                if overall_dict:
-                    excel.update(symbol, overall_dict)
+            for symbol, company in r.items():
+                # TODO: This doesn't currently capture any error symbols b/c -j flag always returns a company
+                if company:
+                    excel.update(symbol, company)
                 else:
                     error_symbols.append(symbol)
         

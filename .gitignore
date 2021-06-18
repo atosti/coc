@@ -6,4 +6,3 @@ env/
 *.DS_Store
 __pycache__
 .hypothesis
-backend/finviz-creds.txt

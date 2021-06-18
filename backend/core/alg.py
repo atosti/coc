@@ -83,7 +83,7 @@ def health_check(
     eps_list,
     mw_data_range,
     dividend,
-    dividends,
+    dividend_list,
     assets,
     liabilities,
     div_yield,
@@ -178,7 +178,7 @@ def health_check(
     c6 = criteria_message_dict(message, good_sales(sales), "sales")
 
     # Criteria 7: If it pays a div, no missed/reduced payments in last 5 yrs
-    success = good_dividend(dividend, dividends)
+    success = good_dividend(dividend, dividend_list)
     message = f"C7: Dividend missed/decr. last 5 years"
     if success and div_yield and div_yield != "N/A":
         message = f"C7: Dividend steady/incr. last 5 years"
@@ -226,9 +226,9 @@ def good_eps(eps_list):
 
 # TODO - Needs a list of annual dividend payouts over the last 20 years.
 # TODO - Add logic to determine whether a dividend payment was missed
-def good_dividend(curr_dividend, dividends):
+def good_dividend(curr_dividend, dividend_list):
     # If no dividend is paid, then it passes
-    return not curr_dividend or dividends == sorted(dividends)
+    return not curr_dividend or dividend_list == sorted(dividend_list)
 
 
 # Requires 2.9% annual growth YoY, with a minimum of 5 years of data
