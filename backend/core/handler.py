@@ -60,7 +60,6 @@ def output_handler(company, health_result, flags):
             outputs.append(f'{" " * 4}{x}')
         print("\n".join(outputs))
 
-    # FIXME - Since updating to Company object, check that JSON is properly formatted here.
     # JSON output/generation flag
     if "j" in flags:
         json_data = {company.symbol: company.__dict__}

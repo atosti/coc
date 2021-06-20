@@ -1,11 +1,10 @@
 import math, locale
 
-# Globals for large numbers
+# Constants for referencing very large numbers
 trillion = 1000000000000
 billion = 1000000000
 million = 1000000
 
-# Inputs: Outstanding num. of shares and share price in USD
 def mkt_cap(shares, price):
     return shares * price
 
@@ -46,6 +45,7 @@ def abbreviate_num(num):
     return result
 
 
+# TODO - Determine if this is actually that helpful. If so, describe it better.
 # Returns avg. EPS vs initial EPS of the period (in years) as a percentage
 def avg_eps_growth(eps_list, period):
     avg_percent = None
@@ -78,14 +78,36 @@ def calculate_rounded_ratio(num_a, num_b, digits):
     return str(round(num_a / num_b, digits))
 
 
+def eps_growth(eps_list, years):
+    eps_growth = None
+    if eps_list is None or not eps_list or len(eps_list) < years:
+        return eps_growth
+    elif eps_list[0] is None or eps_list[-1] is None or eps_list[0] == 0:
+        return eps_growth
+    truncated_eps_list = truncate_eps_list(eps_list, years)
+    if truncated_eps_list[0] != 0:
+        eps_growth = float(truncated_eps_list[-1] / truncated_eps_list[0]) - 1.0
+        # Applies negative sign when EPS has changed from negative to positive
+        if truncated_eps_list[0] < 0 and truncated_eps_list[-1] > 0:
+            eps_growth *= -1
+    return eps_growth
+
+
+def net_asset_value(assets, liabilities):
+    nav = 0
+    if assets and liabilities:
+        nav = assets - liabilities
+    return nav
+
+
 # Criteria 1: Cheap assets are when MktCap < (Assets - Liabilities) * 1.5
 def criteria_one(mkt_cap, assets, liabilities):
     nav_str = "None"
     cheap_assets_ratio = "None"
-    if assets and liabilities and mkt_cap:
-        nav = (assets - liabilities) * 1.5  # Technically, it's 1.5 * NAV
-        nav_str = abbreviate_num(nav)
-        cheap_assets_ratio = calculate_rounded_ratio(nav, mkt_cap, 2)
+    if mkt_cap:
+        nav = net_asset_value(assets, liabilities)
+        nav_str = abbreviate_num(nav * 1.5)
+        cheap_assets_ratio = calculate_rounded_ratio(nav * 1.5, mkt_cap, 2)
     success = good_assets(mkt_cap, assets, liabilities)
     message = (f"C1: Expensive Assets. {nav_str} !≥ {abbreviate_num(mkt_cap)}"
         + f" (≈ {cheap_assets_ratio}: 1)"
@@ -100,32 +122,22 @@ def criteria_one(mkt_cap, assets, liabilities):
 
 # Criteria 2: Is earnings growth averaging +2.9% year over year?
 def criteria_two(eps_list):
-    eps_growth = 0
     years = 5  # Currently hard-coded to analyze last 5 years of data
-    if eps_list is not None and len(eps_list) >= years:
-        truncated_eps = eps_list  # Truncated eps list of last 'years' many years
-        for i in range(0, len(eps_list) - years):
-            truncated_eps.pop(0)
-        if truncated_eps[0] != 0:
-            growth_difference = float(truncated_eps[-1] / truncated_eps[0]) - 1
-            eps_growth = round(growth_difference * 100, 2)
-            # Applies negative sign when EPS has changed from negative to positive
-            if truncated_eps[0] < 0 and truncated_eps[-1] > 0:
-                eps_growth *= -1
-    avg_growth = avg_eps_growth(eps_list, 5)
-    if avg_growth != None:
-        avg_growth = round(avg_growth, 2)
+    actual_growth = eps_growth(eps_list, years)
+    # TODO - Decide if you actually want the avg_growth metric. It's confusing.
+    # avg_growth = avg_eps_growth(eps_list, 5)
+    # if avg_growth != None:
+        # avg_growth = round(avg_growth, 2)
     success = good_eps_growth(eps_list, years)
-    message = f"C2: Low EPS Growth of {str(eps_growth)}% < 15%"
-    message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
+    message = f"C2: Low EPS Growth of {str(actual_growth)}% < 15%"
+    # message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
     if success:
-        message = f"C2: EPS Growth of {str(eps_growth)}% ≥ 15%"
-        message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
+        message = f"C2: EPS Growth of {str(actual_growth)}% ≥ 15%"
+        # message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
     return criteria_message_dict(message, success, "eps_growth")
 
 
-# Criteria 3: No earnings deficit in last 5 yrs
-def criteria_three(eps_list, mw_data_range):
+def calculate_eps_deficit_years(eps_list, mw_data_range):
     deficit_yrs = []
     if eps_list is not None:
         deficit_yrs = [
@@ -133,6 +145,12 @@ def criteria_three(eps_list, mw_data_range):
             for i in range(0, len(eps_list))
             if eps_list[i] is None or eps_list[i] < 0
         ]
+    return deficit_yrs
+
+
+# Criteria 3: No earnings deficit in last 5 yrs
+def criteria_three(eps_list, mw_data_range):
+    deficit_yrs = calculate_eps_deficit_years(eps_list, mw_data_range)
     success = good_eps(eps_list)
     message = f"C3: EPS Deficit in {str(deficit_yrs)}"
     if success:
@@ -163,7 +181,7 @@ def criteria_six(sales):
     if not sales:
         sales = 0
     sales_str = abbreviate_num(sales)
-    sales_ratio = str(round(sales / (700 * million), 2))
+    sales_ratio = calculate_rounded_ratio(sales, 700 * million, 2)
     message = f"C6: ${sales_str} of $700M sales (≈ {sales_ratio}: 1)"
     return criteria_message_dict(message, good_sales(sales), "sales")
 
@@ -235,26 +253,30 @@ def good_dividend(curr_dividend, dividend_list):
     return not curr_dividend or dividend_list == sorted(dividend_list)
 
 
-# Requires 2.9% annual growth YoY, with a minimum of 5 years of data
-# Growth is as follows: 100, 102.9, 105.884, 108.955, 112.115, 115.366, 118.712, 122.155, 125.697, 129.342, 133.093
+# Truncates the EPS list into the most recent X many years
+def truncate_eps_list(eps_list, years):
+    for i in range(0, len(eps_list) - years):
+        eps_list.pop(0)
+    return eps_list
+
+
+# Determines expected EPS growth in a period, given expectations of +2.9%/year
+def expected_eps_growth(years):
+    expected_growth = 1
+    for i in range(0, years):
+        expected_growth += 0.029 * expected_growth
+    expected_growth -= 1
+    return expected_growth
+
+
+# Defined as at least 2.9% annual growth YoY for the period
 def good_eps_growth(eps_list, years):
     if eps_list is None or not eps_list or len(eps_list) < years:
         return False
     elif eps_list[0] is None or eps_list[-1] is None or eps_list[0] == 0:
         return False
-    expected_growth = 1
-    actual_growth = 0
-    # Truncate eps_list to the last 'years' many years
-    for i in range(0, len(eps_list) - years):
-        eps_list.pop(0)
-    for i in range(0, years):
-        expected_growth += 0.029 * expected_growth
-    expected_growth -= 1
-    if eps_list[0] != 0:
-        actual_growth = float(eps_list[-1] / eps_list[0]) - 1.0
-        # Applies negative sign when EPS has changed from negative to positive
-        if eps_list[0] < 0 and eps_list[-1] > 0:
-            actual_growth *= -1
+    expected_growth = expected_eps_growth(years)
+    actual_growth = eps_growth(eps_list, years)
     return actual_growth >= expected_growth
 
 
