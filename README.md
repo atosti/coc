@@ -45,7 +45,6 @@ Note that flags can be combined into strings prepended with a dash, so "-dx" wou
    * Silent mode, hides all console output for each symbol. Best when used in combination with JSON generation.
 4. "-x" **Excel Update/Creation**
    * Appends the symbol to a generated excel file, `coc.xlsx`. If the symbol already exists in file, then its row is overwritten with fresh data.
-   
 
 ## The Financial Calculations
 
