@@ -74,50 +74,32 @@ def criteria_message_dict(criteria_message, strength, key):
     return results
 
 
-# Currently scores out of 7 to determine health of a stock.
-def health_check(
-    mkt_cap,
-    sales,
-    pe_ratio,
-    curr_ratio,
-    eps_list,
-    mw_data_range,
-    dividend,
-    dividend_list,
-    assets,
-    liabilities,
-    div_yield,
-):
-    # Criteria 1: Cheap assets are when Mkt cap < (Assets - Liabilities) * 1.5
+def calculate_rounded_ratio(num_a, num_b, digits):
+    return str(round(num_a / num_b, digits))
+
+
+# Criteria 1: Cheap assets are when MktCap < (Assets - Liabilities) * 1.5
+def criteria_one(mkt_cap, assets, liabilities):
     nav_str = "None"
     cheap_assets_ratio = "None"
     if assets and liabilities and mkt_cap:
-        nav = (assets - liabilities) * 1.5  # Technically: NetAssetValue * 1.5
+        nav = (assets - liabilities) * 1.5  # Technically, it's 1.5 * NAV
         nav_str = abbreviate_num(nav)
-        cheap_assets_ratio = str(round(nav / mkt_cap, 2))
+        cheap_assets_ratio = calculate_rounded_ratio(nav, mkt_cap, 2)
     success = good_assets(mkt_cap, assets, liabilities)
-    message = (
-        f"C1: Expensive Assets. "
-        + nav_str
-        + " !≥ "
-        + abbreviate_num(mkt_cap)
-        + " (≈ "
-        + cheap_assets_ratio
-        + ": 1)"
+    message = (f"C1: Expensive Assets. {nav_str} !≥ {abbreviate_num(mkt_cap)}"
+        + f" (≈ {cheap_assets_ratio}: 1)"
     )
     if success:
         message = (
-            f"C1: Cheap Assets. "
-            + nav_str
-            + " ≥ "
-            + abbreviate_num(mkt_cap)
-            + " (≈ "
-            + cheap_assets_ratio
-            + ": 1)"
+            f"C1: Cheap Assets. {nav_str} ≥ {abbreviate_num(mkt_cap)}"
+            + f" (≈ {cheap_assets_ratio}: 1)"
         )
-    c1 = criteria_message_dict(message, success, "assets")
+    return criteria_message_dict(message, success, "assets")
 
-    # Criteria 2: Is earnings growth averaging +2.9% year over year?
+
+# Criteria 2: Is earnings growth averaging +2.9% year over year?
+def criteria_two(eps_list):
     eps_growth = 0
     years = 5  # Currently hard-coded to analyze last 5 years of data
     if eps_list is not None and len(eps_list) >= years:
@@ -139,9 +121,11 @@ def health_check(
     if success:
         message = f"C2: EPS Growth of {str(eps_growth)}% ≥ 15%"
         message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
-    c2 = criteria_message_dict(message, success, "eps_growth")
+    return criteria_message_dict(message, success, "eps_growth")
 
-    # Criteria 3: No earnings deficit in last 5 yrs
+
+# Criteria 3: No earnings deficit in last 5 yrs
+def criteria_three(eps_list, mw_data_range):
     deficit_yrs = []
     if eps_list is not None:
         deficit_yrs = [
@@ -153,39 +137,59 @@ def health_check(
     message = f"C3: EPS Deficit in {str(deficit_yrs)}"
     if success:
         message = f"C3: No EPS Deficit in last 5 years"
-    c3 = criteria_message_dict(message, success, "eps")
+    return criteria_message_dict(message, success, "eps")
 
-    # Criteria 4: Is its Current Ratio >= 2.0?
+
+# Criteria 4: Is its Current Ratio >= 2.0?
+def criteria_four(curr_ratio):
     message = f"C4: Current Ratio of {str(curr_ratio)} !≥ 2.0"
     success = good_curr_ratio(curr_ratio)
     if success:
         message = f"C4: Current Ratio of {str(curr_ratio)} ≥ 2.0"
-    c4 = criteria_message_dict(message, success, "curr_ratio")
+    return criteria_message_dict(message, success, "curr_ratio")
 
-    # Criteria 5: Is its P/E (Price to earnings) Ratio <= 15?
+
+# Criteria 5: Is its P/E (Price to earnings) Ratio <= 15?
+def criteria_five(pe_ratio):
     success = good_pe_ratio(pe_ratio)
     message = f"C5: P/E Ratio of {str(pe_ratio)} !≤ 15.0"
     if success:
         message = f"C5: P/E Ratio of {str(pe_ratio)} ≤ 15.0"
-    c5 = criteria_message_dict(message, success, "pe_ratio")
+    return criteria_message_dict(message, success, "pe_ratio")
 
-    # Criteria 6: Are its annual sales >= $700M USD?
+
+# Criteria 6: Are its annual sales >= $700M USD?
+def criteria_six(sales):
     if not sales:
         sales = 0
     sales_str = abbreviate_num(sales)
     sales_ratio = str(round(sales / (700 * million), 2))
     message = f"C6: ${sales_str} of $700M sales (≈ {sales_ratio}: 1)"
-    c6 = criteria_message_dict(message, good_sales(sales), "sales")
+    return criteria_message_dict(message, good_sales(sales), "sales")
 
-    # Criteria 7: If it pays a div, no missed/reduced payments in last 5 yrs
+
+# Criteria 7: If it pays a div, no missed/reduced payments in last 5 yrs
+def criteria_seven(dividend, dividend_list, div_yield):
     success = good_dividend(dividend, dividend_list)
     message = f"C7: Dividend missed/decr. last 5 years"
     if success and div_yield and div_yield != "N/A":
         message = f"C7: Dividend steady/incr. last 5 years"
     elif success:
         message = f"C7: Dividend not paid"
-    c7 = criteria_message_dict(message, success, "dividend")
+    return criteria_message_dict(message, success, "dividend")
 
+
+# Currently scores out of 7 to determine health of a stock.
+def health_check(company):
+    c1 = criteria_one(company.mkt_cap, company.assets, company.liabilities)
+    c2 = criteria_two(company.eps_list)
+    c3 = criteria_three(company.eps_list, company.mw_data_range)
+    c4 = criteria_four(company.curr_ratio)
+    c5 = criteria_five(company.pe_ratio)
+    c6 = criteria_six(company.sales)
+    c7 = criteria_seven(company.dividend, company.dividend_list,
+        company.div_yield
+    )
     criteria_messages = {**c1, **c2, **c3, **c4, **c5, **c6, **c7}
     # Colors the criteria output
     criterion = []

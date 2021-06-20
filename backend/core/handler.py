@@ -27,8 +27,7 @@ def check(symbol, flags):
     yahoo_scrape = YFScraper(symbol).scrape()
     scraped_dicts = [mw_scrape, yahoo_scrape]
     scraped_data = combine_scrapes(scraped_dicts)
-    company = Company(symbol)
-    company.update(scraped_data)
+    company = Company(symbol, scraped_data)
     company.calculate_score()
     company.calculate_graham_num()
     return output_handler(company, company.health_check(), flags)
