@@ -87,7 +87,6 @@ def eps_growth(eps_list, years):
     truncated_eps_list = truncate_eps_list(eps_list, years)
     if truncated_eps_list[0] != 0:
         eps_growth = float(truncated_eps_list[-1] / truncated_eps_list[0]) - 1.0
-        eps_growth *= 100 # Get result as a percentage
         # Applies negative sign when EPS has changed from negative to positive
         if truncated_eps_list[0] < 0 and truncated_eps_list[-1] > 0:
             eps_growth *= -1
@@ -130,10 +129,10 @@ def criteria_two(eps_list):
     # if avg_growth != None:
         # avg_growth = round(avg_growth, 2)
     success = good_eps_growth(eps_list, years)
-    message = f"C2: Low EPS Growth of {str(round(actual_growth, 2))}% < 15%"
+    message = f"C2: Low EPS Growth of {str(round(actual_growth * 100, 2))}% < 15%"
     # message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
     if success:
-        message = f"C2: EPS Growth of {str(round(actual_growth, 2))}% ≥ 15%"
+        message = f"C2: EPS Growth of {str(round(actual_growth * 100, 2))}% ≥ 15%"
         # message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
     return criteria_message_dict(message, success, "eps_growth")
 
