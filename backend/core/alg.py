@@ -1,4 +1,4 @@
-import math, locale
+import math
 
 # Constants for referencing very large numbers
 trillion = 1000000000000
@@ -197,6 +197,19 @@ def criteria_seven(dividend, dividend_list, div_yield):
     return criteria_message_dict(message, success, "dividend")
 
 
+def color_criterion(criteria_messages):
+    criterion = []
+    for k, v in criteria_messages.items():
+        if v["success"]:
+            if "Dividend not paid" in v["message"]:
+                criterion.append("[yellow]" + v["message"] + "[/yellow]")
+            else:
+                criterion.append("[green]" + v["message"] + "[/green]")
+        else:
+            criterion.append("[red]" + v["message"] + "[/red]")
+    return criterion
+
+
 # Currently scores out of 7 to determine health of a stock.
 def health_check(company):
     c1 = criteria_one(company.mkt_cap, company.assets, company.liabilities)
@@ -209,18 +222,7 @@ def health_check(company):
         company.div_yield
     )
     criteria_messages = {**c1, **c2, **c3, **c4, **c5, **c6, **c7}
-    # Colors the criteria output
-    criterion = []
-    for k, v in criteria_messages.items():
-        if v["success"]:
-            if "Dividend not paid" in v["message"]:
-                criterion.append("[yellow]" + v["message"] + "[/yellow]")
-            else:
-                criterion.append("[green]" + v["message"] + "[/green]")
-        else:
-            criterion.append("[red]" + v["message"] + "[/red]")
-    result = criterion
-    return result
+    return color_criterion(criteria_messages)
 
 
 def good_sales(sales):
