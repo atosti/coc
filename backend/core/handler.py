@@ -24,9 +24,13 @@ def combine_scrapes(scraped_dicts_list):
 
 def check(symbol, flags):
     mw_scrape = MWScraper(symbol).scrape()
+    # TODO - Yahoo scrape is currently broken. See if Yahoo fixes it later.
     yahoo_scrape = YFScraper(symbol).scrape()
     scraped_dicts = [mw_scrape, yahoo_scrape]
     scraped_data = combine_scrapes(scraped_dicts)
+    # Calculates values we can't quite fetch
+    scraped_data["bvps"] = alg.bvps(scraped_data["pb_ratio"], scraped_data["price"])    
+    scraped_data["mkt_cap"] = alg.mkt_cap(mw_scrape["diluted_shares"], mw_scrape["price"])
     company = Company(symbol, scraped_data)
     company.calculate_score()
     company.calculate_graham_num()

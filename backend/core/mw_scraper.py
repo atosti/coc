@@ -108,12 +108,14 @@ class MWScraper:
         soup = get_soup(f"{self.base_url}/{self.url_symbol}/financials")
         eps_dict = MWScraper.financials_search(soup, "EPS (Basic)")
         sales_dict = MWScraper.financials_search(soup, "Sales/Revenue")
+        diluted_shares = MWScraper.financials_search(soup, "Diluted Shares Outstanding")
         return {
             "eps": eps_dict.get("item"),
             "eps_list": eps_dict["item_list"],
             "sales": sales_dict["item"],
             "sales_list": sales_dict["item_list"],
             "mw_data_range": eps_dict["year_list"],
+            "diluted_shares": diluted_shares.get("item"),
         }
 
     def scrape_profile(self):

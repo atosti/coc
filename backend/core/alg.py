@@ -17,6 +17,10 @@ def pe_ratio(price, eps):
     return float(price / eps)
 
 
+def bvps(pb_ratio, price):
+    return round(float(price / pb_ratio), 2)
+
+
 # Returns the fair value of a stock. The highest price an investor should pay.
 def graham_num(eps, bvps):
     if eps is None or bvps is None:
