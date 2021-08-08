@@ -129,9 +129,10 @@ class MWScraper:
 
     def scrape_balance_sheet(self):
         soup = get_soup(f"{self.base_url}/{self.url_symbol}/financials/balance-sheet")
+
         # Fetch the price from the top of the page
         price = None
-        intraday_price = soup.find("h3", {"class": "intraday__price"})
+        intraday_price = soup.find("h2", {"class": "intraday__price"})
         if intraday_price:
             price = (
                 intraday_price.get_text(strip=True).replace("$", "").replace("€", "")

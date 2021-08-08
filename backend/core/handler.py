@@ -29,12 +29,19 @@ def check(symbol, flags):
     scraped_dicts = [mw_scrape, yahoo_scrape]
     scraped_data = combine_scrapes(scraped_dicts)
     # Calculates values we can't quite fetch
-    scraped_data["bvps"] = alg.bvps(scraped_data["pb_ratio"], scraped_data["price"])    
-    scraped_data["mkt_cap"] = alg.mkt_cap(mw_scrape["diluted_shares"], mw_scrape["price"])
+    if not scraped_data["price"]:
+        scraped_data["price"] = 1
+    print(scraped_data["price"])
+
+    scraped_data["bvps"] = alg.bvps(scraped_data["pb_ratio"], scraped_data["price"])
+    scraped_data["mkt_cap"] = alg.mkt_cap(
+        mw_scrape["diluted_shares"], mw_scrape["price"]
+    )
     company = Company(symbol, scraped_data)
     company.calculate_score()
     company.calculate_graham_num()
     return output_handler(company, company.health_check(), flags)
+
 
 def build_colored_ratio(a, b):
     ratio = 0.0
@@ -53,12 +60,12 @@ def output_handler(company, health_result, flags):
         gp_ratio_str = build_colored_ratio(company.graham_num, company.price)
         bp_ratio_str = build_colored_ratio(company.bvps, company.price)
         outputs = [
-            f'Symbol: {company.symbol.upper()} ({company.sector})',
-            f'Graham Num/Price: {company.graham_num}/{company.price} {gp_ratio_str}',
-            f'Bvps/Price: {company.bvps}/{company.price} {bp_ratio_str}',
-            f'Dividend Yield/Payout Ratio: {company.div_yield} ({company.payout_ratio})',
-            f'Score: {company.score}/7',
-            f'Analysis (for {company.mw_data_range[-1]} data):',
+            f"Symbol: {company.symbol.upper()} ({company.sector})",
+            f"Graham Num/Price: {company.graham_num}/{company.price} {gp_ratio_str}",
+            f"Bvps/Price: {company.bvps}/{company.price} {bp_ratio_str}",
+            f"Dividend Yield/Payout Ratio: {company.div_yield} ({company.payout_ratio})",
+            f"Score: {company.score}/7",
+            f"Analysis (for {company.mw_data_range[-1]} data):",
         ]
         for x in health_result:
             outputs.append(f'{" " * 4}{x}')
