@@ -5,6 +5,7 @@ trillion = 1000000000000
 billion = 1000000000
 million = 1000000
 
+
 def mkt_cap(shares, price):
     return shares * price
 
@@ -113,7 +114,8 @@ def criteria_one(mkt_cap, assets, liabilities):
         nav_str = abbreviate_num(nav * 1.5)
         cheap_assets_ratio = calculate_rounded_ratio(nav * 1.5, mkt_cap, 2)
     success = good_assets(mkt_cap, assets, liabilities)
-    message = (f"C1: Expensive Assets. {nav_str} !≥ {abbreviate_num(mkt_cap)}"
+    message = (
+        f"C1: Expensive Assets. {nav_str} !≥ {abbreviate_num(mkt_cap)}"
         + f" (≈ {cheap_assets_ratio}: 1)"
     )
     if success:
@@ -131,7 +133,7 @@ def criteria_two(eps_list):
     # TODO - Decide if you actually want the avg_growth metric. It's confusing.
     # avg_growth = avg_eps_growth(eps_list, 5)
     # if avg_growth != None:
-        # avg_growth = round(avg_growth, 2)
+    # avg_growth = round(avg_growth, 2)
     success = good_eps_growth(eps_list, years)
     message = f"C2: Low EPS Growth of {str(round(actual_growth * 100, 2))}% < 15%"
     # message += f"\n\tAvg EPS growth vs. EPS 5 years ago: {str(avg_growth)}%"
@@ -222,9 +224,7 @@ def health_check(company):
     c4 = criteria_four(company.curr_ratio)
     c5 = criteria_five(company.pe_ratio)
     c6 = criteria_six(company.sales)
-    c7 = criteria_seven(company.dividend, company.dividend_list,
-        company.div_yield
-    )
+    c7 = criteria_seven(company.dividend, company.dividend_list, company.div_yield)
     criteria_messages = {**c1, **c2, **c3, **c4, **c5, **c6, **c7}
     return color_criterion(criteria_messages)
 
