@@ -104,6 +104,16 @@ class MWScraper:
                     item = float(locale.atof(value))
         return item
 
+    def scrape_summary(self):
+        soup = get_soup(f"{self.base_url}/{self.url_symbol}/")
+        raw_dividend_yield = soup.find(
+            text="Yield"
+        ).parent.next_sibling.next_sibling.contents[0]
+        dividend_yield = raw_dividend_yield[: len(raw_dividend_yield) - 1]
+        return {
+            "div_yield": dividend_yield,
+        }
+
     def scrape_financials(self):
         soup = get_soup(f"{self.base_url}/{self.url_symbol}/financials")
         eps_dict = MWScraper.financials_search(soup, "EPS (Basic)")
@@ -169,6 +179,7 @@ class MWScraper:
         return {
             "scraper": "MWScraper",
             "symbol": self.symbol,
+            **self.scrape_summary(),
             **self.scrape_financials(),
             **self.scrape_profile(),
             **self.scrape_balance_sheet(),

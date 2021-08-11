@@ -1,5 +1,6 @@
 from backend.core import alg
 
+
 class Company:
     def __init__(self, symbol, scraped_data):
         self.symbol = symbol
@@ -9,7 +10,7 @@ class Company:
     def update(self, scraped_data):
         for key in scraped_data:
             setattr(self, str(key), scraped_data[key])
-    
+
     def calculate_score(self):
         score_assessments = [
             alg.good_assets(self.mkt_cap, self.assets, self.liabilities),
@@ -21,11 +22,10 @@ class Company:
             alg.good_sales(self.sales),
         ]
         self.score = len([x for x in score_assessments if x])
-    
+
     def calculate_graham_num(self):
         self.graham_num = alg.graham_num(self.eps, self.bvps)
 
     def health_check(self):
         self.health_result = alg.health_check(self)
         return self.health_result
-
