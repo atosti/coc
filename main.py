@@ -7,8 +7,8 @@ import functools
 
 def _safe_check(symbol, flags):
     try:
-        return handler.check(symbol, flags)
-    except:
+        return {symbol: handler.check(symbol, flags)}
+    except Exception as e:
         return {symbol: None}
 
 
@@ -32,7 +32,6 @@ def _run(args):
                     excel.update(symbol, company)
                 else:
                     error_symbols.append(symbol)
-        
 
         if error_symbols:
             print("Error while processings the following symbols: ")
@@ -46,6 +45,7 @@ def _run(args):
                 return
             if phrase:
                 handler.commands(phrase)
+
 
 def process_args():
     parser = argparse.ArgumentParser()

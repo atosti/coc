@@ -37,9 +37,8 @@ def check(symbol, flags):
         mw_scrape["diluted_shares"], mw_scrape["price"]
     )
     company = Company(symbol, scraped_data)
-    company.calculate_score()
-    company.calculate_graham_num()
-    return output_handler(company, company.health_check(), flags)
+    output_handler(company, flags)
+    return company
 
 
 def build_colored_ratio(a, b):
@@ -52,7 +51,7 @@ def build_colored_ratio(a, b):
     return f"([{ratio_color}]{round(ratio, 2)}[/{ratio_color}])"
 
 
-def output_handler(company, health_result, flags):
+def output_handler(company, flags):
     json_data = None
     # Silent flag, hides console output
     if "s" not in flags:
@@ -66,7 +65,8 @@ def output_handler(company, health_result, flags):
             f"Score: {company.score}/7",
             f"Analysis (for {company.mw_data_range[-1]} data):",
         ]
-        for x in health_result:
+
+        for x in company.health_check():
             outputs.append(f'{" " * 4}{x}')
         print("\n".join(outputs))
 
@@ -101,7 +101,8 @@ def commands(phrase):
     for symbol in symbols:
         symbol_json = {}
         try:
-            symbol_json = check(symbol, flags)
+            company = check(symbol, flags)
+            symbol_json = company.__dict__
         except:
             error_symbols.append(symbol)
 
