@@ -31,8 +31,8 @@ def check(symbol, flags):
     # Calculates values we can't quite fetch
     if not scraped_data["price"]:
         scraped_data["price"] = 1
-
-    scraped_data["bvps"] = alg.bvps(scraped_data["pb_ratio"], scraped_data["price"])
+    if scraped_data["pb_ratio"]:
+        scraped_data["bvps"] = alg.bvps(scraped_data["pb_ratio"], scraped_data["price"])
     scraped_data["mkt_cap"] = alg.mkt_cap(
         mw_scrape["diluted_shares"], mw_scrape["price"]
     )
