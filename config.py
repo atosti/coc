@@ -4,7 +4,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 import json
 from loguru import logger
 
-
 class Config(object):
     ENV = os.environ.get("ENV") or "development"
     SECRET_KEY = os.environ.get("SECRET_KEY") or "A DUMMY SECRET KEY GOES HERE"

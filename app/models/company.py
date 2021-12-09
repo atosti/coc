@@ -1,4 +1,5 @@
 from app import db
+from app.models.snapshot import Snapshot
 from flask import render_template
 
 class Company(db.Model):
@@ -9,7 +10,8 @@ class Company(db.Model):
     symbol = db.Column(db.UnicodeText(), nullable=False)
     
     def repr_card(self):
-        return render_template('models/company/card.html', company=self)
+        snapshot = Snapshot.query.filter_by(company_id = self.id).order_by(Snapshot.creation_time).first()
+        return render_template('models/company/card.html', company=self, evaluation=snapshot.evaluate())
 
     @staticmethod
     def repr_card_grid(companies):

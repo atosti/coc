@@ -1,19 +1,66 @@
 <div class="border border-gray-400 rounded p-4">
   <div class="text-gray-900 font-bold text-xl mb-2 flex">
-    <div>{{ company.symbol }}</div>
-    <div class="ml-2 text-green-700">7</div>
+    <div>{{ company.symbol }} - {{ evaluation.sector }}</div>
+    <div class="ml-3
+                {% if evaluation.score == 5 %}
+                text-gray-500
+                {% elif evaluation.score == 6 %}
+                text-green-700
+                {% elif evaluation.score == 7 %}
+                text-green-500
+                {% else %}
+                text-red-500
+                {% endif %}">
+      {{ evaluation.score }}
+    </div>
   </div>
-  <div class="text-green-700 text-md">Graham Num/Price: 25.47/24.69 (1.03)</div>
-  <div class="text-green-700 text-md">Bvps/Price: 15.34/24.69 (0.62)</div>
-  <div class="text-green-700 text-md">Dividend Yield/Payout Ratio: 7.64%</div>
+
+  {% set ratio = (evaluation.graham_num / evaluation.price)|round(2,'floor') %}
+  <div class="text-md
+              {% if ratio > 1.00 %}
+              text-green-500 
+              {% else %}
+              text-red-500 
+              {% endif %}">
+    Graham Num / Price: {{ evaluation.graham_num }}/{{ evaluation.price }} ({{ ratio }})
+  </div>
+
+  {% set ratio = (evaluation.bvps / evaluation.price)|round(2,'floor') %}
+  <div class="text-md
+              {% if ratio > 1.00 %}
+              text-green-500 
+              {% else %}
+              text-red-500 
+              {% endif %}">
+    BVPS / Price: {{ evaluation.bvps }}/{{ evaluation.price }} ({{ ratio }})
+  </div>
+
+  {% if evaluation.div_yield and evaluation.payout_ratio  %}
+  {% set ratio = (evaluation.div_yield / evaluation.payout_ratio)|round(2,'floor') %}
+  <div class="text-md
+               {% if ratio > 1.00 %}
+               text-green-500 
+               {% else %}
+               text-red-500 
+               {% endif %}">
+    Dividend Yield / Payout Ratio: {{ evaluation.div_yield }}/{{ evaluation.payout_ratio }} ({{ ratio }})
+  </div>
+  {% endif %}
 
   <ul class="list-disc list-inside mt-2">
-    <li class="text-green-700">Cheap Assets. 1.37B ≥ 868.97M (≈ 1.58: 1)</li>
-    <li class="text-red-700">EPS Growth of 24.26% ≥ 15%</li>
-    <li>No EPS Deficit in last 5 years</li>
-    <li>Current Ratio of 6.62 ≥ 2.0</li>
-    <li>P/E Ratio of 13.28 ≤ 15.0</li>
-    <li>$967.48M of $700M sales (≈ 1.38: 1)</li>
-    <li>Dividend steady/incr. last 5 years</li>
-    <ul>
+  {% for x in evaluation.health_check() %}
+  <li class="
+             {% if '[/red]' in x %}
+             text-red-500
+             {% else %}
+             text-green-500
+             {% endif %}" >
+             {{ 
+             x.replace('[/red]','')
+             .replace('[red]','')
+             .replace('[/green]','')
+             .replace('[green]','') }}
+  </li>
+  {% endfor %}
+  </ul>
 </div>
