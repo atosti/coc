@@ -36,7 +36,7 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/dashboard', methods = ['GET','POST'])
+@app.route('/dashboard', methods = ['GET','POST', 'DELETE'])
 @login_required
 def dashboard():
     if request.method == "POST":
@@ -65,9 +65,20 @@ def dashboard():
             else:
                 db.session.rollback()
 
-        # db.session.add(_list)
         db.session.commit()
         return Company.repr_card_grid(_list.companies())
+
+    if request.method == "DELETE":
+        target = request.form.get('target')
+
+        _list = current_user.lists.first()
+        if not _list:
+            return "" # should not happen
+
+        company = Company.query.filter_by(id=target).first()
+        _list.remove_company(company)
+        db.session.commit()
+        return ""
 
     _list = current_user.lists.first()
     card_grid = Company.repr_card_grid(_list.companies())

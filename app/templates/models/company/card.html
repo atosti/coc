@@ -1,4 +1,4 @@
-<div class="border border-gray-400 rounded p-4">
+<div class="card border border-gray-400 rounded p-4">
   <div class="text-gray-900 font-bold text-xl mb-2 flex">
     <div>{{ company.symbol }} - {{ evaluation.sector }}</div>
     <div class="ml-3
@@ -12,6 +12,11 @@
                 text-red-500
                 {% endif %}">
       {{ evaluation.score }}
+    </div>
+    <div class="ml-auto cursor-pointer" hx-confirm="Are you sure?" hx-target="closest .card" hx-swap="outerHTML" hx-delete="/dashboard" hx-vals='{"target":{{ company.id }}}'>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+</svg>
     </div>
   </div>
 

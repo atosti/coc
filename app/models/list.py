@@ -27,7 +27,7 @@ class List(db.Model):
         company_ids = []
         for x in self.data:
             if x != company.id:
-                company_ids.append(x.id)
+                company_ids.append(x)
         self.data = company_ids
         db.session.add(self)
 
