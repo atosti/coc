@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+	<meta charset='utf-8'>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge'>
+	<meta name='viewport' content='width=device-width, initial-scale=1'>
+    {% block headmeta %}{% endblock %}
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.1"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    {% block scripts %} {% endblock %}
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+
+    {% block css %} {% endblock %}
+</head>
+<body>
+  <nav class="relative flex flex-wrap items-center justify-between px-3 py-3 bg-blue-500">
+    <div class="container px-4 flex flex-wrap items-center justify-between">
+      <div class="relative flex justify-between w-auto px-4 static block justify-start">
+        <div class="font-bold uppercase text-lg text-white hover:opacity-75"><a href="/">Home</a></div>
+      </div>
+    </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="font-bold uppercase text-lg text-white hover:opacity-75 ml-auto"><a href="/logout">logout</a></div>
+    {% else %}
+    <div class="font-bold uppercase text-lg text-white hover:opacity-75 ml-auto"><a href="/login">login</a></div>
+    {% endif %}
+  </nav>
+{% block content %}{% endblock %}
+</body>
+</html>    

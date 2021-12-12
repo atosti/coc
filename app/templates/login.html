@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block headmeta %}
+	<title>Login</title>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block content %}
+<div class='p-5 text-center'>
+  <h1 class="text-3xl mb-3">Sign In</h1>
+  <form action='/login' method='post'>
+      <label for="input-username">Username</label>
+      <input class="form-textarea w-1/3 border rounded p-2 mb-3" type="text" name='username'id="input-username"  placeholder="Enter username (case-sensitive)">
+      <div class="form-group">
+        <label for="input-password">Password</label>
+        <input type="password" class="form-textarea w-1/3 border rounded p-2 mb-3" name='password' id="input-password" placeholder="Enter password">
+      </div>
+    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-3">Submit</button>
+  </form>
+</div>
+{% endblock %}

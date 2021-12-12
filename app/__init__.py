@@ -26,7 +26,7 @@ metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(app, metadata=metadata)
 
 migrate = Migrate(app, db, render_as_batch=True)
-# login = LoginManager(app)
-# login.login_view = "login"
+login = LoginManager(app)
+login.login_view = "login"
 
 from app import routes

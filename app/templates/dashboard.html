@@ -1,21 +1,25 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-        <script type="text/javascript" src="https://unpkg.com/htmx.org@1.5.0"></script>
-        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-    </head>
-    <body>
-      <div class="m-5">
-        <form class="p-4" hx-post="/dashboard" hx-target="#card-grid" hx-swap="outerHTML">
-          <div class="flex">
-            <div>
-              <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="symbol" type="text" name="symbol" placeholder="Stock symbol">
-            </div>
-            <button class="ml-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add symbol...</button>
-          </div>
-        </form>
+
+{% extends "base.html" %}
+{% block headmeta %}
+	<title>Dashboard</title>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block content %}
+  <div class="m-5">
+    <form class="p-4" hx-post="/dashboard" hx-target="#card-grid" hx-swap="outerHTML">
+      <div class="flex">
+        <div>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="symbol" type="text" name="symbol" placeholder="Stock symbol">
+        </div>
+        <button class="ml-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex">
+          Add symbol...
+          <img class="htmx-indicator w-6 ml-1" src="https://samherbert.net/svg-loaders/svg-loaders/tail-spin.svg"}>
+        </button>
       </div>
-      {{ card_grid|safe }} 
-    </body>
-</html>
+    </form>
+  </div>
+  {{ card_grid|safe }} 
+{% endblock %}

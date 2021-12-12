@@ -7,7 +7,7 @@ Create Date: 2021-12-09 11:39:37.754339
 """
 from alembic import op
 import sqlalchemy as sa
-from app.models.snapshot import JSONEncodedDict
+from app.models.utils import JSONEncodedDict
 
 
 # revision identifiers, used by Alembic.
