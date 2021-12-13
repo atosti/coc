@@ -40,6 +40,25 @@ def check(symbol, flags):
     output_handler(company, flags)
     return company
 
+def check_and_return_output(symbol, flags):
+    mw_scrape = MWScraper(symbol).scrape()
+    # TODO - Yahoo scrape is currently broken. See if Yahoo fixes it later.
+    yahoo_scrape = YFScraper(symbol).scrape()
+    scraped_dicts = [mw_scrape, yahoo_scrape]
+    scraped_data = combine_scrapes(scraped_dicts)
+    # Calculates values we can't quite fetch
+    if not scraped_data["price"]:
+        scraped_data["price"] = 1
+    if scraped_data["pb_ratio"]:
+        scraped_data["bvps"] = alg.bvps(scraped_data["pb_ratio"], scraped_data["price"])
+    scraped_data["mkt_cap"] = alg.mkt_cap(
+        mw_scrape["diluted_shares"], mw_scrape["price"]
+    )
+    company = Company(symbol, scraped_data)
+    handler_out = output_handler(company, flags)
+    return company, handler_out, scraped_data
+
+
 
 def build_colored_ratio(a, b):
     ratio = 0.0

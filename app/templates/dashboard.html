@@ -1,0 +1,25 @@
+
+{% extends "base.html" %}
+{% block headmeta %}
+	<title>Dashboard</title>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block content %}
+  <div class="m-5">
+    <form class="p-4" hx-post="/dashboard" hx-target="#card-grid" hx-swap="outerHTML">
+      <div class="flex">
+        <div>
+          <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="symbol" type="text" name="symbol" placeholder="Stock symbol">
+        </div>
+        <button class="ml-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex">
+          Add symbol...
+          <img class="htmx-indicator w-6 ml-1" src="https://samherbert.net/svg-loaders/svg-loaders/tail-spin.svg"}>
+        </button>
+      </div>
+    </form>
+  </div>
+  {{ card_grid|safe }} 
+{% endblock %}
