@@ -5,7 +5,9 @@ import json
 from loguru import logger
 
 class Config(object):
-    def _database_url(database_url):
+
+    @staticmethod
+    def _database_url():
         uri = os.getenv("DATABASE_URL")
         if uri and uri.startswith("postgres://"):
             uri = uri.replace("postgres://", "postgresql://", 1)
@@ -17,6 +19,6 @@ class Config(object):
     
     HEROKU_RELEASE_VERSION = os.getenv("HEROKU_RELEASE_VERSION","")
     
-    SQLALCHEMY_DATABASE_URI = _database_url(database_url) or "sqlite:///" + os.path.join(basedir, "app.db")
+    SQLALCHEMY_DATABASE_URI = _database_url() or "sqlite:///" + os.path.join(basedir, "app.db")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
