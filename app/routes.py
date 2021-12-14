@@ -44,6 +44,7 @@ def dashboard():
         _list = current_user.lists.first()
         if not _list:
             _list = List.make(current_user)
+            db.session.add(_list)
             db.session.flush()
 
         symbol = request.form.to_dict().get('symbol')
@@ -66,6 +67,9 @@ def dashboard():
                 db.session.rollback()
 
         db.session.commit()
+        companies = []
+        if _list:
+            companies = _list.companies()
         return Company.repr_card_grid(_list.companies())
 
     if request.method == "DELETE":
@@ -81,6 +85,10 @@ def dashboard():
         return ""
 
     _list = current_user.lists.first()
+    if not _list:
+        _list = List.make(current_user)
+        db.session.add(_list)
+        db.session.commit()
     card_grid = Company.repr_card_grid(_list.companies())
     return render_template('dashboard.html', card_grid=card_grid)
 
