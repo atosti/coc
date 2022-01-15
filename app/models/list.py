@@ -7,20 +7,21 @@ from backend.core import company as backend_company
 from app.models.utils import JSONEncodedDict
 import datetime
 
+
 class List(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     creation_time = db.Column(
         db.DateTime(timezone=True), server_default=db.func.now(), nullable=False
     )
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    data = db.Column(JSONEncodedDict) 
+    data = db.Column(JSONEncodedDict)
 
     def add_company(self, company):
         _company_list = []
         _company_list.extend(self.data)
         if not company.id in _company_list:
             _company_list.append(company.id)
-            self.data = _company_list # These changes will not commit to the db unless the self.data object has been reassigned to a new object
+            self.data = _company_list  # These changes will not commit to the db unless the self.data object has been reassigned to a new object
             db.session.add(self)
 
     def remove_company(self, company):
@@ -48,5 +49,3 @@ class List(db.Model):
     @staticmethod
     def make(user):
         return List(user_id=user.id, data=[])
-
-

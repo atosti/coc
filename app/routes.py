@@ -1,16 +1,18 @@
 from app import app, db
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, abort
 from flask_login import current_user, login_user, logout_user, login_required
-from app.models.list import List 
+from app.models.list import List
 from app.models.company import Company
 from app.models.snapshot import Snapshot
-from app.models.user import User 
+from app.models.user import User
 
-@app.route('/')
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-@app.route('/login', methods=['GET', 'POST'])
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard"))
@@ -18,11 +20,11 @@ def login():
         return render_template("login.html")
 
     if request.method == "POST":
-        username = request.form.get('username')
-        password = request.form.get('password')
+        username = request.form.get("username")
+        password = request.form.get("password")
         user = User.query.filter_by(username=username).first()
         if not user or not user.check_password(password):
-            return  render_template("login.html")
+            return render_template("login.html")
         login_user(user, password)
         user.set_last_login_time()
         db.session.add(user)
@@ -31,23 +33,24 @@ def login():
 
     return redirect(url_for("dashboard"))
 
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for("index"))
 
-@app.route('/dashboard', methods = ['GET','POST', 'DELETE'])
+
+@app.route("/dashboard", methods=["GET", "POST", "DELETE", "PUT"])
 @login_required
 def dashboard():
     if request.method == "POST":
-
         _list = current_user.lists.first()
         if not _list:
             _list = List.make(current_user)
             db.session.add(_list)
             db.session.flush()
 
-        symbol = request.form.to_dict().get('symbol')
+        symbol = request.form.to_dict().get("symbol")
         # TODO: check if valid symbol here, capitalization too
         company = Company.query.filter_by(symbol=symbol).first()
         if not company:
@@ -57,7 +60,11 @@ def dashboard():
 
         _list.add_company(company)
 
-        snapshot = Snapshot.query.filter_by(company_id=company.id).order_by(Snapshot.creation_time.desc()).first()
+        snapshot = (
+            Snapshot.query.filter_by(company_id=company.id)
+            .order_by(Snapshot.creation_time.desc())
+            .first()
+        )
         if not snapshot:
             snapshot = Snapshot.make(symbol, company)
             if snapshot:
@@ -73,16 +80,39 @@ def dashboard():
         return Company.repr_card_grid(_list.companies())
 
     if request.method == "DELETE":
-        target = request.form.get('target')
+        target = request.form.get("target")
 
         _list = current_user.lists.first()
         if not _list:
-            return "" # should not happen
+            return ""  # should not happen
 
         company = Company.query.filter_by(id=target).first()
         _list.remove_company(company)
         db.session.commit()
         return ""
+
+    if request.method == "PUT":
+        target = request.form.get("target")
+        company = Company.query.filter_by(id=target).first()
+        if not company:
+            return ""
+
+        latest_snapshot = (
+            Snapshot.query.filter_by(company_id=company.id)
+            .order_by(Snapshot.creation_time.desc())
+            .first()
+        )
+        if not latest_snapshot.stale():
+            return company.repr_card()
+
+        snapshot = Snapshot.make(company.symbol, company)
+        if snapshot:
+            db.session.add(snapshot)
+            db.session.commit()
+        else:
+            db.session.rollback()
+
+        return company.repr_card()
 
     _list = current_user.lists.first()
     if not _list:
@@ -90,8 +120,17 @@ def dashboard():
         db.session.add(_list)
         db.session.commit()
     card_grid = Company.repr_card_grid(_list.companies())
-    return render_template('dashboard.html', card_grid=card_grid)
+    return render_template("dashboard.html", card_grid=card_grid)
 
 
-if __name__ == '__main__':
-   app.run()
+@app.route("/company/<int:id>", methods=["GET"])
+@login_required
+def company(id):
+    target = Company.query.filter_by(id=id).first()
+    if not target:
+        abort(404)
+    return render_template("models/company/company.html", target=target)
+
+
+if __name__ == "__main__":
+    app.run()

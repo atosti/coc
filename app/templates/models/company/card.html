@@ -1,6 +1,8 @@
 <div class="card border border-gray-400 rounded p-4">
-  <div class="text-gray-900 font-bold text-xl mb-2 flex">
-    <div>{{ company.symbol }} - {{ evaluation.sector }}</div>
+  <div class="text-gray-900 font-bold text-xl flex">
+    <div class="text-gray-500">
+      <a class="text-blue-500 hover:text-blue-700" href="{{ company.uri() }}">{{ company.symbol }}</a> - {{ evaluation.sector }}
+    </div>
     <div class="ml-3
                 {% if evaluation.score == 5 %}
                 text-gray-500
@@ -16,8 +18,19 @@
     <div class="ml-auto cursor-pointer" hx-confirm="Are you sure?" hx-target="closest .card" hx-swap="outerHTML" hx-delete="/dashboard" hx-vals='{"target":{{ company.id }}}'>
       <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-</svg>
+      </svg>
     </div>
+  </div>
+
+  <div class="flex items-center mb-2" hx-target="closest .card" hx-swap="outerHTML" hx-put="/dashboard" hx-vals='{"target":{{ company.id }}}'>
+    <div class="text-sm text-gray-500">{{ snapshot.creation_time.strftime('%Y-%m-%d') }}</div>
+    {% if snapshot.stale() %}
+    <div class="ml-auto cursor-pointer transform rotate-180  text-gray-500" script="on click toggle .animate-spin on me">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+    </div>
+    {% endif %}
   </div>
 
   {% set ratio = (evaluation.graham_num / evaluation.price)|round(2,'floor') %}

@@ -40,6 +40,7 @@ def check(symbol, flags):
     output_handler(company, flags)
     return company
 
+
 def check_and_return_output(symbol, flags):
     mw_scrape = MWScraper(symbol).scrape()
     # TODO - Yahoo scrape is currently broken. See if Yahoo fixes it later.
@@ -57,7 +58,6 @@ def check_and_return_output(symbol, flags):
     company = Company(symbol, scraped_data)
     handler_out = output_handler(company, flags)
     return company, handler_out, scraped_data
-
 
 
 def build_colored_ratio(a, b):

@@ -1,0 +1,27 @@
+
+{% extends "base.html" %}
+{% block headmeta %}
+<title>Company | {{ target.symbol }}</title>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block content %}
+  <div class="m-5">
+    <h1 class="text-2xl mb-3">{{ target.symbol }}</h1>
+    
+
+    <table class="charts-css line multiple show-heading show-labels show-primary-axis show-8-secondary-axes" style="height: 200px;">
+      <caption class="text-xl">Scores and Graham Number</caption>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      {{ target.repr_chart()|safe }}
+    </table>
+
+  </div>
+{% endblock %}

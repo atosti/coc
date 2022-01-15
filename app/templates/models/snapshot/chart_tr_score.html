@@ -1,0 +1,17 @@
+<tr>
+  <th scope="row">
+    {{ target.creation_time.strftime('%Y-%m-%d') }}
+  </th>
+
+  <td style=
+      {% if previous_score %}
+      "--start: {{ previous_score / 8 }}; --size: {{ evaluation.score / 8 }};"
+      {% else %}
+      "--start: {{ evaluation.score / 8 }}; --size: {{ evaluation.score / 8 }};"
+      {% endif %}
+    >
+    <span class="data">
+      {{ evaluation.score }}
+    </span>
+  </td>
+</tr>
