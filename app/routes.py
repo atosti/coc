@@ -1,5 +1,5 @@
 from app import app, db
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, abort
 from flask_login import current_user, login_user, logout_user, login_required
 from app.models.list import List
 from app.models.company import Company
@@ -121,6 +121,15 @@ def dashboard():
         db.session.commit()
     card_grid = Company.repr_card_grid(_list.companies())
     return render_template("dashboard.html", card_grid=card_grid)
+
+
+@app.route("/company/<int:id>", methods=["GET"])
+@login_required
+def company(id):
+    target = Company.query.filter_by(id=id).first()
+    if not target:
+        abort(404)
+    return render_template("models/company/company.html", target=target)
 
 
 if __name__ == "__main__":

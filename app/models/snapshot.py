@@ -20,6 +20,14 @@ class Snapshot(db.Model):
     def stale(self):
         return (datetime.now() - self.creation_time).days > 0
 
+    def repr_tr_chart_score(self, previous_score=None):
+        return render_template(
+            "models/snapshot/chart_tr_score.html",
+            target=self,
+            evaluation=self.evaluate(),
+            previous_score=previous_score,
+        )
+
     @staticmethod
     def make(symbol, company):
         _handler_company, parsed_data, scrape_data = handler.check_and_return_output(
