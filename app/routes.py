@@ -36,11 +36,10 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/dashboard', methods = ['GET','POST', 'DELETE'])
+@app.route('/dashboard', methods = ['GET','POST', 'DELETE', 'PUT'])
 @login_required
 def dashboard():
     if request.method == "POST":
-
         _list = current_user.lists.first()
         if not _list:
             _list = List.make(current_user)
@@ -83,6 +82,25 @@ def dashboard():
         _list.remove_company(company)
         db.session.commit()
         return ""
+
+    if request.method == "PUT":
+        target = request.form.get('target')
+        company = Company.query.filter_by(id=target).first()
+        if not company:
+            return ""
+
+        latest_snapshot = Snapshot.query.filter_by(company_id = company.id).order_by(Snapshot.creation_time.desc()).first()
+        if not latest_snapshot.stale():
+            return company.repr_card()
+
+        snapshot = Snapshot.make(company.symbol, company)
+        if snapshot:
+            db.session.add(snapshot)
+            db.session.commit()
+        else:
+            db.session.rollback()
+
+        return company.repr_card()
 
     _list = current_user.lists.first()
     if not _list:

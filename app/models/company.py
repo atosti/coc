@@ -10,8 +10,8 @@ class Company(db.Model):
     symbol = db.Column(db.UnicodeText(), nullable=False)
     
     def repr_card(self):
-        snapshot = Snapshot.query.filter_by(company_id = self.id).order_by(Snapshot.creation_time).first()
-        return render_template('models/company/card.html', company=self, evaluation=snapshot.evaluate())
+        snapshot = Snapshot.query.filter_by(company_id = self.id).order_by(Snapshot.creation_time.desc()).first()
+        return render_template('models/company/card.html', company=self, snapshot=snapshot, evaluation=snapshot.evaluate())
 
     @staticmethod
     def repr_card_grid(companies):

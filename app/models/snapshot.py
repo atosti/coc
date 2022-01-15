@@ -1,3 +1,4 @@
+from datetime import datetime
 from app import db
 from flask import render_template
 from app.models.utils import JSONEncodedDict
@@ -14,6 +15,9 @@ class Snapshot(db.Model):
 
     def evaluate(self):
         return backend_company.Company(self.data.get('symbol'), self.data)
+
+    def stale(self):
+        return (datetime.now() - self.creation_time).days > 0
 
     @staticmethod
     def make(symbol, company):
