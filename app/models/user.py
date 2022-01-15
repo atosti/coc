@@ -30,7 +30,7 @@ class User(UserMixin, db.Model):
         else:
             self.last_login_time = datetime.datetime.now()
         db.session.add(self)
-        
+
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
         db.session.add(self)
@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
     def set_email(self, email):
         self.email = email
         db.session.add(self)
-    
+
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
@@ -59,18 +59,11 @@ class User(UserMixin, db.Model):
         return f"username: {self.username} - id: {self.id}"
 
     @staticmethod
-    def make(
-        username,
-        password,
-        email,
-        admin=False):
+    def make(username, password, email, admin=False):
         username = username.strip()
         email = email.strip()
         password = password.strip()
-        u = User(
-            username=username,
-            email=email,
-            admin=admin)
+        u = User(username=username, email=email, admin=admin)
         u.set_password(password)
         return u
 

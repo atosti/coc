@@ -58,7 +58,10 @@ def main(args, task):
 def process_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-t", "--task", type=str, help="Execution mode (options: snapshots:known).",
+        "-t",
+        "--task",
+        type=str,
+        help="Execution mode (options: snapshots:known).",
     )
     return parser.parse_args()
 

@@ -1,6 +1,7 @@
 from sqlalchemy.types import TypeDecorator, VARCHAR
 import json
 
+
 class JSONEncodedDict(TypeDecorator):
     """Represents an immutable structure as a json-encoded string.
 

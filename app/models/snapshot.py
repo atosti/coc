@@ -5,6 +5,7 @@ from app.models.utils import JSONEncodedDict
 from backend.core import handler
 from backend.core import company as backend_company
 
+
 class Snapshot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     creation_time = db.Column(
@@ -14,15 +15,15 @@ class Snapshot(db.Model):
     data = db.Column(JSONEncodedDict)
 
     def evaluate(self):
-        return backend_company.Company(self.data.get('symbol'), self.data)
+        return backend_company.Company(self.data.get("symbol"), self.data)
 
     def stale(self):
         return (datetime.now() - self.creation_time).days > 0
 
     @staticmethod
     def make(symbol, company):
-        _handler_company, parsed_data, scrape_data = handler.check_and_return_output(symbol, ['j', 's'])
+        _handler_company, parsed_data, scrape_data = handler.check_and_return_output(
+            symbol, ["j", "s"]
+        )
         if scrape_data:
             return Snapshot(company_id=company.id, data=scrape_data)
-
-
