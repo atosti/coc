@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from app import db
 from flask import render_template
 from app.models.utils import JSONEncodedDict
@@ -18,7 +18,8 @@ class Snapshot(db.Model):
         return backend_company.Company(self.data.get("symbol"), self.data)
 
     def stale(self):
-        return (datetime.now() - self.creation_time).days > 0
+        delta = timedelta(datetime.now().timestamp() - self.creation_time.timestamp())
+        return delta.days > 0
 
     def repr_tr_chart_score(self, previous_score=None):
         return render_template(
