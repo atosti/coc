@@ -1,6 +1,7 @@
 from app import app, db
 from app.models.snapshot import Snapshot
 from app.models.company import Company
+from app.models.user import User
 from datetime import datetime, timedelta
 from loguru import logger
 import argparse
@@ -47,10 +48,46 @@ def snapshots_known():
         "successes": outputs,
     }
 
+def user_reset_password(username, password):
+
+    outputs = []
+    errors = []
+
+    # print(User.query.all())
+
+    user = User.query.filter_by(username=username).first()
+    if user:
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+        outputs.append({"message": f"updated password for user {username}"})
+    else:
+        errors.append({"message": f"failed to fetch a user with username {username}"})
+        
+    return {
+            "name": "user:reset-password",
+            "completed-at": str(datetime.now()),
+            "args": args,
+            "errors": errors,
+            "successes": outputs,
+    }
+
 
 def main(args, task):
     if task == "snapshots:known":
         out = snapshots_known()
+        log_results(out, args)
+        return out
+    if task == "user:reset-password":
+        if not args.username:
+            logger.warning("--username is a required argument.")
+            return
+
+        if not args.password:
+            logger.warning("--password is a required argument.")
+            return
+
+        out = user_reset_password(args.username, args.password)
         log_results(out, args)
         return out
 
@@ -62,6 +99,18 @@ def process_args():
         "--task",
         type=str,
         help="Execution mode (options: snapshots:known).",
+    )
+    parser.add_argument(
+        "-u",
+        "--username",
+        type=str,
+        help="target username",
+    )
+    parser.add_argument(
+        "-p",
+        "--password",
+        type=str,
+        help="new password",
     )
     return parser.parse_args()
 
