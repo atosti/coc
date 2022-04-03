@@ -33,7 +33,11 @@
     {% endif %}
   </div>
 
+  {% if evaluation.graham_num and evaluation.price %}
   {% set ratio = (evaluation.graham_num / evaluation.price)|round(2,'floor') %}
+  {% else %}
+  {% set ratio = -999 %}
+  {% endif %}
   <div class="text-md
               {% if ratio > 1.00 %}
               text-green-500 
@@ -43,7 +47,11 @@
     Graham Num / Price: {{ evaluation.graham_num }}/{{ evaluation.price }} ({{ ratio }})
   </div>
 
+  {% if evaluation.bvps and evaluation.price %}
   {% set ratio = (evaluation.bvps / evaluation.price)|round(2,'floor') %}
+  {% else %}
+  {% set ratio = -999 %}
+  {% endif %}
   <div class="text-md
               {% if ratio > 1.00 %}
               text-green-500 
