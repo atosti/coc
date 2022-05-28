@@ -13,6 +13,33 @@ class Company(db.Model):
     def uri(self):
         return f"/company/{self.id}"
 
+    def refresh_latest_snapshot(self):
+        latest_snapshot = (
+                Snapshot.query.filter_by(company_id=self.id)
+                .order_by(Snapshot.creation_time.desc())
+                .first()
+                )
+        if latest_snapshot and not latest_snapshot.stale():
+            return self
+
+        snapshot = Snapshot.make(self.symbol, self)
+        if snapshot:
+            db.session.add(snapshot)
+            db.session.commit()
+        else:
+            db.session.rollback()
+
+        return self
+
+    def repr_dict(self):
+        snapshot = (
+            Snapshot.query.filter_by(company_id=self.id)
+            .order_by(Snapshot.creation_time.desc())
+            .first()
+        )
+        return {"symbol" : self.symbol,
+                "snapshot" : snapshot.repr_dict()}
+
     def repr_card(self):
         snapshot = (
             Snapshot.query.filter_by(company_id=self.id)
