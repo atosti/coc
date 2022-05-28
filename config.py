@@ -18,3 +18,5 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = uri or "sqlite:///" + os.path.join(basedir, "app.db")
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    API_BEARER_TOKENS = json.loads(os.environ.get("API_BEARER_TOKENS", "[]"))

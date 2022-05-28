@@ -21,6 +21,9 @@ class Snapshot(db.Model):
         delta = timedelta(datetime.now().timestamp() - self.creation_time.timestamp())
         return delta.days > 0
 
+    def repr_dict(self):
+        return self.data
+
     def repr_tr_chart_score(self, previous_score=None):
         return render_template(
             "models/snapshot/chart_tr_score.html",
