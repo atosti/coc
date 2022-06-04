@@ -5,6 +5,7 @@ from app.models.list import List
 from app.models.company import Company
 from app.models.snapshot import Snapshot
 from app.models.user import User
+import json
 
 
 @app.route("/")
@@ -131,6 +132,32 @@ def company(id):
         abort(404)
     return render_template("models/company/company.html", target=target)
 
+@app.route("/api/v1/company/<string:symbol>", methods=["GET"])
+def api_company(symbol):
+    auth_header = request.headers.get("Authorization", "").split(" ")
+    if len(auth_header) != 2:
+        abort(403)
+    bearer = auth_header[0]
+    token = auth_header[1]
+
+
+    if not bearer  == "Bearer":
+        abort(403)
+
+    if token not in app.config["API_BEARER_TOKENS"]:
+        abort(403)
+
+    if request.method == "GET":
+        company = Company.query.filter_by(symbol=symbol).first()
+        if not company:
+            company = Company.make(symbol)
+            db.session.add(company)
+            db.session.flush()
+        if not company:
+            return json.dumps({})
+
+        company = company.refresh_latest_snapshot()
+        return json.dumps({"company" : company.repr_dict()})
 
 if __name__ == "__main__":
     app.run()
