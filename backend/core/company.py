@@ -11,7 +11,11 @@ class Company:
 
     def update(self, scraped_data):
         for key in scraped_data:
-            setattr(self, str(key), scraped_data[key])
+            value = scraped_data[key]
+            if isinstance(value, str) and value.endswith('%'):
+                value = value[:-1]
+                value = float(value)
+            setattr(self, str(key), value)
 
     def _calculate_score(self):
         score_assessments = [

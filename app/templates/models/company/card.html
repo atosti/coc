@@ -78,6 +78,8 @@
   <li class="
              {% if '[/red]' in x %}
              text-red-500
+             {% elif '[/yellow]' in x %}
+             text-yellow-500
              {% else %}
              text-green-500
              {% endif %}" >
@@ -85,7 +87,10 @@
              x.replace('[/red]','')
              .replace('[red]','')
              .replace('[/green]','')
-             .replace('[green]','') }}
+             .replace('[green]','')
+             .replace('[yellow]','')
+             .replace('[/yellow]','')
+             }}
   </li>
   {% endfor %}
   </ul>
