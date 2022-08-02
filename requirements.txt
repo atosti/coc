@@ -27,7 +27,7 @@ loguru==0.5.3
 Mako==1.1.6
 MarkupSafe==1.1.1
 mypy-extensions==0.4.3
-numpy==1.19.4
+numpy==1.23.1
 openpyxl==3.0.5
 packaging==20.8
 pathspec==0.8.1

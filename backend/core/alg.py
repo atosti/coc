@@ -7,6 +7,8 @@ million = 1000000
 
 
 def mkt_cap(shares, price):
+    if shares is None or price is None:
+        return None
     return shares * price
 
 
