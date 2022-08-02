@@ -35,7 +35,7 @@ def snapshots_refresh(limit: int = 5, days: int = 7):
     symbols = all_nyse_symbols()
     subset = []
     for symbol in symbols:
-        # Find or Populate Companies
+        # Find or Populate Companies from list
         company = Company.query.filter_by(symbol=symbol).first()
         if not company:
             company = Company.make(symbol)
