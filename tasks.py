@@ -47,7 +47,7 @@ def snapshots_refresh(limit: int = 5, days: int = 7):
             .order_by(Snapshot.creation_time.desc())
             .first()
         )
-        if not latest_snapshot or latest_snapshot.stale(7):
+        if not latest_snapshot or latest_snapshot.stale(days):
             subset.append(company)
         if len(subset) >= limit:
             break
