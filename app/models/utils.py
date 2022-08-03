@@ -22,3 +22,13 @@ class JSONEncodedDict(TypeDecorator):
         if value is not None:
             value = json.loads(value)
         return value
+
+def all_nyse_symbols(location: str = "nyse-symbols-07-27-2022.txt"):
+    try:
+        with open(location) as file:
+            symbols = []
+            for line in file:
+                symbols.append(line.rstrip())
+        return symbols
+    except:
+        print(f'Error opening \"{location}\"')

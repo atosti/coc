@@ -2,9 +2,10 @@ from app import app, db
 from app.models.snapshot import Snapshot
 from app.models.company import Company
 from app.models.user import User
+from app.models.utils import all_nyse_symbols
 from datetime import datetime, timedelta
 from loguru import logger
-import argparse
+import argparse, random
 
 
 def log_results(out, args):
@@ -26,6 +27,34 @@ def log_results(out, args):
     #         html_body=h,
     #     )
 
+def snapshot_create(symbol: str):
+    return
+
+
+def snapshots_refresh(limit: int = 5, days: int = 7):
+    symbols = all_nyse_symbols()
+    subset = []
+    for symbol in symbols:
+        # Find or Populate Companies from list
+        company = Company.query.filter_by(symbol=symbol).first()
+        if not company:
+            company = Company.make(symbol)
+            db.session.add(company)
+            db.session.flush()
+        # Check for latest snapshot
+        latest_snapshot = (
+            Snapshot.query.filter_by(company_id=company.id)
+            .order_by(Snapshot.creation_time.desc())
+            .first()
+        )
+        if not latest_snapshot or latest_snapshot.stale(7):
+            subset.append(company)
+        if len(subset) >= limit:
+            break
+    for company in subset:
+        logger.info(f"Refreshing snapshot for {company.symbol}.")
+        company.refresh_latest_snapshot()
+    return [company.symbol for company in subset] # Returns a list of which symbols were updated
 
 def snapshots_known():
     outputs = []
@@ -88,6 +117,10 @@ def main(args, task):
             return
 
         out = user_reset_password(args.username, args.password)
+        log_results(out, args)
+        return out
+    if task == "snapshots:refresh":
+        out = snapshots_refresh()
         log_results(out, args)
         return out
 
