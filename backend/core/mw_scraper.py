@@ -1,6 +1,4 @@
 import re, locale
-
-from sqlalchemy import column
 from backend.core.scraper_utils import get_soup
 
 locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
@@ -19,31 +17,28 @@ class MWScraper:
     def chart_financials_to_dict(soup):
         table_dicts = []
         tables_found = soup.find("div", {"class": "region--primary"})
-        column_headers = []
         if tables_found is not None:
             tables = soup.find("div", {"class": "region--primary"}).findAll("table")
             for table in tables:
-                ths_found = ths = table.find("thead")
-                if ths_found:
-                    ths = table.find("thead").find("tr").findAll("th")
-                    column_headers = [x.find("div").get_text(strip=True) for x in ths]
-                    trs = table.find("tbody").findAll("tr")
-                    rows = []
-                    for tr in trs:
-                        row_header = tr.find("td").find("div").get_text(strip=True)
-                        parsed_values = [row_header]
+                ths = table.find("thead").find("tr").findAll("th")
+                column_headers = [x.find("div").get_text(strip=True) for x in ths]
+                trs = table.find("tbody").findAll("tr")
+                rows = []
+                for tr in trs:
+                    row_header = tr.find("td").find("div").get_text(strip=True)
+                    parsed_values = [row_header]
 
-                        values = (
-                            tr.find("div", {"class": "chart--financials"})
-                            .get("data-chart-data")
-                            .split(",")
-                        )
-                        for value in values:
-                            if value:
-                                parsed_values.append(float(value))
-                            else:
-                                parsed_values.append(0)
-                        rows.append(parsed_values)
+                    values = (
+                        tr.find("div", {"class": "chart--financials"})
+                        .get("data-chart-data")
+                        .split(",")
+                    )
+                    for value in values:
+                        if value:
+                            parsed_values.append(float(value))
+                        else:
+                            parsed_values.append(0)
+                    rows.append(parsed_values)
 
                 out_dict = {}
                 column_headers = [
@@ -111,11 +106,10 @@ class MWScraper:
 
     def scrape_summary(self):
         soup = get_soup(f"{self.base_url}/{self.url_symbol}/")
-        found = soup.find(text="Yield")
-        dividend_yield = None
-        if found:
-            raw_dividend_yield = found.parent.next_sibling.next_sibling.contents[0]
-            dividend_yield = raw_dividend_yield[: len(raw_dividend_yield) - 1]
+        raw_dividend_yield = soup.find(
+            text="Yield"
+        ).parent.next_sibling.next_sibling.contents[0]
+        dividend_yield = raw_dividend_yield[: len(raw_dividend_yield) - 1]
         return {
             "div_yield": dividend_yield,
         }
