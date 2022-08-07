@@ -18,8 +18,9 @@ class Snapshot(db.Model):
         return backend_company.Company(self.data.get("symbol"), self.data)
 
     def stale(self, days: int = 0):
-        delta = timedelta(datetime.now().timestamp() - self.creation_time.timestamp())
-        return delta.days > days
+        today = datetime.strptime(datetime.now().strftime("%Y-%m-%d"), "%Y-%m-%d")
+        creation_date = datetime.strptime(self.creation_time.strftime("%Y-%m-%d"), "%Y-%m-%d")
+        return abs((creation_date - today).days) > days
 
     def repr_dict(self):
         return self.data
