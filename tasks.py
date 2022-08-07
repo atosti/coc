@@ -27,9 +27,6 @@ def log_results(out, args):
     #         html_body=h,
     #     )
 
-def snapshot_create(symbol: str):
-    return
-
 
 def snapshots_refresh(limit: int = 5, days: int = 7):
     symbols = all_nyse_symbols()
