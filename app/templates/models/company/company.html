@@ -8,10 +8,11 @@
 {% block css %}
 {% endblock %}
 {% block content %}
-  <div class="m-5">
-    <h1 class="text-2xl mb-3">{{ target.symbol }}</h1>
-    
 
+
+  <div class="m-5">
+    {{ target.repr_company_card(in_dashboard)|safe }}
+    <hr class="my-5">
     <table class="charts-css line multiple show-heading show-labels show-primary-axis show-8-secondary-axes" style="height: 200px;">
       <caption class="text-xl">Scores and Graham Number</caption>
       <thead>
@@ -24,4 +25,6 @@
     </table>
 
   </div>
+
+
 {% endblock %}
