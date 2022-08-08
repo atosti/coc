@@ -132,6 +132,8 @@ def criteria_one(mkt_cap, assets, liabilities):
 def criteria_two(eps_list):
     years = 5  # Currently hard-coded to analyze last 5 years of data
     actual_growth = eps_growth(eps_list, years)
+    if not actual_growth:
+        actual_growth = 0
     # TODO - Decide if you actually want the avg_growth metric. It's confusing.
     # avg_growth = avg_eps_growth(eps_list, 5)
     # if avg_growth != None:
