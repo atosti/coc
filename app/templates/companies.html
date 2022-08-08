@@ -1,0 +1,61 @@
+
+{% extends "base.html" %}
+{% block headmeta %}
+	<title>Companies</title>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block content %}
+<form
+    class="m-5"
+    action="/company"
+    method="get">
+  <label 
+    class="inline-block mb-2 text-gray-700 uppercase"
+    for="score">company score</label>
+  <select 
+    class=
+    "block
+     px-3
+     py-2
+     text-gray-700
+     bg-white 
+     border
+     border-solid
+     border-gray-300
+     rounded"
+    name="score" 
+    id="score">
+    <option value="">--select an option--</option>
+    <option value="1">1</option>
+    <option value="2">2</option>
+    <option value="3">3</option>
+    <option value="4">4</option>
+    <option value="5">5</option>
+    <option value="6">6</option>
+    <option value="7">7</option>
+  </select>
+
+  <div class="mt-5">
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded flex">Submit</button>
+  </div>
+  
+
+</form>
+<table class="table-auto w-full">
+    <thead class="border-b">
+        <tr class="bg-gray-100">
+            <th class="text-left p-4 font-medium">Name</th>
+            <th class="text-left p-4 font-medium">Score</th>
+            <th class="text-left p-4 font-medium">Sector</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for company in companies %}
+    {{ company.repr_company_table_tr()|safe }}
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
