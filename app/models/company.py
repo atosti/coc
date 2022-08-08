@@ -64,7 +64,11 @@ class Company(db.Model):
         for s in snapshots:
             _graham_numbers.append(s.evaluate().graham_num)
         _max_graham_number = max(_graham_numbers)
-        graham_number_scale = _max_graham_number * 1.10
+
+        try:
+            graham_number_scale = _max_graham_number * 1.10
+        except:
+            graham_number_scale = 1
 
         x = ""
         previous_score = None
