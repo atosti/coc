@@ -147,7 +147,30 @@ def company(id):
     target = Company.query.filter_by(id=id).first()
     if not target:
         abort(404)
-    return render_template("models/company/company.html", target=target)
+
+    in_dashboard = False
+    _list = current_user.lists.first()
+    if _list:
+        in_dashboard = target in _list.companies()
+
+    return render_template("models/company/company.html", target=target, in_dashboard=in_dashboard)
+
+@app.route("/dashboard/company/<int:id>", methods=["POST"])
+@login_required
+def dashboard_company(id):
+    target = Company.query.filter_by(id=id).first()
+    if not target:
+        abort(404)
+
+    _list = current_user.lists.first()
+    if not _list:
+        _list = List.make(current_user)
+        db.session.add(_list)
+        db.session.flush()
+    _list.add_company(target)
+    db.session.add(_list)
+    db.session.commit()
+    return redirect(f"/company/{id}")
 
 @app.route("/api/v1/company/<string:symbol>", methods=["GET"])
 def api_company(symbol):

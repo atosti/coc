@@ -71,6 +71,20 @@ class Company(db.Model):
             evaluation=snapshot.evaluate(),
         )
 
+    def repr_company_card(self, in_dashboard):
+        snapshot = (
+            Snapshot.query.filter_by(company_id=self.id)
+            .order_by(Snapshot.creation_time.desc())
+            .first()
+        )
+        return render_template(
+            "models/company/company_card.html",
+            company=self,
+            snapshot=snapshot,
+            evaluation=snapshot.evaluate(),
+            in_dashboard=in_dashboard
+        )
+
     def repr_chart(self):
         snapshots = (
             Snapshot.query.filter_by(company_id=self.id)
