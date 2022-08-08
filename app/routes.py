@@ -40,7 +40,6 @@ def logout():
     logout_user()
     return redirect(url_for("index"))
 
-
 @app.route("/dashboard", methods=["GET", "POST", "DELETE", "PUT"])
 @login_required
 def dashboard():
@@ -123,6 +122,24 @@ def dashboard():
     card_grid = Company.repr_card_grid(_list.companies())
     return render_template("dashboard.html", card_grid=card_grid)
 
+@app.route("/company", methods=["GET"])
+@login_required
+def company_all():
+    query = Company.query
+
+    order_by = request.args.get('order_by', 'desc')
+    if order_by == 'asc':
+        query = query.order_by(Company.symbol.asc())
+    else:
+        query = query.order_by(Company.symbol.desc())
+
+    companies = query.all()
+
+    filter_by_score = request.args.get('score')
+    if filter_by_score and filter_by_score in ['0','1','2','3','4','5','6','7']:
+        filter_by_score_int = int(filter_by_score)
+        companies = [x for x in companies if x.latest_score() == filter_by_score_int]
+    return render_template("companies.html", companies=companies)
 
 @app.route("/company/<int:id>", methods=["GET"])
 @login_required
