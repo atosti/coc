@@ -14,6 +14,7 @@ class Company:
             value = scraped_data[key]
             if isinstance(value, str) and value.endswith('%'):
                 value = value[:-1]
+                value = value.replace(",","")
                 value = float(value)
             setattr(self, str(key), value)
 
