@@ -153,8 +153,13 @@ class MWScraper:
             price = (
                 intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
             )
-            if price is not None and price != "":
-                price = float(locale.atof(price))
+            if price.isdecimal():
+                if price is not None and price != "":
+                    price = float(locale.atof(price))
+            else:
+                price = None
+            # TODO - Take the price and convert it a USD value based on country codes
+            #   p = British pound?
 
         total_assets_dict = MWScraper.financials_search(soup, "Total Assets")
         total_liabilities_dict = MWScraper.financials_search(soup, "Total Liabilities")

@@ -28,7 +28,7 @@ def log_results(out, args):
     #     )
 
 
-def snapshots_refresh(limit: int = 5, days: int = 7):
+def snapshots_refresh(limit: int = 10, days: int = 7):
     symbols = all_nyse_symbols()
     subset = []
     for symbol in symbols:
