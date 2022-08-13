@@ -1,0 +1,93 @@
+<div class="card border border-gray-400 rounded p-4">
+  <div class="text-gray-900 font-bold text-xl flex">
+    <div class="text-gray-500">
+      <a class="text-blue-500 hover:text-blue-700" href="{{ company.uri() }}">{{ company.symbol }}</a> - {{ evaluation.sector }}
+    </div>
+    <div class="ml-3
+                {% if evaluation.score == 5 %}
+                text-gray-500
+                {% elif evaluation.score == 6 %}
+                text-green-700
+                {% elif evaluation.score == 7 %}
+                text-green-500
+                {% else %}
+                text-red-500
+                {% endif %}">
+      {{ evaluation.score }}
+    </div>
+    {% if not in_dashboard %}
+    <form
+        action="/dashboard/company/{{ company.id }}"
+        method="POST"
+        class="ml-auto cursor-pointer">
+    <button>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+    </button>
+    </form>
+    {% endif %}
+  </div>
+
+  {% if evaluation.graham_num and evaluation.price %}
+  {% set ratio = (evaluation.graham_num / evaluation.price)|round(2,'floor') %}
+  {% else %}
+  {% set ratio = -999 %}
+  {% endif %}
+  <div class="text-md
+              {% if ratio > 1.00 %}
+              text-green-500 
+              {% else %}
+              text-red-500 
+              {% endif %}">
+    Graham Num / Price: {{ evaluation.graham_num }}/{{ evaluation.price }} ({{ ratio }})
+  </div>
+
+  {% if evaluation.bvps and evaluation.price %}
+  {% set ratio = (evaluation.bvps / evaluation.price)|round(2,'floor') %}
+  {% else %}
+  {% set ratio = -999 %}
+  {% endif %}
+  <div class="text-md
+              {% if ratio > 1.00 %}
+              text-green-500 
+              {% else %}
+              text-red-500 
+              {% endif %}">
+    BVPS / Price: {{ evaluation.bvps }}/{{ evaluation.price }} ({{ ratio }})
+  </div>
+
+  {% if evaluation.div_yield and evaluation.payout_ratio  %}
+  {% set ratio = (evaluation.div_yield / evaluation.payout_ratio)|round(2,'floor') %}
+  <div class="text-md
+               {% if ratio > 1.00 %}
+               text-green-500 
+               {% else %}
+               text-red-500 
+               {% endif %}">
+    Dividend Yield / Payout Ratio: {{ evaluation.div_yield }}/{{ evaluation.payout_ratio }} ({{ ratio }})
+  </div>
+  {% endif %}
+
+  <ul class="list-disc list-inside mt-2">
+  {% for x in evaluation.health_check() %}
+  <li class="
+             {% if '[/red]' in x %}
+             text-red-500
+             {% elif '[/yellow]' in x %}
+             text-yellow-500
+             {% else %}
+             text-green-500
+             {% endif %}" >
+             {{ 
+             x.replace('[/red]','')
+             .replace('[red]','')
+             .replace('[/green]','')
+             .replace('[green]','')
+             .replace('[yellow]','')
+             .replace('[/yellow]','')
+             }}
+  </li>
+  {% endfor %}
+  </ul>
+</div>
