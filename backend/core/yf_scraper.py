@@ -43,7 +43,7 @@ class YFScraper:
         if found:
             # TODO - Currently just grabs the 4th element. Find a better way to nav.
             value = found.parent.parent.parent.findChildren()[3].get_text(strip=True)
-            if value != "N/A":
+            if value and value != "N/A":
                 if is_num:
                     result = float(locale.atof(value))
                 else:
