@@ -4,6 +4,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from app.models.list import List
 from app.models.company import Company
 from app.models.snapshot import Snapshot
+from app.models.snapshot_failure import SnapshotFailure
 from app.models.user import User
 import json
 
