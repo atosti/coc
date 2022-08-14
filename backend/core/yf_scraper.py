@@ -45,7 +45,10 @@ class YFScraper:
             value = found.parent.parent.parent.findChildren()[3].get_text(strip=True)
             if value and value != "N/A":
                 if is_num:
-                    result = float(locale.atof(value))
+                    try:
+                        result = float(locale.atof(value))
+                    except:
+                        result = value
                 else:
                     result = value
         return result
