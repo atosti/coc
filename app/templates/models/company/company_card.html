@@ -27,6 +27,23 @@
     </button>
     </form>
     {% endif %}
+    <div class="ml-auto">
+      <ul>
+        <li class="text-blue-500 cursor-pointer">
+          <a href="https://invest.ameritrade.com/grid/p/site#r=jPage/https://research.ameritrade.com/grid/wwws/research/stocks/summary?c_name=invest_VENDOR&symbol={{ company.symbol }}"
+             target="_blank">
+            TD Ameritrade
+          </a>
+        </li>
+
+        <li class="text-blue-500 cursor-pointer">
+          <a href="https://seekingalpha.com/symbol/{{ company.symbol }}"
+             target="_blank">
+            Seeking Alpha
+          </a>
+        </li>
+      </ul>
+    </div>
   </div>
 
   {% if evaluation.graham_num and evaluation.price %}
