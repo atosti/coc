@@ -30,6 +30,7 @@ def log_results(out, args):
 
 def snapshots_refresh(limit: int = 10, days: int = 7):
     symbols = all_nyse_symbols()
+    random.shuffle(symbols)
     subset = []
     for symbol in symbols:
         # Find or Populate Companies from list
@@ -48,10 +49,25 @@ def snapshots_refresh(limit: int = 10, days: int = 7):
             subset.append(company)
         if len(subset) >= limit:
             break
+
+    successes = []
+    errors = []
     for company in subset:
         logger.info(f"Refreshing snapshot for {company.symbol}.")
-        company.refresh_latest_snapshot()
-    return [company.symbol for company in subset] # Returns a list of which symbols were updated
+        try:
+            company.refresh_latest_snapshot()
+            successes.append(company.symbol)
+        except:
+            errors.append(company.symbol)
+
+    out = {
+        "name": "referrals:process_targets",
+        "completed-at": str(datetime.now()),
+        "args": args,
+        "errors": errors,
+        "successes": successes,
+    }
+    return out
 
 def snapshots_known():
     outputs = []
@@ -104,6 +120,7 @@ def main(args, task):
         out = snapshots_known()
         log_results(out, args)
         return out
+
     if task == "user:reset-password":
         if not args.username:
             logger.warning("--username is a required argument.")
@@ -117,7 +134,15 @@ def main(args, task):
         log_results(out, args)
         return out
     if task == "snapshots:refresh":
-        out = snapshots_refresh()
+        if not args.days:
+            logger.warning("--days is a required argument.")
+            return
+
+        if not args.limit:
+            logger.warning("--limit is a required argument.")
+            return
+
+        out = snapshots_refresh(args.limit, args.days)
         log_results(out, args)
         return out
 
@@ -141,6 +166,18 @@ def process_args():
         "--password",
         type=str,
         help="new password",
+    )
+    parser.add_argument(
+        "-d",
+        "--days",
+        type=int,
+        help="A number of days.",
+    )
+    parser.add_argument(
+        "-l",
+        "--limit",
+        type=int,
+        help="Symbol count per refresh attempt",
     )
     return parser.parse_args()
 
