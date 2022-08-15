@@ -2,6 +2,7 @@ from app import app, db
 from app.models.snapshot import Snapshot
 from app.models.company import Company
 from app.models.user import User
+from app.models.snapshot_failure import SnapshotFailure
 from app.models.utils import all_nyse_symbols
 from datetime import datetime, timedelta
 from loguru import logger
@@ -56,9 +57,20 @@ def snapshots_refresh(limit: int = 10, days: int = 7):
         logger.info(f"Refreshing snapshot for {company.symbol}.")
         try:
             company.refresh_latest_snapshot()
+            previous_failure = (
+                SnapshotFailure.query.filter_by(symbol=company.symbol)
+                .first())
+            if previous_failure:
+                previous_failure.delete()
+                db.session.commit()
+
             successes.append(company.symbol)
-        except:
+
+        except Exception as e:
             errors.append(company.symbol)
+            failure = SnapshotFailure.make(company.symbol)
+            db.session.add(failure)
+            db.session.commit()
 
     out = {
         "name": "referrals:process_targets",
