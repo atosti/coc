@@ -9,6 +9,7 @@ class Company(db.Model):
         db.DateTime(timezone=True), server_default=db.func.now(), nullable=False
     )
     symbol = db.Column(db.UnicodeText(), nullable=False)
+    latest_score = db.Column(db.Integer)
 
     def uri(self):
         return f"/company/{self.id}"
@@ -23,7 +24,10 @@ class Company(db.Model):
             return self
 
         snapshot = Snapshot.make(self.symbol, self)
+        score = snapshot.evaluate().score
+        self.latest_score = score
         if snapshot:
+            db.session.add(self)
             db.session.add(snapshot)
             db.session.commit()
         else:
@@ -38,16 +42,6 @@ class Company(db.Model):
                 .first()
                 )
         return latest_snapshot
-    
-    def latest_score(self):
-        latest_snapshot = (
-                Snapshot.query.filter_by(company_id=self.id)
-                .order_by(Snapshot.creation_time.desc())
-                .first())
-
-        if latest_snapshot:
-            return latest_snapshot.evaluate().score
-        return -1
 
     def repr_dict(self):
         snapshot = (

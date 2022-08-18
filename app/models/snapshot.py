@@ -17,7 +17,7 @@ class Snapshot(db.Model):
     def evaluate(self):
         return backend_company.Company(self.data.get("symbol"), self.data)
 
-    def stale(self, days: int = 0):
+    def stale(self, days: int = 1):
         today = datetime.strptime(datetime.now().strftime("%Y-%m-%d"), "%Y-%m-%d")
         creation_date = datetime.strptime(self.creation_time.strftime("%Y-%m-%d"), "%Y-%m-%d")
         return abs((creation_date - today).days) > days

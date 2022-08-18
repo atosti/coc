@@ -97,21 +97,7 @@ def dashboard():
         company = Company.query.filter_by(id=target).first()
         if not company:
             return ""
-
-        latest_snapshot = (
-            Snapshot.query.filter_by(company_id=company.id)
-            .order_by(Snapshot.creation_time.desc())
-            .first()
-        )
-        if not latest_snapshot.stale():
-            return company.repr_card()
-
-        snapshot = Snapshot.make(company.symbol, company)
-        if snapshot:
-            db.session.add(snapshot)
-            db.session.commit()
-        else:
-            db.session.rollback()
+        company = company.refresh_latest_snapshot()
 
         return company.repr_card()
 
@@ -139,7 +125,7 @@ def company_all():
     filter_by_score = request.args.get('score')
     if filter_by_score and filter_by_score in ['0','1','2','3','4','5','6','7']:
         filter_by_score_int = int(filter_by_score)
-        companies = [x for x in companies if x.latest_score() == filter_by_score_int]
+        companies = [x for x in companies if x.latest_score == filter_by_score_int]
     return render_template("companies.html", companies=companies)
 
 @app.route("/company/<int:id>", methods=["GET"])
