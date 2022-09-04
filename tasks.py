@@ -28,6 +28,36 @@ def log_results(out, args):
     #         html_body=h,
     #     )
 
+def companies_latest_score_refresh(args):
+    companies = Company.query.all()
+    errors = []
+    for company in companies:
+        try:
+            latest_snapshot = (
+                    Snapshot.query.filter_by(company_id=company.id)
+                    .order_by(Snapshot.creation_time.desc())
+                    .first())
+
+            latest_score = -1
+            if latest_snapshot:
+                latest_score = latest_snapshot.evaluate().score
+
+            company.latest_score = latest_score
+            db.session.add(company)
+            db.session.commit()
+            logger.info(f"Updated symbol: {company.symbol}")
+        except Exception as e:
+            errors.append(company.symbol)
+
+    out = {
+            "name": "companies:latest-score-refresh",
+            "completed-at": str(datetime.now()),
+            "args": args,
+            "errors": errors,
+            "successes": [],
+    }
+    return out
+
 
 def snapshots_refresh(limit: int = 10, days: int = 7):
     symbols = all_nyse_symbols()
@@ -73,11 +103,11 @@ def snapshots_refresh(limit: int = 10, days: int = 7):
             db.session.commit()
 
     out = {
-        "name": "referrals:process_targets",
-        "completed-at": str(datetime.now()),
-        "args": args,
-        "errors": errors,
-        "successes": successes,
+            "name": "snapshots:refresh",
+            "completed-at": str(datetime.now()),
+            "args": args,
+            "errors": errors,
+            "successes": successes,
     }
     return out
 
@@ -155,6 +185,11 @@ def main(args, task):
             return
 
         out = snapshots_refresh(args.limit, args.days)
+        log_results(out, args)
+        return out
+
+    if task == "companies:latest-score-refresh":
+        out = companies_latest_score_refresh(args)
         log_results(out, args)
         return out
 
