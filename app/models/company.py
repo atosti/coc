@@ -99,16 +99,9 @@ class Company(db.Model):
         return render_template("models/company/card_grid.html", companies=companies)
 
     def repr_company_table_tr(self):
-        latest_snapshot = (
-            Snapshot.query.filter_by(company_id=self.id)
-            .order_by(Snapshot.creation_time.desc())
-            .first()
-        )
         return render_template(
                 "models/company/company_table_tr.html", 
-                company=self, 
-                evaluation=latest_snapshot.evaluate(),
-                snapshot=latest_snapshot)
+                company=self)
 
     @staticmethod
     def make(symbol):
