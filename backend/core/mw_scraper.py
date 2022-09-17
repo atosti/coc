@@ -153,10 +153,9 @@ class MWScraper:
             price = (
                 intraday_price.get_text(strip=True).replace("$", "").replace("€", "")
             )
-            if price.isdecimal():
-                if price is not None and price != "":
-                    price = float(locale.atof(price))
-            else:
+            try:
+                price = float(locale.atof(price))
+            except:
                 price = None
             # TODO - Take the price and convert it a USD value based on country codes
             #   p = British pound?
