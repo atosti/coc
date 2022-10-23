@@ -43,6 +43,15 @@ class Company(db.Model):
                 )
         return latest_snapshot
 
+    def snapshot_at_time(self, datetime):
+        latest_snapshot_at_time = (
+                Snapshot.query
+                .filter_by(company_id=self.id)
+                .filter(self.creation_time<=datetime)
+                .order_by(Snapshot.creation_time.desc())
+                .first())
+        return latest_snapshot_at_time
+
     def repr_dict(self):
         snapshot = (
             Snapshot.query.filter_by(company_id=self.id)
@@ -97,6 +106,10 @@ class Company(db.Model):
     @staticmethod
     def repr_card_grid(companies):
         return render_template("models/company/card_grid.html", companies=companies)
+
+    @staticmethod
+    def repr_card_grid_company_card(companies):
+        return render_template("models/company/card_grid_company_card.html", companies=companies)
 
     def repr_company_table_tr(self):
         return render_template(

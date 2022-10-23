@@ -1,0 +1,32 @@
+
+{% extends "base.html" %}
+{% block headmeta %}
+	<title>Market</title>
+{% endblock %}
+{% block scripts %}
+{% endblock %}
+{% block css %}
+{% endblock %}
+{% block content %}
+
+<div class="my-3">
+
+  <form 
+     action="/market"
+     method="get"
+    class="mb-5">
+    <label class="text-2xl" for="target_date">Target Date:</label>
+    <input type="date" id="target_date" name="target_date" value="{{ target_date }}">
+    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mt-3 rounded flex">
+      Submit
+    </button>
+  </form>
+  <h2 class="text-3xl">Rising 7s</h2>
+  {{ rising_sevens_card_grid|safe }} 
+
+  <hr class="my-3">
+
+  <h2 class="text-3xl">Constant 7s</h2>
+  {{ constant_sevens_card_grid|safe }} 
+</div>
+{% endblock %}

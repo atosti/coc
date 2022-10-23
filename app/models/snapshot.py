@@ -22,6 +22,9 @@ class Snapshot(db.Model):
         creation_date = datetime.strptime(self.creation_time.strftime("%Y-%m-%d"), "%Y-%m-%d")
         return abs((creation_date - today).days) > days
 
+    def score(self):
+        return self.evaluate().score
+
     def repr_dict(self):
         return self.data
 

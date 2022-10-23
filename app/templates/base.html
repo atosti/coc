@@ -19,7 +19,9 @@
       <div class="relative flex justify-between w-auto px-4 static block justify-start">
         <div class="font-bold uppercase text-lg text-white hover:opacity-75 mr-5"><a href="/dashboard">Dashboard</a></div>
 
-        <div class="font-bold uppercase text-lg text-white hover:opacity-75"><a href="/company">Companies</a></div>
+        <div class="font-bold uppercase text-lg text-white hover:opacity-75 mr-5"><a href="/company">Companies</a></div>
+
+        <div class="font-bold uppercase text-lg text-white hover:opacity-75"><a href="/market">Market</a></div>
       </div>
     </div>
 
@@ -29,6 +31,8 @@
     <div class="font-bold uppercase text-lg text-white hover:opacity-75 ml-auto"><a href="/login">login</a></div>
     {% endif %}
   </nav>
+  <div class="mx-5">
 {% block content %}{% endblock %}
+  </div>
 </body>
 </html>    
