@@ -5,9 +5,11 @@ from app.models.list import List
 from app.models.company import Company
 from app.models.snapshot import Snapshot
 from app.models.snapshot_failure import SnapshotFailure
+from dateutil import tz
 import datetime
 from dateutil import parser
 from app.models.user import User
+import zoneinfo
 import json
 
 
@@ -144,6 +146,7 @@ def market():
 
     target_date = datetime.date(target_year, target_month, target_day)
     target_datetime = datetime.datetime(target_date.year, target_date.month, target_date.day)
+    target_datetime = target_datetime.replace(tzinfo=tz.gettz('EST'))
     for company in current_sevens:
         target_snapshot = company.snapshot_at_time( target_datetime )
         if target_snapshot and target_snapshot.score() == 7:

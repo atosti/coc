@@ -1,4 +1,4 @@
-<div class="m-5 grid grid-cols-1 lg:grid-cols-2 gap-5" id="card-grid">
+<div class="m-5 grid grid-cols-1 lg:grid-cols-2 gap-5">
   {% for company in companies %}
   {{ company.repr_company_card(true)|safe }}
   {% endfor %}
