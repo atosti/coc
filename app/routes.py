@@ -5,6 +5,8 @@ from app.models.list import List
 from app.models.company import Company
 from app.models.snapshot import Snapshot
 from app.models.snapshot_failure import SnapshotFailure
+import datetime
+from dateutil import parser
 from app.models.user import User
 import json
 
@@ -52,6 +54,9 @@ def dashboard():
             db.session.flush()
 
         symbol = request.form.to_dict().get("symbol")
+        if symbol:
+            symbol=symbol.upper()
+
         # TODO: check if valid symbol here, capitalization too
         company = Company.query.filter_by(symbol=symbol).first()
         if not company:
@@ -108,6 +113,50 @@ def dashboard():
         db.session.commit()
     card_grid = Company.repr_card_grid(_list.companies())
     return render_template("dashboard.html", card_grid=card_grid)
+
+@app.route("/market")
+def market():
+    current_sevens = [x for x in Company.query.all() if x.latest_score == 7]
+    constant_sevens = []
+    rising_sevens = []
+
+    target_date = request.args.get('target_date')
+    try:
+        d = parser.parse(target_date)
+        target_day = d.day
+        target_month = d.month
+        target_year = d.year
+    except:
+        now = datetime.datetime.today()
+        target_day = 1
+        if now.month == 1 :
+            target_month = 11
+            target_year = now.year - 1
+        elif now.month == 2 :
+            target_month = 12
+            target_year = now.year - 1
+        elif now.month == 3 :
+            target_month = 1
+            target_year = now.year
+        else:
+            target_month = now.month - 2
+            target_year = now.year
+
+    target_date = datetime.date(target_year, target_month, target_day)
+    target_datetime = datetime.datetime(target_date.year, target_date.month, target_date.day)
+    for company in current_sevens:
+        target_snapshot = company.snapshot_at_time( target_datetime )
+        if target_snapshot and target_snapshot.score() == 7:
+            constant_sevens.append(company)
+        elif target_snapshot and target_snapshot.score() != 7:
+            rising_sevens.append(company)
+        else:
+            rising_sevens.append(company)
+
+    constant_sevens_card_grid = Company.repr_card_grid_company_card(constant_sevens)
+    rising_sevens_card_grid = Company.repr_card_grid_company_card(rising_sevens)
+
+    return render_template("market.html", rising_sevens_card_grid=rising_sevens_card_grid, constant_sevens_card_grid=constant_sevens_card_grid, target_date=target_date)
 
 @app.route("/company", methods=["GET"])
 @login_required
