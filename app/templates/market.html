@@ -21,12 +21,17 @@
       Submit
     </button>
   </form>
-  <h2 class="text-3xl">Rising 7s</h2>
-  {{ rising_sevens_card_grid|safe }} 
+  
+  <details>
+    <summary class="text-3xl">Rising 7s</summary>
+    {{ rising_sevens_card_grid|safe }} 
+  </details>
 
-  <hr class="my-3">
+  <hr class="m-3">
 
-  <h2 class="text-3xl">Constant 7s</h2>
-  {{ constant_sevens_card_grid|safe }} 
+  <details>
+    <summary class="text-3xl">Constant 7s</summary>
+    {{ constant_sevens_card_grid|safe }} 
+  </details>
 </div>
 {% endblock %}
